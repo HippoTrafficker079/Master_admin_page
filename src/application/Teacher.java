@@ -6,14 +6,18 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class Teacher {
-    private final IntegerProperty no;
+    // Primary database ID (formerly 'no')
+    private final IntegerProperty teacherId;
+    
+    // Formatted Code (formerly 'teacherId', e.g. TCH-CEIT-101)
+    private final StringProperty teacherCode;
+
     private final StringProperty name;
     private final StringProperty department;
     private final StringProperty position;
     private final StringProperty phoneNo;
 
     // Extended fields for the Teacher Information Form
-    private final StringProperty teacherId;
     private final StringProperty dob;
     private final StringProperty gender;
     private final StringProperty nationality;
@@ -29,27 +33,37 @@ public class Teacher {
     private final StringProperty photoPath;
 
     // Original backups for reset functionality
-    private final String origName, origDepartment, origPosition, origPhoneNo;
-    private final String origTeacherId, origDob, origGender, origNationality, origNrc, origEmail;
+    private final int origTeacherId;
+    private final String origTeacherCode, origName, origDepartment, origPosition, origPhoneNo;
+    private final String origDob, origGender, origNationality, origNrc, origEmail;
     private final String origCurrentAddress, origPermanentAddress;
     private final String origDegree, origUniversity, origYearCompleted, origSpecialization, origEmergencyContact;
 
-    public Teacher(int no, String name, String department, String position, String phoneNo) {
-        this(no, name, department, position, phoneNo, 
-             "TCH-" + (100 + no), "15-May-1985", "Male", "Myanmar", "12/MaGaTa(N)987654", name.toLowerCase().replace(" ", "").replace(".", "") + "@ytu.edu.mm", 
-             "Yangon", "Yangon", "Ph.D.", "Yangon Technological University", "2012", "Advanced Engineering", "09-123456789", null);
+    // Summary Constructor (used by DAO getAllTeacher / getFilteredTeachers)
+    public Teacher(int teacherId, String teacherCode, String name, String department, String position, String phoneNo) {
+        this(teacherId, teacherCode, name, department, position, phoneNo,
+             "15-05-1985", "Male", "Myanmar", "-", name.toLowerCase().replace(" ", "").replace(".", "") + "@ytu.edu.mm",
+             "-", "-", "Ph.D.", "Yangon Technological University", "2012", "Engineering", phoneNo, null);
     }
 
-    public Teacher(int no, String name, String department, String position, String phoneNo,
-                   String teacherId, String dob, String gender, String nationality, String nrc, String email, 
+    // Backwards-compatible 5-argument constructor
+    public Teacher(int teacherId, String name, String department, String position, String phoneNo) {
+        this(teacherId, "TCH-" + (department != null ? department : "CEIT") + "-" + teacherId,
+             name, department, position, phoneNo);
+    }
+
+    // Full Details Constructor
+    public Teacher(int teacherId, String teacherCode, String name, String department, String position, String phoneNo,
+                   String dob, String gender, String nationality, String nrc, String email, 
                    String currentAddress, String permanentAddress, String degree, String university, 
                    String yearCompleted, String specialization, String emergencyContact, String photoPath) {
-        this.no = new SimpleIntegerProperty(no);
+        this.teacherId = new SimpleIntegerProperty(teacherId);
+        this.teacherCode = new SimpleStringProperty(teacherCode != null && !teacherCode.isEmpty() ? teacherCode : "TCH-" + department + "-" + teacherId);
         this.name = new SimpleStringProperty(name);
         this.department = new SimpleStringProperty(department);
         this.position = new SimpleStringProperty(position);
         this.phoneNo = new SimpleStringProperty(phoneNo);
-        this.teacherId = new SimpleStringProperty(teacherId != null && !teacherId.isEmpty() ? teacherId : "TCH-" + (100 + no));
+
         this.dob = new SimpleStringProperty(dob != null && !dob.isEmpty() ? dob : "-");
         this.gender = new SimpleStringProperty(gender != null && !gender.isEmpty() ? gender : "-");
         this.nationality = new SimpleStringProperty(nationality != null && !nationality.isEmpty() ? nationality : "Myanmar");
@@ -64,11 +78,12 @@ public class Teacher {
         this.emergencyContact = new SimpleStringProperty(emergencyContact != null && !emergencyContact.isEmpty() ? emergencyContact : "-");
         this.photoPath = new SimpleStringProperty(photoPath != null ? photoPath : "");
 
+        this.origTeacherId = teacherId;
+        this.origTeacherCode = this.teacherCode.get();
         this.origName = name;
         this.origDepartment = department;
         this.origPosition = position;
         this.origPhoneNo = phoneNo;
-        this.origTeacherId = this.teacherId.get();
         this.origDob = this.dob.get();
         this.origGender = this.gender.get();
         this.origNationality = this.nationality.get();
@@ -84,11 +99,12 @@ public class Teacher {
     }
 
     public void resetToOriginal() {
+        teacherId.set(origTeacherId);
+        teacherCode.set(origTeacherCode);
         name.set(origName);
         department.set(origDepartment);
         position.set(origPosition);
         phoneNo.set(origPhoneNo);
-        teacherId.set(origTeacherId);
         dob.set(origDob);
         gender.set(origGender);
         nationality.set(origNationality);
@@ -103,9 +119,20 @@ public class Teacher {
         emergencyContact.set(origEmergencyContact);
     }
 
-    public int getNo() { return no.get(); }
-    public IntegerProperty noProperty() { return no; }
-    public void setNo(int no) { this.no.set(no); }
+    // teacherId (Database ID)
+    public int getTeacherId() { return teacherId.get(); }
+    public IntegerProperty teacherIdProperty() { return teacherId; }
+    public void setTeacherId(int id) { this.teacherId.set(id); }
+
+    // Backward compatibility helper for getNo()
+    public int getNo() { return teacherId.get(); }
+    public IntegerProperty noProperty() { return teacherId; }
+    public void setNo(int no) { this.teacherId.set(no); }
+
+    // teacherCode (e.g. TCH-CEIT-101)
+    public String getTeacherCode() { return teacherCode.get(); }
+    public StringProperty teacherCodeProperty() { return teacherCode; }
+    public void setTeacherCode(String code) { this.teacherCode.set(code); }
 
     public String getName() { return name.get(); }
     public StringProperty nameProperty() { return name; }
@@ -123,44 +150,52 @@ public class Teacher {
     public StringProperty phoneNoProperty() { return phoneNo; }
     public void setPhoneNo(String phoneNo) { this.phoneNo.set(phoneNo); }
 
-    // Form Detail Getters & Setters
-    public String getTeacherId() { return teacherId.get(); }
-    public void setTeacherId(String teacherId) { this.teacherId.set(teacherId); }
-
     public String getDob() { return dob.get(); }
+    public StringProperty dobProperty() { return dob; }
     public void setDob(String dob) { this.dob.set(dob); }
 
     public String getGender() { return gender.get(); }
+    public StringProperty genderProperty() { return gender; }
     public void setGender(String gender) { this.gender.set(gender); }
 
     public String getNationality() { return nationality.get(); }
+    public StringProperty nationalityProperty() { return nationality; }
     public void setNationality(String nationality) { this.nationality.set(nationality); }
 
     public String getNrc() { return nrc.get(); }
+    public StringProperty nrcProperty() { return nrc; }
     public void setNrc(String nrc) { this.nrc.set(nrc); }
 
     public String getEmail() { return email.get(); }
+    public StringProperty emailProperty() { return email; }
     public void setEmail(String email) { this.email.set(email); }
 
     public String getCurrentAddress() { return currentAddress.get(); }
+    public StringProperty currentAddressProperty() { return currentAddress; }
     public void setCurrentAddress(String currentAddress) { this.currentAddress.set(currentAddress); }
 
     public String getPermanentAddress() { return permanentAddress.get(); }
+    public StringProperty permanentAddressProperty() { return permanentAddress; }
     public void setPermanentAddress(String permanentAddress) { this.permanentAddress.set(permanentAddress); }
 
     public String getDegree() { return degree.get(); }
+    public StringProperty degreeProperty() { return degree; }
     public void setDegree(String degree) { this.degree.set(degree); }
 
     public String getUniversity() { return university.get(); }
+    public StringProperty universityProperty() { return university; }
     public void setUniversity(String university) { this.university.set(university); }
 
     public String getYearCompleted() { return yearCompleted.get(); }
+    public StringProperty yearCompletedProperty() { return yearCompleted; }
     public void setYearCompleted(String yearCompleted) { this.yearCompleted.set(yearCompleted); }
 
     public String getSpecialization() { return specialization.get(); }
+    public StringProperty specializationProperty() { return specialization; }
     public void setSpecialization(String specialization) { this.specialization.set(specialization); }
 
     public String getEmergencyContact() { return emergencyContact.get(); }
+    public StringProperty emergencyContactProperty() { return emergencyContact; }
     public void setEmergencyContact(String emergencyContact) { this.emergencyContact.set(emergencyContact); }
 
     public String getPhotoPath() { return photoPath.get(); }

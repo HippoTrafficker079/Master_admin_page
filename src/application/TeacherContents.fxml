@@ -36,7 +36,7 @@
          </children>
       </HBox>
 
-      <!-- Search & Reset Bar (Filters only on Search button click or Enter key) -->
+      <!-- Search & Reset Bar -->
       <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 12 16; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
          <children>
             <TextField fx:id="searchField" onAction="#handleSearch"
@@ -52,7 +52,7 @@
          </children>
       </HBox>
 
-      <!-- Distinct Striking Instruction Notice Banner Box -->
+      <!-- Hint Banner -->
       <HBox alignment="CENTER_LEFT" styleClass="instruction-banner-box">
          <children>
             <Label text="💡  Hint: Double-click any teacher row in the table below to view detailed faculty information." textFill="#1d4ed8">
@@ -66,12 +66,12 @@
          </VBox.margin>
       </HBox>
 
-      <!-- Teacher Table View -->
+      <!-- Table View with colTeacherId included -->
       <TableView fx:id="teacherTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="440.0" prefWidth="700.0" style="-fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;" VBox.vgrow="ALWAYS">
         <columns>
           <TableColumn fx:id="colNo" prefWidth="45.0" text="No" />
-          <TableColumn fx:id="colTeacherId" prefWidth="110.0" text="Teacher ID" />
-          <TableColumn fx:id="colName" prefWidth="145.0" text="Name" />
+          <TableColumn fx:id="colTeacherId" prefWidth="130.0" text="Teacher ID" />
+          <TableColumn fx:id="colName" prefWidth="140.0" text="Name" />
           <TableColumn fx:id="colDepartment" prefWidth="160.0" text="" />
           <TableColumn fx:id="colPosition" prefWidth="160.0" text="" />
           <TableColumn fx:id="colPhone" prefWidth="120.0" text="Phone-no" />

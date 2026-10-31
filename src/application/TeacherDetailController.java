@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import application.dao.TeacherDAO;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -103,8 +104,8 @@ public class TeacherDetailController {
             bannerBox.setStyle("-fx-background-color: #dbeafe; -fx-border-color: #2563eb; -fx-border-width: 1.5; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 12 18;");
             
             String bannerText = String.format("⭐     %d     |     %s     |     %s     |     %s     |     %s",
-                teacher.getNo(),
                 teacher.getTeacherId(),
+                teacher.getTeacherCode(),
                 teacher.getName(),
                 teacher.getDepartment(),
                 teacher.getPosition()
@@ -117,7 +118,7 @@ public class TeacherDetailController {
         }
 
         if (!isEditMode) {
-            lblTeacherId.setText(teacher.getTeacherId());
+            lblTeacherId.setText(teacher.getTeacherCode());
             lblDob.setText(teacher.getDob());
             lblName.setText(teacher.getName());
             lblGender.setText(teacher.getGender());
@@ -160,7 +161,6 @@ public class TeacherDetailController {
     private void setupTeacherBidirectionalSync() {
         if (!isEditMode) return;
 
-        // When user modifies Teacher ID -> update Department text field
         if (txtTeacherId != null) {
             txtTeacherId.focusedProperty().addListener((obs, oldVal, newVal) -> {
                 if (!newVal && !isUpdating) {
@@ -185,7 +185,6 @@ public class TeacherDetailController {
             });
         }
 
-        // When user modifies Department -> update Teacher ID field
         if (txtDept != null) {
             txtDept.focusedProperty().addListener((obs, oldVal, newVal) -> {
                 if (!newVal && !isUpdating) {
@@ -217,9 +216,9 @@ public class TeacherDetailController {
         String rawDept = txtDept.getText() != null ? txtDept.getText().trim() : "";
         String validDept = findValidDepartment(rawDept);
         if (validDept != null) {
-            String currentId = txtTeacherId.getText() != null ? txtTeacherId.getText().trim() : "";
-            if (currentId.contains("-")) {
-                String[] parts = currentId.split("-");
+            String currentCode = txtTeacherId.getText() != null ? txtTeacherId.getText().trim() : "";
+            if (currentCode.contains("-")) {
+                String[] parts = currentCode.split("-");
                 String prefix = parts[0].trim();
                 String num = parts[parts.length - 1].trim();
 
@@ -255,8 +254,8 @@ public class TeacherDetailController {
 
         Teacher blankTeacher = new Teacher(
             TeacherController.masterData != null ? TeacherController.masterData.size() + 1 : 1,
-            "", "CEIT", "Tutor", "",
-            "TCH-CEIT-101", "", "", "Myanmar", "", "",
+            "TCH-CEIT-101", "", "CEIT", "Tutor", "",
+            "", "", "Myanmar", "", "",
             "", "", "", "", "", "", "", DEFAULT_IMAGE_PATH
         );
 
@@ -296,7 +295,7 @@ public class TeacherDetailController {
     }
 
     private void createTextFields(Teacher teacher) {
-        replaceLabelWithTextField(lblTeacherId, txtTeacherId = new TextField(teacher != null ? teacher.getTeacherId() : ""));
+        replaceLabelWithTextField(lblTeacherId, txtTeacherId = new TextField(teacher != null ? teacher.getTeacherCode() : ""));
         replaceLabelWithTextField(lblDob, txtDob = new TextField(teacher != null ? teacher.getDob() : ""));
         replaceLabelWithTextField(lblName, txtName = new TextField(teacher != null ? teacher.getName() : ""));
         replaceLabelWithTextField(lblGender, txtGender = new TextField(teacher != null ? teacher.getGender() : ""));
@@ -319,7 +318,7 @@ public class TeacherDetailController {
         txtPhone.setPromptText("09-231231231");
         txtEmail.setPromptText("teacher@ytu.edu.mm");
         txtEmergency.setPromptText("09-231231231");
-        txtDob.setPromptText("DD-MM-YYYY");
+        txtDob.setPromptText("YYYY-MM-DD");
         txtYearCompleted.setPromptText("e.g. 2015");
     }
 
@@ -334,10 +333,6 @@ public class TeacherDetailController {
             grid.add(textField, col != null ? col : 0, row != null ? row : 0);
         }
     }
-
-    // ==========================================
-    // EXCEL / CSV IMPORT & DRAG-AND-DROP
-    // ==========================================
 
     @FXML
     public void handleBrowseExcel() {
@@ -586,7 +581,7 @@ public class TeacherDetailController {
     }
 
     private void populateTeacherFieldsFromMap(Map<String, String> map, String[] rawOrder) {
-        if (txtTeacherId != null) txtTeacherId.setText(getMapOrIndex(map, rawOrder, 0, "teacher id", "id", "teacherid", "employee id"));
+        if (txtTeacherId != null) txtTeacherId.setText(getMapOrIndex(map, rawOrder, 0, "teacher id", "id", "teacherid", "employee id", "teacher code"));
         if (txtName != null) txtName.setText(getMapOrIndex(map, rawOrder, 1, "name", "full name", "fullname", "teacher name"));
         
         String importedDept = getMapOrIndex(map, rawOrder, 2, "department", "dept");
@@ -627,10 +622,6 @@ public class TeacherDetailController {
         }
         return "";
     }
-
-    // ==========================================
-    // VALIDATIONS & REGISTRATION LOGIC
-    // ==========================================
 
     private String findValidDepartment(String input) {
         if (input == null) return null;
@@ -687,7 +678,7 @@ public class TeacherDetailController {
 
     @FXML
     public void handleSave() {
-        String rawId = txtTeacherId != null ? txtTeacherId.getText().trim() : "";
+        String rawCode = txtTeacherId != null ? txtTeacherId.getText().trim() : "";
         String rawName = txtName != null ? txtName.getText().trim() : "";
         String rawDept = txtDept != null ? txtDept.getText().trim() : "";
         String rawPos = txtPosition != null ? txtPosition.getText().trim() : "";
@@ -698,27 +689,26 @@ public class TeacherDetailController {
         String rawYearComp = txtYearCompleted != null ? txtYearCompleted.getText().trim() : "";
 
         // 0. Empty Field Validation
-        if (rawId.isEmpty() || rawName.isEmpty() || rawDept.isEmpty() || rawPos.isEmpty() || rawPhone.isEmpty()) {
+        if (rawCode.isEmpty() || rawName.isEmpty() || rawDept.isEmpty() || rawPos.isEmpty() || rawPhone.isEmpty()) {
             showAlert("Missing Information", "Please fill in Teacher ID, Full Name, Department, Position, and Phone Number.", Alert.AlertType.ERROR);
             return;
         }
 
-        // 1. Strict Structural Format Check for Teacher ID (e.g. TCH-CEIT-111)
-        if (!rawId.matches("^[a-zA-Z]+-[a-zA-Z0-9]+-\\d+$")) {
+        // 1. Strict Structural Format Check for Teacher Code (e.g. TCH-CEIT-101)
+        if (!rawCode.matches("^[a-zA-Z]+-[a-zA-Z0-9]+-\\d+$")) {
             showAlert("Invalid Teacher ID Format", 
-                "Teacher ID must be in the format: [Prefix]-[Department]-[Number]\n(e.g., TCH-CEIT-101 or TCH-EC-112).\n\n'" + rawId + "' is not a valid format.", 
+                "Teacher ID must be in the format: [Prefix]-[Department]-[Number]\n(e.g., TCH-CEIT-101 or TCH-EC-112).\n\n'" + rawCode + "' is not a valid format.", 
                 Alert.AlertType.ERROR);
             return;
         }
 
-        String[] parts = rawId.split("-");
+        String[] parts = rawCode.split("-");
         String idPrefix = parts[0].trim();
         String idDeptCode = parts[1].trim();
         String idNum = parts[2].trim();
 
-        // 2. Validate Department Code from Teacher ID
-        String deptFromId = findValidDepartment(idDeptCode);
-        if (deptFromId == null) {
+        String deptFromCode = findValidDepartment(idDeptCode);
+        if (deptFromCode == null) {
             showAlert("Invalid Department in Teacher ID", 
                 "The department code '" + idDeptCode + "' in Teacher ID is invalid.\nValid departments are:\n" +
                 "CE, ME, EC, EP, CEIT, MC, ChE, Arch, PE, MnE, Met, Tex, FE.", 
@@ -726,7 +716,6 @@ public class TeacherDetailController {
             return;
         }
 
-        // 3. Validate Department Field directly
         String validatedDept = findValidDepartment(rawDept);
         if (validatedDept == null) {
             showAlert("Invalid Department", 
@@ -736,7 +725,6 @@ public class TeacherDetailController {
             return;
         }
 
-        // 4. Validate Position Field directly
         String validatedPos = findValidPosition(rawPos);
         if (validatedPos == null) {
             showAlert("Invalid Position", 
@@ -746,35 +734,39 @@ public class TeacherDetailController {
             return;
         }
 
-        // Add Mode strict mismatch check vs Modify Mode bidirectional sync
-        String standardizedId = rawId;
+        String standardizedCode = rawCode;
         if (isAddMode) {
-            if (!deptFromId.equalsIgnoreCase(validatedDept)) {
+            if (!deptFromCode.equalsIgnoreCase(validatedDept)) {
                 showAlert("Detail Mismatch Error", 
                     String.format("Mismatch detected between Teacher ID and Department:\n\n• Teacher ID indicates Department '%s' but selected Department is '%s'.\n\nPlease correct either the Teacher ID or Department.", idDeptCode, validatedDept), 
                     Alert.AlertType.ERROR);
                 return;
             }
-            standardizedId = idPrefix + "-" + validatedDept + "-" + idNum;
+            standardizedCode = idPrefix + "-" + validatedDept + "-" + idNum;
         } else if (isEditMode) {
-            // If user updated the Teacher ID to a new department, propagate to Department field
-            if (!deptFromId.equalsIgnoreCase(validatedDept)) {
-                validatedDept = deptFromId;
+            if (!deptFromCode.equalsIgnoreCase(validatedDept)) {
+                validatedDept = deptFromCode;
             }
-            standardizedId = idPrefix + "-" + validatedDept + "-" + idNum;
+            standardizedCode = idPrefix + "-" + validatedDept + "-" + idNum;
         }
 
-        // Normalize Casing on form
         isUpdating = true;
         try {
-            txtTeacherId.setText(standardizedId);
+            txtTeacherId.setText(standardizedCode);
             txtDept.setText(validatedDept);
             txtPosition.setText(validatedPos);
         } finally {
             isUpdating = false;
         }
 
-        // 5. Contact & Date Validations
+        // 2. Date of Birth Validation (Strict format: Year-Month-Day)
+        if (!rawDob.isEmpty()) {
+            if (!rawDob.matches("^\\d{4}-\\d{1,2}-\\d{1,2}$")) {
+                showAlert("Invalid Date of Birth", "Date of Birth must be in the format: Year-Month-Day (e.g., 1985-05-15) with no letters.", Alert.AlertType.ERROR);
+                return;
+            }
+        }
+
         if (!rawPhone.matches("^09-\\d+$")) {
             showAlert("Invalid Phone Number", "Teacher phone number must be in the format 09-xxxxxxxx (starting with 09- followed by numbers).", Alert.AlertType.ERROR);
             return;
@@ -785,10 +777,6 @@ public class TeacherDetailController {
         }
         if (!rawEmergency.isEmpty() && !rawEmergency.matches("^09-\\d+$")) {
             showAlert("Invalid Emergency Contact", "Emergency contact must be in the format 09-xxxxxxxx (starting with 09- followed by numbers).", Alert.AlertType.ERROR);
-            return;
-        }
-        if (!rawDob.isEmpty() && (rawDob.matches(".*[a-zA-Z]+.*") || !rawDob.matches("^\\d{1,2}-\\d{1,2}-\\d{4}$"))) {
-            showAlert("Invalid Date of Birth", "Date of Birth must be in the format DD-MM-YYYY (e.g., 15-05-1985).", Alert.AlertType.ERROR);
             return;
         }
         if (!rawYearComp.isEmpty() && !rawYearComp.matches("^\\d{4}$")) {
@@ -808,10 +796,10 @@ public class TeacherDetailController {
             Optional<ButtonType> result = confirmAlert.showAndWait();
             if (result.isEmpty() || result.get() != ButtonType.OK) return;
 
-            int newNo = TeacherController.masterData != null ? TeacherController.masterData.size() + 1 : 1;
+            int newId = TeacherController.masterData != null ? TeacherController.masterData.size() + 1 : 1;
             Teacher newTeacher = new Teacher(
-                newNo, rawName, validatedDept, validatedPos, rawPhone,
-                standardizedId, rawDob, txtGender.getText().trim(), txtNationality.getText().trim(),
+                newId, standardizedCode, rawName, validatedDept, validatedPos, rawPhone,
+                rawDob, txtGender.getText().trim(), txtNationality.getText().trim(),
                 txtNrc.getText().trim(), rawEmail, txtCurrentAddress.getText().trim(), txtPermanentAddress.getText().trim(),
                 txtDegree.getText().trim(), txtUniversity.getText().trim(), rawYearComp, txtSpecialization.getText().trim(),
                 rawEmergency, finalPhoto
@@ -822,7 +810,7 @@ public class TeacherDetailController {
             }
             Session.clear();
         } else if (isEditMode && currentTeacher != null) {
-            currentTeacher.setTeacherId(standardizedId);
+            currentTeacher.setTeacherCode(standardizedCode);
             currentTeacher.setName(rawName);
             currentTeacher.setDepartment(validatedDept);
             currentTeacher.setPosition(validatedPos);
@@ -873,9 +861,15 @@ public class TeacherDetailController {
             loadImage(DEFAULT_IMAGE_PATH);
             showAlert("Data Reset", "Teacher form inputs have been cleared.", Alert.AlertType.INFORMATION);
         } else if (currentTeacher != null) {
-            currentTeacher.resetToOriginal();
+            TeacherDAO teacherDAO = new TeacherDAO();
+            Teacher fresh = teacherDAO.getFullTeacher(currentTeacher.getTeacherId());
+            if (fresh != null) {
+                currentTeacher = fresh;
+            } else {
+                currentTeacher.resetToOriginal();
+            }
             initData(currentTeacher, isEditMode);
-            showAlert("Data Reset", "Faculty record has been reset to its original state.", Alert.AlertType.INFORMATION);
+            showAlert("Data Reset", "Faculty record has been reset to its database state.", Alert.AlertType.INFORMATION);
         }
     }
 
