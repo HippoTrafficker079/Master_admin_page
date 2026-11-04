@@ -5,8 +5,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +20,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
-import javafx.scene.control.DatePicker;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -34,11 +32,14 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.util.StringConverter;
 
 public class StudentAddController {
 
-    @FXML private TextField txtRollNo, txtDob, txtName, txtGender, txtMajor, txtNationality, txtYear, txtSemester, txtNrc;
+    @FXML private TextField txtRollNo, txtDob, txtName, txtMajor, txtNationality, txtNrc;
+    @FXML private ComboBox<String> comboGender;
+    @FXML private ComboBox<String> comboYear;
+    @FXML private ComboBox<String> comboSemester;
+
     @FXML private TextField txtPhone, txtEmail, txtCurrentAddress, txtPermanentAddress;
     @FXML private TextField txtFatherName, txtFatherOcc, txtFatherPhone, txtFatherEmail;
     @FXML private TextField txtMotherName, txtMotherOcc, txtMotherPhone, txtMotherEmail;
@@ -48,19 +49,24 @@ public class StudentAddController {
     @FXML private TextField txtExcelPath;
     @FXML private VBox dropZone;
 
-    @FXML private DatePicker datePickerDob;
-
     private File selectedExcelFile = null;
     private String selectedPhotoPath = null;
     private final String DEFAULT_IMAGE_PATH = "/freddy.jpg";
+    private boolean isUpdating = false;
 
     private final String[] VALID_MAJORS = {"CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex", "FE"};
     private final String[] VALID_YEARS = {"First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year"};
 
     @FXML
     public void initialize() {
-        if (txtSemester != null && (txtSemester.getText() == null || txtSemester.getText().trim().isEmpty())) {
-            txtSemester.setText("I");
+        if (comboSemester != null && comboSemester.getValue() == null) {
+            comboSemester.setValue("First Semester");
+        }
+        if (comboYear != null && comboYear.getValue() == null) {
+            comboYear.setValue("First Year");
+        }
+        if (comboGender != null && comboGender.getValue() == null) {
+            comboGender.setValue("Male");
         }
 
         if (txtName != null && Session.getUsername() != null && !Session.getUsername().trim().isEmpty()) {
@@ -70,39 +76,76 @@ public class StudentAddController {
             txtEmail.setText(Session.getEmail());
         }
 
-        if (datePickerDob != null && txtDob != null) {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
-            
-            datePickerDob.setConverter(new StringConverter<LocalDate>() {
-                @Override
-                public String toString(LocalDate date) {
-                    return (date != null) ? formatter.format(date) : "";
-                }
+        setupBidirectionalSync();
+    }
 
-                @Override
-                public LocalDate fromString(String string) {
-                    if (string != null && !string.trim().isEmpty()) {
-                        try {
-                            return LocalDate.parse(string, formatter);
-                        } catch (Exception e) {
-                            return null;
-                        }
-                    }
-                    return null;
+    private void setupBidirectionalSync() {
+        if (txtRollNo != null) {
+            txtRollNo.focusedProperty().addListener((obs, oldVal, newVal) -> {
+                if (!newVal && !isUpdating) syncFromRollNo();
+            });
+            txtRollNo.textProperty().addListener((obs, oldVal, newVal) -> {
+                if (!isUpdating && newVal != null && newVal.matches("^[a-zA-Z]+-[a-zA-Z0-9]+-\\d+$")) {
+                    syncFromRollNo();
                 }
             });
-
-            datePickerDob.valueProperty().addListener((obs, oldDate, newDate) -> {
-                if (newDate != null) {
-                    txtDob.setText(formatter.format(newDate));
-                }
+        }
+        if (txtMajor != null) {
+            txtMajor.focusedProperty().addListener((obs, oldVal, newVal) -> {
+                if (!newVal && !isUpdating) syncToRollNo();
+            });
+        }
+        if (comboYear != null) {
+            comboYear.valueProperty().addListener((obs, oldVal, newVal) -> {
+                if (!isUpdating && newVal != null) syncToRollNo();
             });
         }
     }
 
-    // ==========================================
-    // EXCEL / CSV IMPORT & DRAG-AND-DROP
-    // ==========================================
+    private void syncFromRollNo() {
+        if (txtRollNo == null || txtRollNo.getText() == null) return;
+        String raw = txtRollNo.getText().trim();
+        String[] parts = raw.split("-");
+        if (parts.length >= 3 && parts[2].matches("\\d+")) {
+            String fullYear = getYearFromRoman(parts[0].trim());
+            String validMajor = findValidMajor(parts[1].trim());
+
+            if (fullYear != null && validMajor != null) {
+                isUpdating = true;
+                try {
+                    if (txtMajor != null) txtMajor.setText(validMajor);
+                    if (comboYear != null) comboYear.setValue(fullYear);
+                } finally {
+                    isUpdating = false;
+                }
+            }
+        }
+    }
+
+    private void syncToRollNo() {
+        if (txtRollNo == null || comboYear == null || txtMajor == null) return;
+        String rawYear = comboYear.getValue() != null ? comboYear.getValue().trim() : "";
+        String rawMajor = txtMajor.getText() != null ? txtMajor.getText().trim() : "";
+
+        String validYear = findValidYear(rawYear);
+        String validMajor = findValidMajor(rawMajor);
+
+        if (validYear != null && validMajor != null) {
+            String roman = getRomanYear(validYear);
+            String currentRoll = txtRollNo.getText() != null ? txtRollNo.getText().trim() : "";
+            String[] parts = currentRoll.split("-");
+            String rollNum = (parts.length >= 3 && parts[parts.length - 1].matches("\\d+")) ? parts[parts.length - 1] : "1";
+
+            isUpdating = true;
+            try {
+                txtRollNo.setText(roman + "-" + validMajor + "-" + rollNum);
+                comboYear.setValue(validYear);
+                txtMajor.setText(validMajor);
+            } finally {
+                isUpdating = false;
+            }
+        }
+    }
 
     @FXML
     public void handleBrowseExcel() {
@@ -164,9 +207,8 @@ public class StudentAddController {
                 }
             }
         }
-
         event.setDropCompleted(success);
-        dropZone.setStyle("-fx-border-color: #94a3b8; -fx-border-width: 1.5; -fx-border-style: dashed; -fx-border-radius: 6; -fx-background-radius: 6; -fx-background-color: #f8fafc; -fx-cursor: hand;");
+        dropZone.setStyle("-fx-border-color: #94a3b8; -fx-border-width: 1.5; -fx-border-style: dashed; -fx-border-radius: 6; -fx-background-color: #f8fafc; -fx-cursor: hand;");
         event.consume();
     }
 
@@ -178,7 +220,6 @@ public class StudentAddController {
         }
 
         String fileName = selectedExcelFile.getName().toLowerCase();
-
         try {
             if (fileName.endsWith(".csv") || fileName.endsWith(".txt")) {
                 importFromCsv(selectedExcelFile);
@@ -222,16 +263,12 @@ public class StudentAddController {
             }
 
             populateFieldsFromMap(map, values);
-            showAlert("Import Successful", "Student data from " + file.getName() + " has been populated into the form fields. Please review and click 'Add New Student' to register.", Alert.AlertType.INFORMATION);
+            showAlert("Import Successful", "Student data from " + file.getName() + " has been populated into the form.", Alert.AlertType.INFORMATION);
         }
     }
 
-    /**
-     * Reads native .xlsx files without requiring java.xml module or external JARs.
-     */
     private boolean importFromNativeXlsx(File file) {
         try (ZipFile zip = new ZipFile(file)) {
-            // 1. Read shared strings (xl/sharedStrings.xml)
             List<String> sharedStrings = new ArrayList<>();
             ZipEntry sstEntry = zip.getEntry("xl/sharedStrings.xml");
             if (sstEntry != null) {
@@ -248,7 +285,6 @@ public class StudentAddController {
                 }
             }
 
-            // 2. Read sheet 1 (xl/worksheets/sheet1.xml)
             ZipEntry sheetEntry = zip.getEntry("xl/worksheets/sheet1.xml");
             if (sheetEntry == null) return false;
 
@@ -345,11 +381,7 @@ public class StudentAddController {
 
     private String unescapeXml(String text) {
         if (text == null) return "";
-        return text.replace("&amp;", "&")
-                   .replace("&lt;", "<")
-                   .replace("&gt;", ">")
-                   .replace("&quot;", "\"")
-                   .replace("&apos;", "'");
+        return text.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&apos;", "'");
     }
 
     private void populateFieldsFromMap(Map<String, String> map, String[] rawOrder) {
@@ -362,15 +394,18 @@ public class StudentAddController {
 
         String importedYear = getMapOrIndex(map, rawOrder, 3, "year", "year / level", "level");
         String normYear = findValidYear(importedYear);
-        txtYear.setText(normYear != null ? normYear : importedYear);
+        if (normYear != null) comboYear.setValue(normYear);
 
         String importedSem = getMapOrIndex(map, rawOrder, 4, "semester", "sem");
         String normSem = findValidSemester(importedSem);
-        txtSemester.setText(normSem != null ? normSem : (importedSem.isEmpty() ? "I" : importedSem));
+        if (normSem != null) comboSemester.setValue(normSem);
 
         txtPhone.setText(getMapOrIndex(map, rawOrder, 5, "phone", "phone number", "phone no", "phoneno"));
         txtDob.setText(getMapOrIndex(map, rawOrder, 6, "dob", "date of birth", "birthdate"));
-        txtGender.setText(getMapOrIndex(map, rawOrder, 7, "gender", "sex"));
+        
+        String g = getMapOrIndex(map, rawOrder, 7, "gender", "sex");
+        if (g.equalsIgnoreCase("Female")) comboGender.setValue("Female");
+        else if (g.equalsIgnoreCase("Male")) comboGender.setValue("Male");
         
         String nat = getMapOrIndex(map, rawOrder, 8, "nationality", "country");
         txtNationality.setText(!nat.isEmpty() ? nat : "Myanmar");
@@ -407,16 +442,10 @@ public class StudentAddController {
         return "";
     }
 
-    // ==========================================
-    // VALIDATIONS & REGISTRATION LOGIC
-    // ==========================================
-
     private String findValidMajor(String input) {
         if (input == null) return null;
         for (String m : VALID_MAJORS) {
-            if (m.equalsIgnoreCase(input.trim())) {
-                return m;
-            }
+            if (m.equalsIgnoreCase(input.trim())) return m;
         }
         return null;
     }
@@ -429,7 +458,6 @@ public class StudentAddController {
         if (s.contains("third") || s.equals("3") || s.equals("iii")) return "Third Year";
         if (s.contains("fourth") || s.equals("4") || s.equals("iv")) return "Fourth Year";
         if (s.contains("fifth") || s.equals("5") || s.equals("v")) return "Fifth Year";
-        
         for (String y : VALID_YEARS) {
             if (y.equalsIgnoreCase(input.trim())) return y;
         }
@@ -439,9 +467,22 @@ public class StudentAddController {
     private String findValidSemester(String input) {
         if (input == null) return null;
         String s = input.trim().toLowerCase();
-        if (s.equals("ii") || s.equals("2") || s.equals("semester ii") || s.equals("semester 2")) return "II";
-        if (s.equals("i") || s.equals("1") || s.equals("semester i") || s.equals("semester 1")) return "I";
+        if (s.equals("ii") || s.equals("2") || s.equals("second semester") || s.equals("semester ii") || s.equals("semester 2")) return "Second Semester";
+        if (s.equals("i") || s.equals("1") || s.equals("first semester") || s.equals("semester i") || s.equals("semester 1")) return "First Semester";
         return null;
+    }
+
+    private String getYearFromRoman(String roman) {
+        if (roman == null) return null;
+        String r = roman.trim().toUpperCase();
+        switch (r) {
+            case "I": return "First Year";
+            case "II": return "Second Year";
+            case "III": return "Third Year";
+            case "IV": return "Fourth Year";
+            case "V": return "Fifth Year";
+            default: return null;
+        }
     }
 
     private String getRomanYear(String yearStr) {
@@ -482,13 +523,14 @@ public class StudentAddController {
     @FXML
     public void handleAddStudent() {
         String rawRollNo = txtRollNo != null ? txtRollNo.getText().trim() : "";
-        String rawYear = txtYear != null ? txtYear.getText().trim() : "";
+        String rawYear = comboYear != null && comboYear.getValue() != null ? comboYear.getValue().trim() : "";
         String rawMajor = txtMajor != null ? txtMajor.getText().trim() : "";
-        String rawSem = txtSemester != null ? txtSemester.getText().trim() : "";
+        String rawSem = comboSemester != null && comboSemester.getValue() != null ? comboSemester.getValue().trim() : "";
         String phoneInput = txtPhone != null ? txtPhone.getText().trim() : "";
         String emailInput = txtEmail != null ? txtEmail.getText().trim() : "";
         String dobInput = txtDob != null ? txtDob.getText().trim() : "";
         String nameInput = txtName != null ? txtName.getText().trim() : "";
+        String genderInput = comboGender != null && comboGender.getValue() != null ? comboGender.getValue().trim() : "Male";
         String yearCompInput = txtYearCompleted != null ? txtYearCompleted.getText().trim() : "";
 
         String fPhoneInput = txtFatherPhone != null ? txtFatherPhone.getText().trim() : "";
@@ -496,46 +538,35 @@ public class StudentAddController {
         String mPhoneInput = txtMotherPhone != null ? txtMotherPhone.getText().trim() : "";
         String mEmailInput = txtMotherEmail != null ? txtMotherEmail.getText().trim() : "";
 
-        // 0. Empty Field Validation Check
         if (rawRollNo.isEmpty() || nameInput.isEmpty() || rawMajor.isEmpty() || 
             rawYear.isEmpty() || phoneInput.isEmpty() || emailInput.isEmpty() || dobInput.isEmpty()) {
             showAlert("Missing Information", "Please fill in all required student details before saving.", Alert.AlertType.ERROR);
             return;
         }
 
-        // 1. Roll No Format Check
-        if (!rawRollNo.matches("^[^-]+-[^-]+-\\d+$")) {
-            showAlert("Invalid Roll No Format", "Roll No must be in the format year-major-number (e.g., II-CEIT-2).", Alert.AlertType.ERROR);
+        if (!rawRollNo.matches("^[a-zA-Z]+-[a-zA-Z0-9]+-\\d+$")) {
+            showAlert("Invalid Roll No Format", "Roll No must be in the format [Year]-[Major]-[Number] (e.g., II-CEIT-2).", Alert.AlertType.ERROR);
             return;
         }
 
-        // 2. Validate Major case-insensitively against valid dropdown options
         String validatedMajor = findValidMajor(rawMajor);
         if (validatedMajor == null) {
             showAlert("Invalid Major", "Entered Major '" + rawMajor + "' does not match any valid Major:\nCE, ME, EC, EP, CEIT, MC, ChE, Arch, PE, MnE, Met, Tex, FE.", Alert.AlertType.ERROR);
             return;
         }
 
-        // 3. Validate Year case-insensitively against valid dropdown options
         String validatedYear = findValidYear(rawYear);
         if (validatedYear == null) {
-            showAlert("Invalid Year", "Entered Year '" + rawYear + "' does not match any valid Year:\nFirst Year, Second Year, Third Year, Fourth Year, Fifth Year.", Alert.AlertType.ERROR);
+            showAlert("Invalid Year", "Entered Year '" + rawYear + "' is invalid.", Alert.AlertType.ERROR);
             return;
         }
 
-        // 4. Validate Semester case-insensitively against valid dropdown options
         String validatedSemester = findValidSemester(rawSem);
         if (validatedSemester == null) {
-            showAlert("Invalid Semester", "Entered Semester '" + rawSem + "' is invalid. Please enter 'I' or 'II'.", Alert.AlertType.ERROR);
+            showAlert("Invalid Semester", "Please select a valid semester.", Alert.AlertType.ERROR);
             return;
         }
 
-        // Auto-correct textfields directly in the form
-        txtMajor.setText(validatedMajor);
-        txtYear.setText(validatedYear);
-        txtSemester.setText(validatedSemester);
-
-        // 5. Roll No vs Dropdown Data Mismatch Verification
         String[] rollParts = rawRollNo.split("-");
         String rollYearRoman = rollParts[0].trim().toUpperCase();
         String rollMajor = rollParts[1].trim();
@@ -558,19 +589,14 @@ public class StudentAddController {
             return;
         }
 
-        // Standardize the Roll No's case for saving (e.g., ii-ceit-2 -> II-CEIT-2)
         String standardizedRollNo = expectedYearRoman + "-" + validatedMajor + "-" + rollNumber;
         txtRollNo.setText(standardizedRollNo);
 
-        // 6. Date of Birth Validation
-        if (!dobInput.isEmpty()) {
-            if (dobInput.matches(".*[a-zA-Z]+.*") || !dobInput.matches("^\\d{1,2}-\\d{1,2}-\\d{4}$")) {
-                showAlert("Invalid Date of Birth", "Date of Birth must be in the format number-month-year (e.g., 11-12-2003) and contain no letters.", Alert.AlertType.ERROR);
-                return;
-            }
+        if (!dobInput.isEmpty() && !dobInput.matches("^\\d{4}-\\d{1,2}-\\d{1,2}$")) {
+            showAlert("Invalid Date of Birth", "Date of Birth must be in the format: Year-Month-Day (e.g., 2003-12-11) with no letters.", Alert.AlertType.ERROR);
+            return;
         }
 
-        // 7. Student Phone Number & Email Validation
         if (!phoneInput.matches("^09-\\d+$")) {
             showAlert("Invalid Phone Number", "Student phone number must be in the format 09-xxxxxxxx (starting with 09- followed by numbers).", Alert.AlertType.ERROR);
             return;
@@ -580,9 +606,9 @@ public class StudentAddController {
             return;
         }
 
-        // 8. Father's Contact Validations
+        // Father and Mother email validations are now optional
         if (!fPhoneInput.isEmpty() && !fPhoneInput.matches("^09-\\d+$")) {
-            showAlert("Invalid Father's Phone Number", "Father's phone number must be in the format 09-xxxxxxxx (starting with 09- followed by numbers).", Alert.AlertType.ERROR);
+            showAlert("Invalid Father's Phone Number", "Father's phone number must be in the format 09-xxxxxxxx.", Alert.AlertType.ERROR);
             return;
         }
         if (!fEmailInput.isEmpty() && !fEmailInput.contains("@")) {
@@ -590,9 +616,8 @@ public class StudentAddController {
             return;
         }
 
-        // 9. Mother's Contact Validations
         if (!mPhoneInput.isEmpty() && !mPhoneInput.matches("^09-\\d+$")) {
-            showAlert("Invalid Mother's Phone Number", "Mother's phone number must be in the format 09-xxxxxxxx (starting with 09- followed by numbers).", Alert.AlertType.ERROR);
+            showAlert("Invalid Mother's Phone Number", "Mother's phone number must be in the format 09-xxxxxxxx.", Alert.AlertType.ERROR);
             return;
         }
         if (!mEmailInput.isEmpty() && !mEmailInput.contains("@")) {
@@ -600,9 +625,8 @@ public class StudentAddController {
             return;
         }
 
-        // 10. Year Completed Validation
         if (!yearCompInput.isEmpty() && !yearCompInput.matches("^\\d{4}$")) {
-            showAlert("Invalid Year Completed", "Year Completed must be in the 4-digit format (e.g., 2020).", Alert.AlertType.ERROR);
+            showAlert("Invalid Year Completed", "Year Completed must be a 4-digit year (e.g., 2020).", Alert.AlertType.ERROR);
             return;
         }
 
@@ -613,12 +637,9 @@ public class StudentAddController {
         confirmAlert.getDialogPane().setMinWidth(480);
 
         Optional<ButtonType> result = confirmAlert.showAndWait();
-        if (result.isEmpty() || result.get() != ButtonType.OK) {
-            return;
-        }
+        if (result.isEmpty() || result.get() != ButtonType.OK) return;
 
         int newNo = StudentController.masterData != null ? StudentController.masterData.size() + 1 : 1;
-        String gender = txtGender != null ? txtGender.getText().trim() : "";
         String nationality = txtNationality != null && !txtNationality.getText().trim().isEmpty() ? txtNationality.getText().trim() : "Myanmar";
         String nrc = txtNrc != null ? txtNrc.getText().trim() : "";
         String currAddr = txtCurrentAddress != null ? txtCurrentAddress.getText().trim() : "";
@@ -629,12 +650,10 @@ public class StudentAddController {
         String mOcc = txtMotherOcc != null ? txtMotherOcc.getText().trim() : "";
         String prevSchool = txtPrevSchool != null ? txtPrevSchool.getText().trim() : "";
         String addInfo = txtAdditionalInfo != null ? txtAdditionalInfo.getText().trim() : "";
-
         String finalPhotoPath = (selectedPhotoPath != null) ? selectedPhotoPath : DEFAULT_IMAGE_PATH;
 
-        // Saves with standardized values (CEIT, Second Year, I, and II-CEIT-X)
         Student newStudent = new Student(newNo, standardizedRollNo, nameInput, validatedMajor, validatedYear, validatedSemester, phoneInput,
-                dobInput, gender, nationality, nrc, emailInput, currAddr, permAddr,
+                dobInput, genderInput, nationality, nrc, emailInput, currAddr, permAddr,
                 fName, fOcc, fPhoneInput, fEmailInput, mName, mOcc, mPhoneInput, mEmailInput,
                 prevSchool, yearCompInput, addInfo, finalPhotoPath);
 
@@ -650,13 +669,12 @@ public class StudentAddController {
     public void handleResetData() {
         if (txtRollNo != null) txtRollNo.clear();
         if (txtDob != null) txtDob.clear();
-        if (datePickerDob != null) datePickerDob.setValue(null);
         if (txtName != null) txtName.clear();
-        if (txtGender != null) txtGender.clear();
+        if (comboGender != null) comboGender.setValue("Male");
         if (txtMajor != null) txtMajor.clear();
         if (txtNationality != null) txtNationality.clear();
-        if (txtYear != null) txtYear.clear();
-        if (txtSemester != null) txtSemester.setText("I");
+        if (comboYear != null) comboYear.setValue("First Year");
+        if (comboSemester != null) comboSemester.setValue("First Semester");
         if (txtNrc != null) txtNrc.clear();
         if (txtPhone != null) txtPhone.clear();
         if (txtEmail != null) txtEmail.clear();
@@ -675,7 +693,6 @@ public class StudentAddController {
         if (txtAdditionalInfo != null) txtAdditionalInfo.clear();
         if (txtExcelPath != null) txtExcelPath.clear();
         selectedExcelFile = null;
-
         selectedPhotoPath = null;
         try {
             passportImageView.setImage(new Image(getClass().getResourceAsStream(DEFAULT_IMAGE_PATH)));
