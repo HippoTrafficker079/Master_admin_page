@@ -15,12 +15,17 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -67,13 +72,6 @@ public class StudentAddController {
         }
         if (comboGender != null && comboGender.getValue() == null) {
             comboGender.setValue("Male");
-        }
-
-        if (txtName != null && Session.getUsername() != null && !Session.getUsername().trim().isEmpty()) {
-            txtName.setText(Session.getUsername());
-        }
-        if (txtEmail != null && Session.getEmail() != null && !Session.getEmail().trim().isEmpty()) {
-            txtEmail.setText(Session.getEmail());
         }
 
         setupBidirectionalSync();
@@ -221,53 +219,183 @@ public class StudentAddController {
 
         String fileName = selectedExcelFile.getName().toLowerCase();
         try {
+            List<Student> importedStudents;
             if (fileName.endsWith(".csv") || fileName.endsWith(".txt")) {
-                importFromCsv(selectedExcelFile);
+                importedStudents = parseCsvStudents(selectedExcelFile);
             } else if (fileName.endsWith(".xlsx")) {
-                boolean success = importFromNativeXlsx(selectedExcelFile);
-                if (!success) {
-                    showAlert("Import Notice", "Could not parse data from .xlsx file. Please try the .csv template instead.", Alert.AlertType.WARNING);
-                }
+                importedStudents = parseXlsxStudents(selectedExcelFile);
             } else {
                 showAlert("Unsupported File", "Please select a supported file (.xlsx or .csv).", Alert.AlertType.ERROR);
+                return;
             }
+
+            if (importedStudents == null || importedStudents.isEmpty()) {
+                showAlert("Import Notice", "No student records were found in the file.", Alert.AlertType.WARNING);
+                return;
+            }
+
+            promptBatchConfirmation(importedStudents);
+
         } catch (Exception e) {
             showAlert("Import Error", "Failed to parse spreadsheet: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
-    private void importFromCsv(File file) throws IOException {
+    private void promptBatchConfirmation(List<Student> students) {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Data Successfully Imported");
+        alert.setHeaderText("Data are successfully imported from " + selectedExcelFile.getName());
+        alert.setContentText(String.format("Found %d student record(s).\n\nChoose an action below:", students.size()));
+
+        ButtonType btnAddAll = new ButtonType("Add All Students", ButtonBar.ButtonData.YES);
+        ButtonType btnPickOne = new ButtonType("Select a Student to Fill Form", ButtonBar.ButtonData.OTHER);
+        ButtonType btnCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+
+        alert.getButtonTypes().setAll(btnAddAll, btnPickOne, btnCancel);
+        alert.getDialogPane().setMinWidth(520);
+
+        Optional<ButtonType> result = alert.showAndWait();
+        if (result.isPresent()) {
+            if (result.get() == btnAddAll) {
+                if (StudentController.masterData != null) {
+                    int startingNo = StudentController.masterData.size() + 1;
+                    for (Student s : students) {
+                        s.setNo(startingNo++);
+                        StudentController.masterData.add(s);
+                    }
+                }
+                showAlert("Success", String.format("Successfully registered %d student(s) into the system.", students.size()), Alert.AlertType.INFORMATION);
+                handleReturn();
+            } else if (result.get() == btnPickOne) {
+                openSingleStudentPickerDialog(students);
+            }
+        }
+    }
+
+    private void openSingleStudentPickerDialog(List<Student> students) {
+        Dialog<Student> dialog = new Dialog<>();
+        dialog.setTitle("Choose Student to Populate Form");
+        dialog.setHeaderText("Select a student row to load into the form blanks below:");
+
+        TableView<Student> previewTable = new TableView<>();
+        previewTable.setPrefHeight(300);
+        previewTable.setPrefWidth(640);
+
+        TableColumn<Student, String> colRoll = new TableColumn<>("Roll No");
+        colRoll.setCellValueFactory(c -> c.getValue().rollNoProperty());
+        colRoll.setPrefWidth(110);
+
+        TableColumn<Student, String> colName = new TableColumn<>("Full Name");
+        colName.setCellValueFactory(c -> c.getValue().nameProperty());
+        colName.setPrefWidth(160);
+
+        TableColumn<Student, String> colMajor = new TableColumn<>("Major");
+        colMajor.setCellValueFactory(c -> c.getValue().majorProperty());
+        colMajor.setPrefWidth(80);
+
+        TableColumn<Student, String> colYear = new TableColumn<>("Year");
+        colYear.setCellValueFactory(c -> c.getValue().yearProperty());
+        colYear.setPrefWidth(120);
+
+        TableColumn<Student, String> colPhone = new TableColumn<>("Phone");
+        colPhone.setCellValueFactory(c -> c.getValue().phoneNoProperty());
+        colPhone.setPrefWidth(140);
+
+        previewTable.getColumns().addAll(colRoll, colName, colMajor, colYear, colPhone);
+        previewTable.setItems(FXCollections.observableArrayList(students));
+        if (!students.isEmpty()) {
+            previewTable.getSelectionModel().selectFirst();
+        }
+
+        ButtonType btnSelect = new ButtonType("Populate Form", ButtonBar.ButtonData.OK_DONE);
+        dialog.getDialogPane().getButtonTypes().addAll(btnSelect, ButtonType.CANCEL);
+        dialog.getDialogPane().setContent(new VBox(10, previewTable));
+
+        dialog.setResultConverter(btn -> {
+            if (btn == btnSelect) {
+                return previewTable.getSelectionModel().getSelectedItem();
+            }
+            return null;
+        });
+
+        previewTable.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2 && previewTable.getSelectionModel().getSelectedItem() != null) {
+                dialog.setResult(previewTable.getSelectionModel().getSelectedItem());
+                dialog.close();
+            }
+        });
+
+        Optional<Student> res = dialog.showAndWait();
+        if (res.isPresent() && res.get() != null) {
+            populateFormWithStudent(res.get());
+        }
+    }
+
+    private void populateFormWithStudent(Student s) {
+        isUpdating = true;
+        try {
+            if (txtRollNo != null) txtRollNo.setText(s.getRollNo());
+            if (txtDob != null) txtDob.setText(s.getDob());
+            if (txtName != null) txtName.setText(s.getName());
+            if (comboGender != null) comboGender.setValue(s.getGender().equalsIgnoreCase("Female") ? "Female" : "Male");
+            if (txtMajor != null) txtMajor.setText(s.getMajor());
+            if (txtNationality != null) txtNationality.setText(s.getNationality());
+            if (comboYear != null) comboYear.setValue(findValidYear(s.getYear()));
+            if (comboSemester != null) comboSemester.setValue(findValidSemester(s.getSemester()));
+            if (txtNrc != null) txtNrc.setText(s.getNrc());
+
+            if (txtPhone != null) txtPhone.setText(s.getPhoneNo());
+            if (txtEmail != null) txtEmail.setText(s.getEmail());
+            if (txtCurrentAddress != null) txtCurrentAddress.setText(s.getCurrentAddress());
+            if (txtPermanentAddress != null) txtPermanentAddress.setText(s.getPermanentAddress());
+
+            if (txtFatherName != null) txtFatherName.setText(s.getFatherName());
+            if (txtFatherOcc != null) txtFatherOcc.setText(s.getFatherOccupation());
+            if (txtFatherPhone != null) txtFatherPhone.setText(s.getFatherPhone());
+            if (txtFatherEmail != null) txtFatherEmail.setText(s.getFatherEmail());
+
+            if (txtMotherName != null) txtMotherName.setText(s.getMotherName());
+            if (txtMotherOcc != null) txtMotherOcc.setText(s.getMotherOccupation());
+            if (txtMotherPhone != null) txtMotherPhone.setText(s.getMotherPhone());
+            if (txtMotherEmail != null) txtMotherEmail.setText(s.getMotherEmail());
+
+            if (txtPrevSchool != null) txtPrevSchool.setText(s.getPrevSchool());
+            if (txtYearCompleted != null) txtYearCompleted.setText(s.getYearCompleted());
+            if (txtAdditionalInfo != null) txtAdditionalInfo.setText(s.getAdditionalInfo());
+        } finally {
+            isUpdating = false;
+        }
+
+        showAlert("Student Loaded", "Details for " + s.getName() + " (" + s.getRollNo() + ") have been populated into the form. You can review or edit before saving.", Alert.AlertType.INFORMATION);
+    }
+
+    private List<Student> parseCsvStudents(File file) throws IOException {
+        List<Student> students = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String headerLine = br.readLine();
-            if (headerLine == null) {
-                showAlert("Empty File", "The selected file is empty.", Alert.AlertType.WARNING);
-                return;
-            }
+            if (headerLine == null) return students;
 
             String delimiter = headerLine.contains(",") ? "," : (headerLine.contains("\t") ? "\t" : ";");
             String[] headers = headerLine.split(delimiter);
 
-            String dataLine = br.readLine();
-            if (dataLine == null) {
-                showAlert("No Data Row", "The selected file does not contain a row of student data below the header.", Alert.AlertType.WARNING);
-                return;
+            String line;
+            int counter = 1;
+            while ((line = br.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                String[] values = line.split(delimiter, -1);
+                Map<String, String> map = new HashMap<>();
+                for (int i = 0; i < headers.length && i < values.length; i++) {
+                    map.put(headers[i].replace("\"", "").trim().toLowerCase(), values[i].replace("\"", "").trim());
+                }
+                Student student = buildStudentFromMap(map, values, counter++);
+                if (student != null) students.add(student);
             }
-
-            String[] values = dataLine.split(delimiter, -1);
-            Map<String, String> map = new HashMap<>();
-
-            for (int i = 0; i < headers.length && i < values.length; i++) {
-                String cleanHeader = headers[i].replace("\"", "").trim().toLowerCase();
-                String cleanVal = values[i].replace("\"", "").trim();
-                map.put(cleanHeader, cleanVal);
-            }
-
-            populateFieldsFromMap(map, values);
-            showAlert("Import Successful", "Student data from " + file.getName() + " has been populated into the form.", Alert.AlertType.INFORMATION);
         }
+        return students;
     }
 
-    private boolean importFromNativeXlsx(File file) {
+    private List<Student> parseXlsxStudents(File file) {
+        List<Student> students = new ArrayList<>();
         try (ZipFile zip = new ZipFile(file)) {
             List<String> sharedStrings = new ArrayList<>();
             ZipEntry sstEntry = zip.getEntry("xl/sharedStrings.xml");
@@ -286,42 +414,84 @@ public class StudentAddController {
             }
 
             ZipEntry sheetEntry = zip.getEntry("xl/worksheets/sheet1.xml");
-            if (sheetEntry == null) return false;
+            if (sheetEntry == null) return students;
 
             String sheetXml = new String(zip.getInputStream(sheetEntry).readAllBytes(), StandardCharsets.UTF_8);
             Matcher rowMatcher = Pattern.compile("<row[^>]*>(.*?)</row>", Pattern.DOTALL).matcher(sheetXml);
 
             List<String> headers = null;
-            List<String> values = null;
-
-            if (rowMatcher.find()) {
-                headers = extractCellsFromRow(rowMatcher.group(1), sharedStrings);
+            int counter = 1;
+            while (rowMatcher.find()) {
+                List<String> rowCells = extractCellsFromRow(rowMatcher.group(1), sharedStrings);
+                if (headers == null) {
+                    headers = rowCells;
+                } else {
+                    if (rowCells.isEmpty() || String.join("", rowCells).trim().isEmpty()) continue;
+                    Map<String, String> map = new HashMap<>();
+                    String[] rawValues = new String[headers.size()];
+                    for (int i = 0; i < headers.size(); i++) {
+                        String h = headers.get(i).trim().toLowerCase();
+                        String v = i < rowCells.size() ? rowCells.get(i).trim() : "";
+                        map.put(h, v);
+                        rawValues[i] = v;
+                    }
+                    Student student = buildStudentFromMap(map, rawValues, counter++);
+                    if (student != null) students.add(student);
+                }
             }
-            if (rowMatcher.find()) {
-                values = extractCellsFromRow(rowMatcher.group(1), sharedStrings);
-            }
-
-            if (headers == null || values == null || headers.isEmpty()) {
-                return false;
-            }
-
-            Map<String, String> map = new HashMap<>();
-            String[] rawValues = new String[headers.size()];
-
-            for (int i = 0; i < headers.size(); i++) {
-                String h = headers.get(i).trim().toLowerCase();
-                String v = i < values.size() ? values.get(i).trim() : "";
-                map.put(h, v);
-                rawValues[i] = v;
-            }
-
-            populateFieldsFromMap(map, rawValues);
-            showAlert("Import Successful", "Data from Excel file (" + file.getName() + ") has been loaded into the form.", Alert.AlertType.INFORMATION);
-            return true;
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
         }
+        return students;
+    }
+
+    private Student buildStudentFromMap(Map<String, String> map, String[] rawOrder, int seqNo) {
+        String rollNo = getMapOrIndex(map, rawOrder, 0, "roll no", "rollno", "roll_no", "id", "studentid");
+        String name = getMapOrIndex(map, rawOrder, 1, "name", "full name", "fullname", "student name");
+        String major = findValidMajor(getMapOrIndex(map, rawOrder, 2, "major", "programme", "department"));
+        if (major == null) major = "CEIT";
+
+        String year = findValidYear(getMapOrIndex(map, rawOrder, 3, "year", "year / level", "level"));
+        if (year == null) year = "First Year";
+
+        String semester = findValidSemester(getMapOrIndex(map, rawOrder, 4, "semester", "sem"));
+        if (semester == null) semester = "First Semester";
+
+        String phone = getMapOrIndex(map, rawOrder, 5, "phone", "phone number", "phone no", "phoneno");
+        if (phone.isEmpty()) phone = "09-000000000";
+
+        String dob = getMapOrIndex(map, rawOrder, 6, "dob", "date of birth", "birthdate");
+        String gender = getMapOrIndex(map, rawOrder, 7, "gender", "sex");
+        if (!gender.equalsIgnoreCase("Female") && !gender.equalsIgnoreCase("Male")) gender = "Male";
+
+        String nationality = getMapOrIndex(map, rawOrder, 8, "nationality", "country");
+        if (nationality.isEmpty()) nationality = "Myanmar";
+
+        String nrc = getMapOrIndex(map, rawOrder, 9, "nrc", "nrc / id no.", "id no", "nrc number");
+        String email = getMapOrIndex(map, rawOrder, 10, "email", "email address");
+        String currAddr = getMapOrIndex(map, rawOrder, 11, "current address", "address");
+        String permAddr = getMapOrIndex(map, rawOrder, 12, "permanent address");
+
+        String fName = getMapOrIndex(map, rawOrder, 13, "father name", "father's name", "father");
+        String fOcc = getMapOrIndex(map, rawOrder, 14, "father occupation", "father occ");
+        String fPhone = getMapOrIndex(map, rawOrder, 15, "father phone", "father's phone");
+        String fEmail = getMapOrIndex(map, rawOrder, 16, "father email", "father's email");
+
+        String mName = getMapOrIndex(map, rawOrder, 17, "mother name", "mother's name", "mother");
+        String mOcc = getMapOrIndex(map, rawOrder, 18, "mother occupation", "mother occ");
+        String mPhone = getMapOrIndex(map, rawOrder, 19, "mother phone", "mother's phone");
+        String mEmail = getMapOrIndex(map, rawOrder, 20, "mother email", "mother's email");
+
+        String prevSchool = getMapOrIndex(map, rawOrder, 21, "previous school", "school");
+        String yearComp = getMapOrIndex(map, rawOrder, 22, "year completed", "matriculation year");
+        String addInfo = getMapOrIndex(map, rawOrder, 23, "additional info", "remarks");
+
+        if (rollNo.isEmpty() || name.isEmpty()) return null;
+
+        return new Student(seqNo, rollNo, name, major, year, semester, phone,
+                dob, gender, nationality, nrc, email, currAddr, permAddr,
+                fName, fOcc, fPhone, fEmail, mName, mOcc, mPhone, mEmail,
+                prevSchool, yearComp, addInfo, DEFAULT_IMAGE_PATH);
     }
 
     private List<String> extractCellsFromRow(String rowContent, List<String> sharedStrings) {
@@ -335,9 +505,7 @@ public class StudentAddController {
 
             Matcher rMatcher = Pattern.compile("r=\"([A-Z]+)[0-9]+\"").matcher(attrs);
             int colIndex = nextExpectedCol;
-            if (rMatcher.find()) {
-                colIndex = getColIndex(rMatcher.group(1));
-            }
+            if (rMatcher.find()) colIndex = getColIndex(rMatcher.group(1));
 
             while (nextExpectedCol < colIndex) {
                 rowCells.add("");
@@ -360,9 +528,7 @@ public class StudentAddController {
                 }
             } else {
                 Matcher isMatcher = Pattern.compile("<is>.*?<t[^>]*>(.*?)</t>.*?</is>", Pattern.DOTALL).matcher(body);
-                if (isMatcher.find()) {
-                    val = isMatcher.group(1).trim();
-                }
+                if (isMatcher.find()) val = isMatcher.group(1).trim();
             }
 
             rowCells.add(unescapeXml(val));
@@ -382,52 +548,6 @@ public class StudentAddController {
     private String unescapeXml(String text) {
         if (text == null) return "";
         return text.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&apos;", "'");
-    }
-
-    private void populateFieldsFromMap(Map<String, String> map, String[] rawOrder) {
-        txtRollNo.setText(getMapOrIndex(map, rawOrder, 0, "roll no", "rollno", "roll_no", "id", "studentid"));
-        txtName.setText(getMapOrIndex(map, rawOrder, 1, "name", "full name", "fullname", "student name"));
-        
-        String importedMajor = getMapOrIndex(map, rawOrder, 2, "major", "programme", "department");
-        String normMajor = findValidMajor(importedMajor);
-        txtMajor.setText(normMajor != null ? normMajor : importedMajor);
-
-        String importedYear = getMapOrIndex(map, rawOrder, 3, "year", "year / level", "level");
-        String normYear = findValidYear(importedYear);
-        if (normYear != null) comboYear.setValue(normYear);
-
-        String importedSem = getMapOrIndex(map, rawOrder, 4, "semester", "sem");
-        String normSem = findValidSemester(importedSem);
-        if (normSem != null) comboSemester.setValue(normSem);
-
-        txtPhone.setText(getMapOrIndex(map, rawOrder, 5, "phone", "phone number", "phone no", "phoneno"));
-        txtDob.setText(getMapOrIndex(map, rawOrder, 6, "dob", "date of birth", "birthdate"));
-        
-        String g = getMapOrIndex(map, rawOrder, 7, "gender", "sex");
-        if (g.equalsIgnoreCase("Female")) comboGender.setValue("Female");
-        else if (g.equalsIgnoreCase("Male")) comboGender.setValue("Male");
-        
-        String nat = getMapOrIndex(map, rawOrder, 8, "nationality", "country");
-        txtNationality.setText(!nat.isEmpty() ? nat : "Myanmar");
-        
-        txtNrc.setText(getMapOrIndex(map, rawOrder, 9, "nrc", "nrc / id no.", "id no", "nrc number"));
-        txtEmail.setText(getMapOrIndex(map, rawOrder, 10, "email", "email address"));
-        txtCurrentAddress.setText(getMapOrIndex(map, rawOrder, 11, "current address", "address"));
-        txtPermanentAddress.setText(getMapOrIndex(map, rawOrder, 12, "permanent address"));
-        
-        txtFatherName.setText(getMapOrIndex(map, rawOrder, 13, "father name", "father's name", "father"));
-        txtFatherOcc.setText(getMapOrIndex(map, rawOrder, 14, "father occupation", "father occ"));
-        txtFatherPhone.setText(getMapOrIndex(map, rawOrder, 15, "father phone", "father's phone"));
-        txtFatherEmail.setText(getMapOrIndex(map, rawOrder, 16, "father email", "father's email"));
-        
-        txtMotherName.setText(getMapOrIndex(map, rawOrder, 17, "mother name", "mother's name", "mother"));
-        txtMotherOcc.setText(getMapOrIndex(map, rawOrder, 18, "mother occupation", "mother occ"));
-        txtMotherPhone.setText(getMapOrIndex(map, rawOrder, 19, "mother phone", "mother's phone"));
-        txtMotherEmail.setText(getMapOrIndex(map, rawOrder, 20, "mother email", "mother's email"));
-        
-        txtPrevSchool.setText(getMapOrIndex(map, rawOrder, 21, "previous school", "school"));
-        txtYearCompleted.setText(getMapOrIndex(map, rawOrder, 22, "year completed", "matriculation year"));
-        txtAdditionalInfo.setText(getMapOrIndex(map, rawOrder, 23, "additional info", "remarks"));
     }
 
     private String getMapOrIndex(Map<String, String> map, String[] rawOrder, int index, String... keys) {
@@ -606,7 +726,6 @@ public class StudentAddController {
             return;
         }
 
-        // Father and Mother email validations are now optional
         if (!fPhoneInput.isEmpty() && !fPhoneInput.matches("^09-\\d+$")) {
             showAlert("Invalid Father's Phone Number", "Father's phone number must be in the format 09-xxxxxxxx.", Alert.AlertType.ERROR);
             return;

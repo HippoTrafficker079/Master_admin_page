@@ -129,12 +129,18 @@ public class StudentController {
     @FXML
     public void handleAdd() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentCreatePrompt.fxml"));
-            Parent createPromptView = loader.load();
+            // Directly load StudentAdd.fxml without going through StudentCreatePrompt
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentAdd.fxml"));
+            Parent addStudentView = loader.load();
 
             BorderPane mainLayout = (BorderPane) studentTable.getScene().lookup("#mainBorderPane");
             if (mainLayout != null) {
-                mainLayout.setCenter(createPromptView);
+                mainLayout.setCenter(addStudentView);
+            } else {
+                Parent root = studentTable.getScene().getRoot();
+                if (root instanceof BorderPane) {
+                    ((BorderPane) root).setCenter(addStudentView);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
