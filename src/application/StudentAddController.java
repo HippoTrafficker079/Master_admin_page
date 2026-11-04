@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -23,6 +26,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -40,10 +44,11 @@ import javafx.stage.Stage;
 
 public class StudentAddController {
 
-    @FXML private TextField txtRollNo, txtDob, txtName, txtMajor, txtNationality, txtNrc;
+    @FXML private TextField txtRollNo, txtName, txtNationality, txtNrc;
+    @FXML private DatePicker dpDob;
     @FXML private ComboBox<String> comboGender;
+    @FXML private ComboBox<String> comboMajor;
     @FXML private ComboBox<String> comboYear;
-    @FXML private ComboBox<String> comboSemester;
 
     @FXML private TextField txtPhone, txtEmail, txtCurrentAddress, txtPermanentAddress;
     @FXML private TextField txtFatherName, txtFatherOcc, txtFatherPhone, txtFatherEmail;
@@ -64,14 +69,14 @@ public class StudentAddController {
 
     @FXML
     public void initialize() {
-        if (comboSemester != null && comboSemester.getValue() == null) {
-            comboSemester.setValue("First Semester");
-        }
         if (comboYear != null && comboYear.getValue() == null) {
             comboYear.setValue("First Year");
         }
         if (comboGender != null && comboGender.getValue() == null) {
             comboGender.setValue("Male");
+        }
+        if (comboMajor != null && comboMajor.getValue() == null) {
+            comboMajor.setValue("CEIT");
         }
 
         setupBidirectionalSync();
@@ -88,9 +93,9 @@ public class StudentAddController {
                 }
             });
         }
-        if (txtMajor != null) {
-            txtMajor.focusedProperty().addListener((obs, oldVal, newVal) -> {
-                if (!newVal && !isUpdating) syncToRollNo();
+        if (comboMajor != null) {
+            comboMajor.valueProperty().addListener((obs, oldVal, newVal) -> {
+                if (!isUpdating && newVal != null) syncToRollNo();
             });
         }
         if (comboYear != null) {
@@ -111,7 +116,7 @@ public class StudentAddController {
             if (fullYear != null && validMajor != null) {
                 isUpdating = true;
                 try {
-                    if (txtMajor != null) txtMajor.setText(validMajor);
+                    if (comboMajor != null) comboMajor.setValue(validMajor);
                     if (comboYear != null) comboYear.setValue(fullYear);
                 } finally {
                     isUpdating = false;
@@ -121,9 +126,9 @@ public class StudentAddController {
     }
 
     private void syncToRollNo() {
-        if (txtRollNo == null || comboYear == null || txtMajor == null) return;
+        if (txtRollNo == null || comboYear == null || comboMajor == null) return;
         String rawYear = comboYear.getValue() != null ? comboYear.getValue().trim() : "";
-        String rawMajor = txtMajor.getText() != null ? txtMajor.getText().trim() : "";
+        String rawMajor = comboMajor.getValue() != null ? comboMajor.getValue().trim() : "";
 
         String validYear = findValidYear(rawYear);
         String validMajor = findValidMajor(rawMajor);
@@ -138,7 +143,7 @@ public class StudentAddController {
             try {
                 txtRollNo.setText(roman + "-" + validMajor + "-" + rollNum);
                 comboYear.setValue(validYear);
-                txtMajor.setText(validMajor);
+                comboMajor.setValue(validMajor);
             } finally {
                 isUpdating = false;
             }
@@ -200,7 +205,8 @@ public class StudentAddController {
                         txtExcelPath.setText(file.getAbsolutePath());
                     }
                     success = true;
-                    handleImportExcel();
+                    // Defer dialog invocation so OS drag finishes and floating icon disappears
+                    Platform.runLater(this::handleImportExcel);
                     break;
                 }
             }
@@ -335,13 +341,24 @@ public class StudentAddController {
         isUpdating = true;
         try {
             if (txtRollNo != null) txtRollNo.setText(s.getRollNo());
-            if (txtDob != null) txtDob.setText(s.getDob());
+
+            // Set DatePicker for Date of Birth
+            if (dpDob != null && s.getDob() != null && !s.getDob().trim().isEmpty()) {
+                try {
+                    dpDob.setValue(LocalDate.parse(s.getDob().trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                } catch (Exception ex) {
+                    dpDob.setValue(null);
+                }
+            }
+
             if (txtName != null) txtName.setText(s.getName());
             if (comboGender != null) comboGender.setValue(s.getGender().equalsIgnoreCase("Female") ? "Female" : "Male");
-            if (txtMajor != null) txtMajor.setText(s.getMajor());
+            
+            String normMajor = findValidMajor(s.getMajor());
+            if (comboMajor != null && normMajor != null) comboMajor.setValue(normMajor);
+
             if (txtNationality != null) txtNationality.setText(s.getNationality());
             if (comboYear != null) comboYear.setValue(findValidYear(s.getYear()));
-            if (comboSemester != null) comboSemester.setValue(findValidSemester(s.getSemester()));
             if (txtNrc != null) txtNrc.setText(s.getNrc());
 
             if (txtPhone != null) txtPhone.setText(s.getPhoneNo());
@@ -454,9 +471,6 @@ public class StudentAddController {
         String year = findValidYear(getMapOrIndex(map, rawOrder, 3, "year", "year / level", "level"));
         if (year == null) year = "First Year";
 
-        String semester = findValidSemester(getMapOrIndex(map, rawOrder, 4, "semester", "sem"));
-        if (semester == null) semester = "First Semester";
-
         String phone = getMapOrIndex(map, rawOrder, 5, "phone", "phone number", "phone no", "phoneno");
         if (phone.isEmpty()) phone = "09-000000000";
 
@@ -488,7 +502,7 @@ public class StudentAddController {
 
         if (rollNo.isEmpty() || name.isEmpty()) return null;
 
-        return new Student(seqNo, rollNo, name, major, year, semester, phone,
+        return new Student(seqNo, rollNo, name, major, year, "Pending", phone,
                 dob, gender, nationality, nrc, email, currAddr, permAddr,
                 fName, fOcc, fPhone, fEmail, mName, mOcc, mPhone, mEmail,
                 prevSchool, yearComp, addInfo, DEFAULT_IMAGE_PATH);
@@ -584,14 +598,6 @@ public class StudentAddController {
         return null;
     }
 
-    private String findValidSemester(String input) {
-        if (input == null) return null;
-        String s = input.trim().toLowerCase();
-        if (s.equals("ii") || s.equals("2") || s.equals("second semester") || s.equals("semester ii") || s.equals("semester 2")) return "Second Semester";
-        if (s.equals("i") || s.equals("1") || s.equals("first semester") || s.equals("semester i") || s.equals("semester 1")) return "First Semester";
-        return null;
-    }
-
     private String getYearFromRoman(String roman) {
         if (roman == null) return null;
         String r = roman.trim().toUpperCase();
@@ -644,11 +650,10 @@ public class StudentAddController {
     public void handleAddStudent() {
         String rawRollNo = txtRollNo != null ? txtRollNo.getText().trim() : "";
         String rawYear = comboYear != null && comboYear.getValue() != null ? comboYear.getValue().trim() : "";
-        String rawMajor = txtMajor != null ? txtMajor.getText().trim() : "";
-        String rawSem = comboSemester != null && comboSemester.getValue() != null ? comboSemester.getValue().trim() : "";
+        String rawMajor = comboMajor != null && comboMajor.getValue() != null ? comboMajor.getValue().trim() : "";
         String phoneInput = txtPhone != null ? txtPhone.getText().trim() : "";
         String emailInput = txtEmail != null ? txtEmail.getText().trim() : "";
-        String dobInput = txtDob != null ? txtDob.getText().trim() : "";
+        String dobInput = (dpDob != null && dpDob.getValue() != null) ? dpDob.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) : "";
         String nameInput = txtName != null ? txtName.getText().trim() : "";
         String genderInput = comboGender != null && comboGender.getValue() != null ? comboGender.getValue().trim() : "Male";
         String yearCompInput = txtYearCompleted != null ? txtYearCompleted.getText().trim() : "";
@@ -671,19 +676,13 @@ public class StudentAddController {
 
         String validatedMajor = findValidMajor(rawMajor);
         if (validatedMajor == null) {
-            showAlert("Invalid Major", "Entered Major '" + rawMajor + "' does not match any valid Major:\nCE, ME, EC, EP, CEIT, MC, ChE, Arch, PE, MnE, Met, Tex, FE.", Alert.AlertType.ERROR);
+            showAlert("Invalid Major", "Selected Major '" + rawMajor + "' does not match any valid Major:\nCE, ME, EC, EP, CEIT, MC, ChE, Arch, PE, MnE, Met, Tex, FE.", Alert.AlertType.ERROR);
             return;
         }
 
         String validatedYear = findValidYear(rawYear);
         if (validatedYear == null) {
-            showAlert("Invalid Year", "Entered Year '" + rawYear + "' is invalid.", Alert.AlertType.ERROR);
-            return;
-        }
-
-        String validatedSemester = findValidSemester(rawSem);
-        if (validatedSemester == null) {
-            showAlert("Invalid Semester", "Please select a valid semester.", Alert.AlertType.ERROR);
+            showAlert("Invalid Year", "Selected Year '" + rawYear + "' is invalid.", Alert.AlertType.ERROR);
             return;
         }
 
@@ -711,11 +710,6 @@ public class StudentAddController {
 
         String standardizedRollNo = expectedYearRoman + "-" + validatedMajor + "-" + rollNumber;
         txtRollNo.setText(standardizedRollNo);
-
-        if (!dobInput.isEmpty() && !dobInput.matches("^\\d{4}-\\d{1,2}-\\d{1,2}$")) {
-            showAlert("Invalid Date of Birth", "Date of Birth must be in the format: Year-Month-Day (e.g., 2003-12-11) with no letters.", Alert.AlertType.ERROR);
-            return;
-        }
 
         if (!phoneInput.matches("^09-\\d+$")) {
             showAlert("Invalid Phone Number", "Student phone number must be in the format 09-xxxxxxxx (starting with 09- followed by numbers).", Alert.AlertType.ERROR);
@@ -771,7 +765,7 @@ public class StudentAddController {
         String addInfo = txtAdditionalInfo != null ? txtAdditionalInfo.getText().trim() : "";
         String finalPhotoPath = (selectedPhotoPath != null) ? selectedPhotoPath : DEFAULT_IMAGE_PATH;
 
-        Student newStudent = new Student(newNo, standardizedRollNo, nameInput, validatedMajor, validatedYear, validatedSemester, phoneInput,
+        Student newStudent = new Student(newNo, standardizedRollNo, nameInput, validatedMajor, validatedYear, "Pending", phoneInput,
                 dobInput, genderInput, nationality, nrc, emailInput, currAddr, permAddr,
                 fName, fOcc, fPhoneInput, fEmailInput, mName, mOcc, mPhoneInput, mEmailInput,
                 prevSchool, yearCompInput, addInfo, finalPhotoPath);
@@ -787,13 +781,12 @@ public class StudentAddController {
     @FXML
     public void handleResetData() {
         if (txtRollNo != null) txtRollNo.clear();
-        if (txtDob != null) txtDob.clear();
+        if (dpDob != null) dpDob.setValue(null);
         if (txtName != null) txtName.clear();
         if (comboGender != null) comboGender.setValue("Male");
-        if (txtMajor != null) txtMajor.clear();
+        if (comboMajor != null) comboMajor.setValue("CEIT");
         if (txtNationality != null) txtNationality.clear();
         if (comboYear != null) comboYear.setValue("First Year");
-        if (comboSemester != null) comboSemester.setValue("First Semester");
         if (txtNrc != null) txtNrc.clear();
         if (txtPhone != null) txtPhone.clear();
         if (txtEmail != null) txtEmail.clear();
