@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import application.dao.TeacherDAO;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -67,7 +68,8 @@ public class TeacherController {
             });
         }
 
-        colNo.setCellValueFactory(cellData -> cellData.getValue().teacherIdProperty().asObject());
+        colNo.setCellValueFactory(
+                cellData -> new ReadOnlyObjectWrapper<>(teacherTable.getItems().indexOf(cellData.getValue()) + 1));
 
         if (colTeacherId != null) {
             colTeacherId.setCellValueFactory(cellData -> cellData.getValue().teacherCodeProperty());

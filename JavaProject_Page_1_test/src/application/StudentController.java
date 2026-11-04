@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import application.dao.StudentDAO;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -25,25 +26,38 @@ import javafx.scene.layout.VBox;
 
 public class StudentController {
 
-    @FXML private VBox rootPane;
-    @FXML private TableView<Student> studentTable;
-    @FXML private TableColumn<Student, Integer> colNo;
-    @FXML private TableColumn<Student, String> colRollNo;
-    @FXML private TableColumn<Student, String> colName;
-    @FXML private TableColumn<Student, String> colMajor;
-    @FXML private TableColumn<Student, String> colYear;
-    @FXML private TableColumn<Student, String> colSemester;
-    @FXML private TableColumn<Student, String> colPhone;
+    @FXML
+    private VBox rootPane;
+    @FXML
+    private TableView<Student> studentTable;
+    @FXML
+    private TableColumn<Student, Integer> colNo;
+    @FXML
+    private TableColumn<Student, String> colRollNo;
+    @FXML
+    private TableColumn<Student, String> colName;
+    @FXML
+    private TableColumn<Student, String> colMajor;
+    @FXML
+    private TableColumn<Student, String> colYear;
+    @FXML
+    private TableColumn<Student, String> colSemester;
+    @FXML
+    private TableColumn<Student, String> colPhone;
 
-    @FXML private Button modify;
-    @FXML private Button remove;
-    @FXML private Button add;
+    @FXML
+    private Button modify;
+    @FXML
+    private Button add;
+    @FXML
+    private Button remove;
 
-    @FXML private TextField searchField;
+    @FXML
+    private TextField searchField;
 
     public static ObservableList<Student> masterData = null;
-
     private FilteredList<Student> filteredData;
+
     private ComboBox<String> majorHeaderCombo;
     private ComboBox<String> yearHeaderCombo;
     private ComboBox<String> semesterHeaderCombo;
@@ -57,25 +71,26 @@ public class StudentController {
             });
         }
 
-        colNo.setCellValueFactory(cell -> cell.getValue().noProperty().asObject());
-        colRollNo.setCellValueFactory(cell -> cell.getValue().rollNoProperty());
-        colName.setCellValueFactory(cell -> cell.getValue().nameProperty());
-        colMajor.setCellValueFactory(cell -> cell.getValue().majorProperty());
-        colYear.setCellValueFactory(cell -> cell.getValue().yearProperty());
-        colSemester.setCellValueFactory(cell -> cell.getValue().semesterProperty());
-        colPhone.setCellValueFactory(cell -> cell.getValue().phoneNoProperty());
+        colNo.setCellValueFactory(
+                cellData -> new ReadOnlyObjectWrapper<>(studentTable.getItems().indexOf(cellData.getValue()) + 1));
+        colRollNo.setCellValueFactory(cellData -> cellData.getValue().rollNoProperty());
+        colName.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
+        colMajor.setCellValueFactory(cellData -> cellData.getValue().majorProperty());
+        colYear.setCellValueFactory(cellData -> cellData.getValue().yearProperty());
+        colSemester.setCellValueFactory(cellData -> cellData.getValue().semesterProperty());
+        colPhone.setCellValueFactory(cellData -> cellData.getValue().phoneNoProperty());
 
+        // Added "Pending" to the Major filter dropdown options
         ObservableList<String> majorOptions = FXCollections.observableArrayList(
-            "All Majors", "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex", "FE"
-        );
+                "All Majors", "Pending", "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex",
+                "FE");
 
         ObservableList<String> yearOptions = FXCollections.observableArrayList(
-            "All Years", "First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year"
-        );
+                "All Years", "First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year");
 
+        // Standard semester options (without Pending)
         ObservableList<String> semesterOptions = FXCollections.observableArrayList(
-            "All Semesters", "First Semester", "Second Semester"
-        );
+                "All Semesters", "First Semester", "Second Semester");
 
         majorHeaderCombo = new ComboBox<>(majorOptions);
         majorHeaderCombo.setPromptText("Major");
@@ -129,51 +144,52 @@ public class StudentController {
     @FXML
     public void handleAdd() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentCreatePrompt.fxml"));
-            Parent createPromptView = loader.load();
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentAdd.fxml"));
+            Parent addStudentView = loader.load();
 
             BorderPane mainLayout = (BorderPane) studentTable.getScene().lookup("#mainBorderPane");
             if (mainLayout != null) {
-                mainLayout.setCenter(createPromptView);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    
-    @FXML
-    public void handleModify() {
-        Student selected = studentTable.getSelectionModel().getSelectedItem();
-        if (selected != null) {
-            openModifyView(selected);
-        } else {
-            showAlert("No Selection", "Please select a student row from the table to modify.", Alert.AlertType.WARNING);
-        }
-    }
-
-    private void openModifyView(Student student) {
-        try {
-            StudentDAO studentDAO = new StudentDAO();
-            Student fullStudent = studentDAO.getStudentbyId(student.getNo());
-            Student targetStudent = (fullStudent != null) ? fullStudent : student;
-
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentModify.fxml"));
-            Parent modifyView = loader.load();
-
-            StudentModifyController controller = loader.getController();
-            controller.initData(targetStudent);
-
-            BorderPane mainLayout = (BorderPane) studentTable.getScene().lookup("#mainBorderPane");
-            if (mainLayout != null) {
-                mainLayout.setCenter(modifyView);
+                mainLayout.setCenter(addStudentView);
             } else {
                 Parent root = studentTable.getScene().getRoot();
                 if (root instanceof BorderPane) {
-                    ((BorderPane) root).setCenter(modifyView);
+                    ((BorderPane) root).setCenter(addStudentView);
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    @FXML
+    public void handleModify() {
+        Student selected = studentTable.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            try {
+                StudentDAO studentDAO = new StudentDAO();
+                Student fullStudent = studentDAO.getStudentbyId(selected.getNo());
+                Student targetStudent = (fullStudent != null) ? fullStudent : selected;
+
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentModify.fxml"));
+                Parent modifyView = loader.load();
+
+                StudentModifyController controller = loader.getController();
+                controller.initData(targetStudent);
+
+                BorderPane mainLayout = (BorderPane) studentTable.getScene().lookup("#mainBorderPane");
+                if (mainLayout != null) {
+                    mainLayout.setCenter(modifyView);
+                } else {
+                    Parent root = studentTable.getScene().getRoot();
+                    if (root instanceof BorderPane) {
+                        ((BorderPane) root).setCenter(modifyView);
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            showAlert("No Selection", "Please select a student row from the table to modify.", Alert.AlertType.WARNING);
         }
     }
 
@@ -211,7 +227,6 @@ public class StudentController {
             confirmAlert.setTitle("Confirm Deletion");
             confirmAlert.setHeaderText("Are you sure you want to remove this student?");
             confirmAlert.setContentText("Roll No: " + selected.getRollNo() + "\nName: " + selected.getName());
-            
             confirmAlert.getDialogPane().setMinWidth(450);
             confirmAlert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
 
@@ -234,18 +249,18 @@ public class StudentController {
     public void handleSearch() {
         applyFilters();
     }
-    
+
     @FXML
     private void applyFilters() {
-        String searchText = searchField.getText() == null ? "" : searchField.getText().toLowerCase().trim();
+        String searchText = searchField.getText() == null ? "" : searchField.getText().trim();
         String selectedMajor = majorHeaderCombo.getValue();
         String selectedYear = yearHeaderCombo.getValue();
         String selectedSemester = semesterHeaderCombo.getValue();
 
         StudentDAO studentDAO = new StudentDAO();
-        List<Student> filteredStudents = studentDAO.getFilteredStudents(searchText, selectedMajor, selectedYear, selectedSemester);
+        List<Student> list = studentDAO.getFilteredStudents(searchText, selectedMajor, selectedYear, selectedSemester);
 
-        masterData = FXCollections.observableArrayList(filteredStudents);
+        masterData = FXCollections.observableArrayList(list);
         setupTableData();
     }
 
@@ -267,6 +282,9 @@ public class StudentController {
         alert.setContentText(message);
         alert.getDialogPane().setMinWidth(520);
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
+        if (studentTable != null && studentTable.getScene() != null) {
+            alert.initOwner(studentTable.getScene().getWindow());
+        }
         alert.showAndWait();
     }
 }

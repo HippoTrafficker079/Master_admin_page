@@ -8,12 +8,11 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox fx:id="rootPane" alignment="CENTER" onMouseClicked="#handleBackgroundClick" spacing="20.0" style="-fx-background-color: #f1f5f9;" stylesheets="@../style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.TeacherCreatePromptController">
+<VBox fx:id="rootPane" alignment="CENTER" onMouseClicked="#handleBackgroundClick" spacing="20.0" style="-fx-background-color: #f1f5f9;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.TeacherCreatePromptController">
    <children>
       <!-- Centered Account Creation Card -->
       <VBox alignment="CENTER" maxWidth="430.0" prefWidth="430.0" spacing="14.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-border-color: #cbd5e1; -fx-border-radius: 10; -fx-padding: 30 32;">
@@ -21,9 +20,9 @@
             <!-- Top Branding / Logo Header -->
             <VBox alignment="CENTER" spacing="6.0">
                <children>
-                  <ImageView fx:id="logoImageView" fitHeight="60.0" fitWidth="60.0" pickOnBounds="true" preserveRatio="true">
+                  <ImageView fx:id="logoImageView" fitHeight="90.0" fitWidth="176.0" pickOnBounds="true" preserveRatio="true">
                      <image>
-                        <Image url="@../freddy.jpg" />
+                        <Image url="@../../../../Downloads/ytu%20(1).png" />
                      </image>
                   </ImageView>
                   <Label text="CREATE TEACHER ACCOUNT" textFill="#1e3a8a">
