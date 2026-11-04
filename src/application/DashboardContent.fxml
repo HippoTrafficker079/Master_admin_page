@@ -138,27 +138,27 @@
                      </children>
                   </VBox>
 
-                  <!-- 2. Mark Registration Card (Placed between Enrollment and Pie Chart) -->
-                  <VBox spacing="10.0" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
-                     <children>
-                        <HBox alignment="CENTER_LEFT">
-                           <children>
-                              <Label text="📝 Mark Registration" textFill="#1e3a8a"><font><Font name="System Bold" size="13.0" /></font></Label>
-                              <Pane HBox.hgrow="ALWAYS" />
-                              <Label text="View All" textFill="#2563eb"><font><Font size="11.0" /></font></Label>
-                           </children>
-                        </HBox>
-                        <TableView fx:id="markTable" prefHeight="200.0">
-                          <columns>
-                            <TableColumn fx:id="colStudentId" prefWidth="110.0" text="Student ID" />
-                            <TableColumn fx:id="colStudentName" prefWidth="150.0" text="Student Name" />
-                            <TableColumn fx:id="colSubject" prefWidth="180.0" text="Subject" />
-                            <TableColumn fx:id="colMarks" prefWidth="100.0" text="Marks" />
-                            <TableColumn fx:id="colStatus" prefWidth="120.0" text="Status" />
-                          </columns>
-                        </TableView>
-                     </children>
-                  </VBox>
+                  <!-- 2. Mark Registration Card (Temporarily Hidden) -->
+<VBox visible="false" managed="false" spacing="10.0" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
+   <children>
+      <HBox alignment="CENTER_LEFT">
+         <children>
+            <Label text="📝 Mark Registration" textFill="#1e3a8a"><font><Font name="System Bold" size="13.0" /></font></Label>
+            <Pane HBox.hgrow="ALWAYS" />
+            <Label text="View All" textFill="#2563eb"><font><Font size="11.0" /></font></Label>
+         </children>
+      </HBox>
+      <TableView fx:id="markTable" prefHeight="200.0">
+        <columns>
+          <TableColumn fx:id="colStudentId" prefWidth="110.0" text="Student ID" />
+          <TableColumn fx:id="colStudentName" prefWidth="150.0" text="Student Name" />
+          <TableColumn fx:id="colSubject" prefWidth="180.0" text="Subject" />
+          <TableColumn fx:id="colMarks" prefWidth="100.0" text="Marks" />
+          <TableColumn fx:id="colStatus" prefWidth="120.0" text="Status" />
+        </columns>
+      </TableView>
+   </children>
+</VBox>
 
                   <!-- 3. Students by Department Card (Side-by-side Pie Chart & Legend) -->
                   <VBox spacing="15.0" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
