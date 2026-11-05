@@ -16,8 +16,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
 import javafx.application.Platform;
+import application.dao.StudentDAO;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -31,6 +31,7 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.DragEvent;
@@ -44,28 +45,41 @@ import javafx.stage.Stage;
 
 public class StudentAddController {
 
-    @FXML private TextField txtRollNo, txtName, txtNationality, txtNrc;
-    @FXML private DatePicker dpDob;
-    @FXML private ComboBox<String> comboGender;
-    @FXML private ComboBox<String> comboMajor;
-    @FXML private ComboBox<String> comboYear;
+    @FXML
+    private TextField txtRollNo, txtName, txtNationality, txtNrc;
+    @FXML
+    private DatePicker dpDob;
+    @FXML
+    private ComboBox<String> comboGender;
+    @FXML
+    private ComboBox<String> comboMajor;
+    @FXML
+    private ComboBox<String> comboYear;
 
-    @FXML private TextField txtPhone, txtEmail, txtCurrentAddress, txtPermanentAddress;
-    @FXML private TextField txtFatherName, txtFatherOcc, txtFatherPhone, txtFatherEmail;
-    @FXML private TextField txtMotherName, txtMotherOcc, txtMotherPhone, txtMotherEmail;
-    @FXML private TextField txtPrevSchool, txtYearCompleted, txtAdditionalInfo;
-    @FXML private ImageView passportImageView;
+    @FXML
+    private TextField txtPhone, txtEmail, txtCurrentAddress, txtPermanentAddress;
+    @FXML
+    private TextField txtFatherName, txtFatherOcc, txtFatherPhone, txtFatherEmail;
+    @FXML
+    private TextField txtMotherName, txtMotherOcc, txtMotherPhone, txtMotherEmail;
+    @FXML
+    private TextField txtPrevSchool, txtYearCompleted, txtAdditionalInfo;
+    @FXML
+    private ImageView passportImageView;
 
-    @FXML private TextField txtExcelPath;
-    @FXML private VBox dropZone;
+    @FXML
+    private TextField txtExcelPath;
+    @FXML
+    private VBox dropZone;
 
     private File selectedExcelFile = null;
     private String selectedPhotoPath = null;
     private final String DEFAULT_IMAGE_PATH = "/freddy.jpg";
     private boolean isUpdating = false;
 
-    private final String[] VALID_MAJORS = {"CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex", "FE"};
-    private final String[] VALID_YEARS = {"First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year"};
+    private final String[] VALID_MAJORS = { "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met",
+            "Tex", "FE" };
+    private final String[] VALID_YEARS = { "First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year" };
 
     @FXML
     public void initialize() {
@@ -85,7 +99,8 @@ public class StudentAddController {
     private void setupBidirectionalSync() {
         if (txtRollNo != null) {
             txtRollNo.focusedProperty().addListener((obs, oldVal, newVal) -> {
-                if (!newVal && !isUpdating) syncFromRollNo();
+                if (!newVal && !isUpdating)
+                    syncFromRollNo();
             });
             txtRollNo.textProperty().addListener((obs, oldVal, newVal) -> {
                 if (!isUpdating && newVal != null && newVal.matches("^[a-zA-Z]+-[a-zA-Z0-9]+-\\d+$")) {
@@ -95,18 +110,21 @@ public class StudentAddController {
         }
         if (comboMajor != null) {
             comboMajor.valueProperty().addListener((obs, oldVal, newVal) -> {
-                if (!isUpdating && newVal != null) syncToRollNo();
+                if (!isUpdating && newVal != null)
+                    syncToRollNo();
             });
         }
         if (comboYear != null) {
             comboYear.valueProperty().addListener((obs, oldVal, newVal) -> {
-                if (!isUpdating && newVal != null) syncToRollNo();
+                if (!isUpdating && newVal != null)
+                    syncToRollNo();
             });
         }
     }
 
     private void syncFromRollNo() {
-        if (txtRollNo == null || txtRollNo.getText() == null) return;
+        if (txtRollNo == null || txtRollNo.getText() == null)
+            return;
         String raw = txtRollNo.getText().trim();
         String[] parts = raw.split("-");
         if (parts.length >= 3 && parts[2].matches("\\d+")) {
@@ -116,8 +134,10 @@ public class StudentAddController {
             if (fullYear != null && validMajor != null) {
                 isUpdating = true;
                 try {
-                    if (comboMajor != null) comboMajor.setValue(validMajor);
-                    if (comboYear != null) comboYear.setValue(fullYear);
+                    if (comboMajor != null)
+                        comboMajor.setValue(validMajor);
+                    if (comboYear != null)
+                        comboYear.setValue(fullYear);
                 } finally {
                     isUpdating = false;
                 }
@@ -126,7 +146,8 @@ public class StudentAddController {
     }
 
     private void syncToRollNo() {
-        if (txtRollNo == null || comboYear == null || comboMajor == null) return;
+        if (txtRollNo == null || comboYear == null || comboMajor == null)
+            return;
         String rawYear = comboYear.getValue() != null ? comboYear.getValue().trim() : "";
         String rawMajor = comboMajor.getValue() != null ? comboMajor.getValue().trim() : "";
 
@@ -137,7 +158,8 @@ public class StudentAddController {
             String roman = getRomanYear(validYear);
             String currentRoll = txtRollNo.getText() != null ? txtRollNo.getText().trim() : "";
             String[] parts = currentRoll.split("-");
-            String rollNum = (parts.length >= 3 && parts[parts.length - 1].matches("\\d+")) ? parts[parts.length - 1] : "1";
+            String rollNum = (parts.length >= 3 && parts[parts.length - 1].matches("\\d+")) ? parts[parts.length - 1]
+                    : "1";
 
             isUpdating = true;
             try {
@@ -155,9 +177,8 @@ public class StudentAddController {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Excel / CSV File");
         fileChooser.getExtensionFilters().addAll(
-            new FileChooser.ExtensionFilter("Spreadsheet & CSV Files (*.xlsx, *.csv)", "*.xlsx", "*.csv"),
-            new FileChooser.ExtensionFilter("All Files (*.*)", "*.*")
-        );
+                new FileChooser.ExtensionFilter("Spreadsheet & CSV Files (*.xlsx, *.csv)", "*.xlsx", "*.csv"),
+                new FileChooser.ExtensionFilter("All Files (*.*)", "*.*"));
 
         Stage stage = (Stage) txtRollNo.getScene().getWindow();
         File file = fileChooser.showOpenDialog(stage);
@@ -177,7 +198,8 @@ public class StudentAddController {
                 String name = file.getName().toLowerCase();
                 if (name.endsWith(".xlsx") || name.endsWith(".csv") || name.endsWith(".txt")) {
                     event.acceptTransferModes(TransferMode.COPY);
-                    dropZone.setStyle("-fx-border-color: #2563eb; -fx-border-width: 2.0; -fx-border-style: dashed; -fx-border-radius: 6; -fx-background-color: #eff6ff; -fx-background-radius: 6; -fx-cursor: hand;");
+                    dropZone.setStyle(
+                            "-fx-border-color: #2563eb; -fx-border-width: 2.0; -fx-border-style: dashed; -fx-border-radius: 6; -fx-background-color: #eff6ff; -fx-background-radius: 6; -fx-cursor: hand;");
                     break;
                 }
             }
@@ -187,7 +209,8 @@ public class StudentAddController {
 
     @FXML
     public void handleDragExited(DragEvent event) {
-        dropZone.setStyle("-fx-border-color: #94a3b8; -fx-border-width: 1.5; -fx-border-style: dashed; -fx-border-radius: 6; -fx-background-color: #f8fafc; -fx-background-radius: 6; -fx-cursor: hand;");
+        dropZone.setStyle(
+                "-fx-border-color: #94a3b8; -fx-border-width: 1.5; -fx-border-style: dashed; -fx-border-radius: 6; -fx-background-color: #f8fafc; -fx-background-radius: 6; -fx-cursor: hand;");
         event.consume();
     }
 
@@ -205,21 +228,22 @@ public class StudentAddController {
                         txtExcelPath.setText(file.getAbsolutePath());
                     }
                     success = true;
-                    // Defer dialog invocation so OS drag finishes and floating icon disappears
                     Platform.runLater(this::handleImportExcel);
                     break;
                 }
             }
         }
         event.setDropCompleted(success);
-        dropZone.setStyle("-fx-border-color: #94a3b8; -fx-border-width: 1.5; -fx-border-style: dashed; -fx-border-radius: 6; -fx-background-color: #f8fafc; -fx-cursor: hand;");
+        dropZone.setStyle(
+                "-fx-border-color: #94a3b8; -fx-border-width: 1.5; -fx-border-style: dashed; -fx-border-radius: 6; -fx-background-color: #f8fafc; -fx-cursor: hand;");
         event.consume();
     }
 
     @FXML
     public void handleImportExcel() {
         if (selectedExcelFile == null || !selectedExcelFile.exists()) {
-            showAlert("No File Selected", "Please browse or drag and drop a valid Excel or CSV file first.", Alert.AlertType.WARNING);
+            showAlert("No File Selected", "Please browse or drag and drop a valid Excel or CSV file first.",
+                    Alert.AlertType.WARNING);
             return;
         }
 
@@ -263,14 +287,23 @@ public class StudentAddController {
         Optional<ButtonType> result = alert.showAndWait();
         if (result.isPresent()) {
             if (result.get() == btnAddAll) {
-                if (StudentController.masterData != null) {
-                    int startingNo = StudentController.masterData.size() + 1;
-                    for (Student s : students) {
-                        s.setNo(startingNo++);
-                        StudentController.masterData.add(s);
+                StudentDAO studentDAO = new StudentDAO();
+                int importedRow = studentDAO.insertBatchStudents(students);
+                if (importedRow > 0) {
+                    if (StudentController.masterData != null) {
+                        int startingNo = StudentController.masterData.size() + 1;
+                        for (Student s : students) {
+                            s.setNo(startingNo++);
+                            StudentController.masterData.add(s);
+                        }
                     }
+                } else {
+                    showAlert("Import Failed", "Database transaction failed. No records were imported.",
+                            AlertType.ERROR);
                 }
-                showAlert("Success", String.format("Successfully registered %d student(s) into the system.", students.size()), Alert.AlertType.INFORMATION);
+                showAlert("Success",
+                        String.format("Successfully registered %d student(s) into the system.", students.size()),
+                        Alert.AlertType.INFORMATION);
                 handleReturn();
             } else if (result.get() == btnPickOne) {
                 openSingleStudentPickerDialog(students);
@@ -340,9 +373,9 @@ public class StudentAddController {
     private void populateFormWithStudent(Student s) {
         isUpdating = true;
         try {
-            if (txtRollNo != null) txtRollNo.setText(s.getRollNo());
+            if (txtRollNo != null)
+                txtRollNo.setText(s.getRollNo());
 
-            // Set DatePicker for Date of Birth
             if (dpDob != null && s.getDob() != null && !s.getDob().trim().isEmpty()) {
                 try {
                     dpDob.setValue(LocalDate.parse(s.getDob().trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd")));
@@ -351,46 +384,71 @@ public class StudentAddController {
                 }
             }
 
-            if (txtName != null) txtName.setText(s.getName());
-            if (comboGender != null) comboGender.setValue(s.getGender().equalsIgnoreCase("Female") ? "Female" : "Male");
-            
+            if (txtName != null)
+                txtName.setText(s.getName());
+            if (comboGender != null)
+                comboGender.setValue(s.getGender().equalsIgnoreCase("Female") ? "Female" : "Male");
+
             String normMajor = findValidMajor(s.getMajor());
-            if (comboMajor != null && normMajor != null) comboMajor.setValue(normMajor);
+            if (comboMajor != null && normMajor != null)
+                comboMajor.setValue(normMajor);
 
-            if (txtNationality != null) txtNationality.setText(s.getNationality());
-            if (comboYear != null) comboYear.setValue(findValidYear(s.getYear()));
-            if (txtNrc != null) txtNrc.setText(s.getNrc());
+            if (txtNationality != null)
+                txtNationality.setText(s.getNationality());
+            if (comboYear != null)
+                comboYear.setValue(findValidYear(s.getYear()));
+            if (txtNrc != null)
+                txtNrc.setText(s.getNrc());
 
-            if (txtPhone != null) txtPhone.setText(s.getPhoneNo());
-            if (txtEmail != null) txtEmail.setText(s.getEmail());
-            if (txtCurrentAddress != null) txtCurrentAddress.setText(s.getCurrentAddress());
-            if (txtPermanentAddress != null) txtPermanentAddress.setText(s.getPermanentAddress());
+            if (txtPhone != null)
+                txtPhone.setText(s.getPhoneNo());
+            if (txtEmail != null)
+                txtEmail.setText(s.getEmail());
+            if (txtCurrentAddress != null)
+                txtCurrentAddress.setText(s.getCurrentAddress());
+            if (txtPermanentAddress != null)
+                txtPermanentAddress.setText(s.getPermanentAddress());
 
-            if (txtFatherName != null) txtFatherName.setText(s.getFatherName());
-            if (txtFatherOcc != null) txtFatherOcc.setText(s.getFatherOccupation());
-            if (txtFatherPhone != null) txtFatherPhone.setText(s.getFatherPhone());
-            if (txtFatherEmail != null) txtFatherEmail.setText(s.getFatherEmail());
+            if (txtFatherName != null)
+                txtFatherName.setText(s.getFatherName());
+            if (txtFatherOcc != null)
+                txtFatherOcc.setText(s.getFatherOccupation());
+            if (txtFatherPhone != null)
+                txtFatherPhone.setText(s.getFatherPhone());
+            if (txtFatherEmail != null)
+                txtFatherEmail.setText(s.getFatherEmail());
 
-            if (txtMotherName != null) txtMotherName.setText(s.getMotherName());
-            if (txtMotherOcc != null) txtMotherOcc.setText(s.getMotherOccupation());
-            if (txtMotherPhone != null) txtMotherPhone.setText(s.getMotherPhone());
-            if (txtMotherEmail != null) txtMotherEmail.setText(s.getMotherEmail());
+            if (txtMotherName != null)
+                txtMotherName.setText(s.getMotherName());
+            if (txtMotherOcc != null)
+                txtMotherOcc.setText(s.getMotherOccupation());
+            if (txtMotherPhone != null)
+                txtMotherPhone.setText(s.getMotherPhone());
+            if (txtMotherEmail != null)
+                txtMotherEmail.setText(s.getMotherEmail());
 
-            if (txtPrevSchool != null) txtPrevSchool.setText(s.getPrevSchool());
-            if (txtYearCompleted != null) txtYearCompleted.setText(s.getYearCompleted());
-            if (txtAdditionalInfo != null) txtAdditionalInfo.setText(s.getAdditionalInfo());
+            if (txtPrevSchool != null)
+                txtPrevSchool.setText(s.getPrevSchool());
+            if (txtYearCompleted != null)
+                txtYearCompleted.setText(s.getYearCompleted());
+            if (txtAdditionalInfo != null)
+                txtAdditionalInfo.setText(s.getAdditionalInfo());
         } finally {
             isUpdating = false;
         }
 
-        showAlert("Student Loaded", "Details for " + s.getName() + " (" + s.getRollNo() + ") have been populated into the form. You can review or edit before saving.", Alert.AlertType.INFORMATION);
+        showAlert("Student Loaded",
+                "Details for " + s.getName() + " (" + s.getRollNo()
+                        + ") have been populated into the form. You can review or edit before saving.",
+                Alert.AlertType.INFORMATION);
     }
 
     private List<Student> parseCsvStudents(File file) throws IOException {
         List<Student> students = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String headerLine = br.readLine();
-            if (headerLine == null) return students;
+            if (headerLine == null)
+                return students;
 
             String delimiter = headerLine.contains(",") ? "," : (headerLine.contains("\t") ? "\t" : ";");
             String[] headers = headerLine.split(delimiter);
@@ -398,14 +456,16 @@ public class StudentAddController {
             String line;
             int counter = 1;
             while ((line = br.readLine()) != null) {
-                if (line.trim().isEmpty()) continue;
+                if (line.trim().isEmpty())
+                    continue;
                 String[] values = line.split(delimiter, -1);
                 Map<String, String> map = new HashMap<>();
                 for (int i = 0; i < headers.length && i < values.length; i++) {
                     map.put(headers[i].replace("\"", "").trim().toLowerCase(), values[i].replace("\"", "").trim());
                 }
                 Student student = buildStudentFromMap(map, values, counter++);
-                if (student != null) students.add(student);
+                if (student != null)
+                    students.add(student);
             }
         }
         return students;
@@ -431,7 +491,8 @@ public class StudentAddController {
             }
 
             ZipEntry sheetEntry = zip.getEntry("xl/worksheets/sheet1.xml");
-            if (sheetEntry == null) return students;
+            if (sheetEntry == null)
+                return students;
 
             String sheetXml = new String(zip.getInputStream(sheetEntry).readAllBytes(), StandardCharsets.UTF_8);
             Matcher rowMatcher = Pattern.compile("<row[^>]*>(.*?)</row>", Pattern.DOTALL).matcher(sheetXml);
@@ -443,7 +504,8 @@ public class StudentAddController {
                 if (headers == null) {
                     headers = rowCells;
                 } else {
-                    if (rowCells.isEmpty() || String.join("", rowCells).trim().isEmpty()) continue;
+                    if (rowCells.isEmpty() || String.join("", rowCells).trim().isEmpty())
+                        continue;
                     Map<String, String> map = new HashMap<>();
                     String[] rawValues = new String[headers.size()];
                     for (int i = 0; i < headers.size(); i++) {
@@ -453,7 +515,8 @@ public class StudentAddController {
                         rawValues[i] = v;
                     }
                     Student student = buildStudentFromMap(map, rawValues, counter++);
-                    if (student != null) students.add(student);
+                    if (student != null)
+                        students.add(student);
                 }
             }
         } catch (Exception e) {
@@ -466,20 +529,25 @@ public class StudentAddController {
         String rollNo = getMapOrIndex(map, rawOrder, 0, "roll no", "rollno", "roll_no", "id", "studentid");
         String name = getMapOrIndex(map, rawOrder, 1, "name", "full name", "fullname", "student name");
         String major = findValidMajor(getMapOrIndex(map, rawOrder, 2, "major", "programme", "department"));
-        if (major == null) major = "CEIT";
+        if (major == null)
+            major = "CEIT";
 
         String year = findValidYear(getMapOrIndex(map, rawOrder, 3, "year", "year / level", "level"));
-        if (year == null) year = "First Year";
+        if (year == null)
+            year = "First Year";
 
         String phone = getMapOrIndex(map, rawOrder, 5, "phone", "phone number", "phone no", "phoneno");
-        if (phone.isEmpty()) phone = "09-000000000";
+        if (phone.isEmpty())
+            phone = "09-000000000";
 
         String dob = getMapOrIndex(map, rawOrder, 6, "dob", "date of birth", "birthdate");
         String gender = getMapOrIndex(map, rawOrder, 7, "gender", "sex");
-        if (!gender.equalsIgnoreCase("Female") && !gender.equalsIgnoreCase("Male")) gender = "Male";
+        if (!gender.equalsIgnoreCase("Female") && !gender.equalsIgnoreCase("Male"))
+            gender = "Male";
 
         String nationality = getMapOrIndex(map, rawOrder, 8, "nationality", "country");
-        if (nationality.isEmpty()) nationality = "Myanmar";
+        if (nationality.isEmpty())
+            nationality = "Myanmar";
 
         String nrc = getMapOrIndex(map, rawOrder, 9, "nrc", "nrc / id no.", "id no", "nrc number");
         String email = getMapOrIndex(map, rawOrder, 10, "email", "email address");
@@ -500,7 +568,8 @@ public class StudentAddController {
         String yearComp = getMapOrIndex(map, rawOrder, 22, "year completed", "matriculation year");
         String addInfo = getMapOrIndex(map, rawOrder, 23, "additional info", "remarks");
 
-        if (rollNo.isEmpty() || name.isEmpty()) return null;
+        if (rollNo.isEmpty() || name.isEmpty())
+            return null;
 
         return new Student(seqNo, rollNo, name, major, year, "Pending", phone,
                 dob, gender, nationality, nrc, email, currAddr, permAddr,
@@ -519,7 +588,8 @@ public class StudentAddController {
 
             Matcher rMatcher = Pattern.compile("r=\"([A-Z]+)[0-9]+\"").matcher(attrs);
             int colIndex = nextExpectedCol;
-            if (rMatcher.find()) colIndex = getColIndex(rMatcher.group(1));
+            if (rMatcher.find())
+                colIndex = getColIndex(rMatcher.group(1));
 
             while (nextExpectedCol < colIndex) {
                 rowCells.add("");
@@ -538,11 +608,13 @@ public class StudentAddController {
                         if (sIndex >= 0 && sIndex < sharedStrings.size()) {
                             val = sharedStrings.get(sIndex);
                         }
-                    } catch (Exception ex) {}
+                    } catch (Exception ex) {
+                    }
                 }
             } else {
                 Matcher isMatcher = Pattern.compile("<is>.*?<t[^>]*>(.*?)</t>.*?</is>", Pattern.DOTALL).matcher(body);
-                if (isMatcher.find()) val = isMatcher.group(1).trim();
+                if (isMatcher.find())
+                    val = isMatcher.group(1).trim();
             }
 
             rowCells.add(unescapeXml(val));
@@ -560,8 +632,10 @@ public class StudentAddController {
     }
 
     private String unescapeXml(String text) {
-        if (text == null) return "";
-        return text.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&apos;", "'");
+        if (text == null)
+            return "";
+        return text.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"")
+                .replace("&apos;", "'");
     }
 
     private String getMapOrIndex(Map<String, String> map, String[] rawOrder, int index, String... keys) {
@@ -577,48 +651,70 @@ public class StudentAddController {
     }
 
     private String findValidMajor(String input) {
-        if (input == null) return null;
+        if (input == null)
+            return null;
         for (String m : VALID_MAJORS) {
-            if (m.equalsIgnoreCase(input.trim())) return m;
+            if (m.equalsIgnoreCase(input.trim()))
+                return m;
         }
         return null;
     }
 
     private String findValidYear(String input) {
-        if (input == null) return null;
+        if (input == null)
+            return null;
         String s = input.trim().toLowerCase();
-        if (s.contains("first") || s.equals("1") || s.equals("i")) return "First Year";
-        if (s.contains("second") || s.equals("2") || s.equals("ii")) return "Second Year";
-        if (s.contains("third") || s.equals("3") || s.equals("iii")) return "Third Year";
-        if (s.contains("fourth") || s.equals("4") || s.equals("iv")) return "Fourth Year";
-        if (s.contains("fifth") || s.equals("5") || s.equals("v")) return "Fifth Year";
+        if (s.contains("first") || s.equals("1") || s.equals("i"))
+            return "First Year";
+        if (s.contains("second") || s.equals("2") || s.equals("ii"))
+            return "Second Year";
+        if (s.contains("third") || s.equals("3") || s.equals("iii"))
+            return "Third Year";
+        if (s.contains("fourth") || s.equals("4") || s.equals("iv"))
+            return "Fourth Year";
+        if (s.contains("fifth") || s.equals("5") || s.equals("v"))
+            return "Fifth Year";
         for (String y : VALID_YEARS) {
-            if (y.equalsIgnoreCase(input.trim())) return y;
+            if (y.equalsIgnoreCase(input.trim()))
+                return y;
         }
         return null;
     }
 
     private String getYearFromRoman(String roman) {
-        if (roman == null) return null;
+        if (roman == null)
+            return null;
         String r = roman.trim().toUpperCase();
         switch (r) {
-            case "I": return "First Year";
-            case "II": return "Second Year";
-            case "III": return "Third Year";
-            case "IV": return "Fourth Year";
-            case "V": return "Fifth Year";
-            default: return null;
+            case "I":
+                return "First Year";
+            case "II":
+                return "Second Year";
+            case "III":
+                return "Third Year";
+            case "IV":
+                return "Fourth Year";
+            case "V":
+                return "Fifth Year";
+            default:
+                return null;
         }
     }
 
     private String getRomanYear(String yearStr) {
-        if (yearStr == null) return "";
+        if (yearStr == null)
+            return "";
         String y = yearStr.trim().toLowerCase();
-        if (y.contains("first") || y.equals("i") || y.equals("1")) return "I";
-        if (y.contains("second") || y.equals("ii") || y.equals("2")) return "II";
-        if (y.contains("third") || y.equals("iii") || y.equals("3")) return "III";
-        if (y.contains("fourth") || y.equals("iv") || y.equals("4")) return "IV";
-        if (y.contains("fifth") || y.equals("v") || y.equals("5")) return "V";
+        if (y.contains("first") || y.equals("i") || y.equals("1"))
+            return "I";
+        if (y.contains("second") || y.equals("ii") || y.equals("2"))
+            return "II";
+        if (y.contains("third") || y.equals("iii") || y.equals("3"))
+            return "III";
+        if (y.contains("fourth") || y.equals("iv") || y.equals("4"))
+            return "IV";
+        if (y.contains("fifth") || y.equals("v") || y.equals("5"))
+            return "V";
         return "";
     }
 
@@ -627,8 +723,8 @@ public class StudentAddController {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Passport Size Photo");
         fileChooser.getExtensionFilters().addAll(
-            new FileChooser.ExtensionFilter("Image Files (*.png, *.jpg, *.jpeg, *.bmp)", "*.png", "*.jpg", "*.jpeg", "*.bmp")
-        );
+                new FileChooser.ExtensionFilter("Image Files (*.png, *.jpg, *.jpeg, *.bmp)", "*.png", "*.jpg", "*.jpeg",
+                        "*.bmp"));
 
         if (passportImageView != null && passportImageView.getScene() != null) {
             Stage stage = (Stage) passportImageView.getScene().getWindow();
@@ -653,9 +749,12 @@ public class StudentAddController {
         String rawMajor = comboMajor != null && comboMajor.getValue() != null ? comboMajor.getValue().trim() : "";
         String phoneInput = txtPhone != null ? txtPhone.getText().trim() : "";
         String emailInput = txtEmail != null ? txtEmail.getText().trim() : "";
-        String dobInput = (dpDob != null && dpDob.getValue() != null) ? dpDob.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) : "";
+        String dobInput = (dpDob != null && dpDob.getValue() != null)
+                ? dpDob.getValue().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                : "";
         String nameInput = txtName != null ? txtName.getText().trim() : "";
-        String genderInput = comboGender != null && comboGender.getValue() != null ? comboGender.getValue().trim() : "Male";
+        String genderInput = comboGender != null && comboGender.getValue() != null ? comboGender.getValue().trim()
+                : "Male";
         String yearCompInput = txtYearCompleted != null ? txtYearCompleted.getText().trim() : "";
 
         String fPhoneInput = txtFatherPhone != null ? txtFatherPhone.getText().trim() : "";
@@ -663,20 +762,24 @@ public class StudentAddController {
         String mPhoneInput = txtMotherPhone != null ? txtMotherPhone.getText().trim() : "";
         String mEmailInput = txtMotherEmail != null ? txtMotherEmail.getText().trim() : "";
 
-        if (rawRollNo.isEmpty() || nameInput.isEmpty() || rawMajor.isEmpty() || 
-            rawYear.isEmpty() || phoneInput.isEmpty() || emailInput.isEmpty() || dobInput.isEmpty()) {
-            showAlert("Missing Information", "Please fill in all required student details before saving.", Alert.AlertType.ERROR);
+        if (rawRollNo.isEmpty() || nameInput.isEmpty() || rawMajor.isEmpty() ||
+                rawYear.isEmpty() || phoneInput.isEmpty() || emailInput.isEmpty() || dobInput.isEmpty()) {
+            showAlert("Missing Information", "Please fill in all required student details before saving.",
+                    Alert.AlertType.ERROR);
             return;
         }
 
         if (!rawRollNo.matches("^[a-zA-Z]+-[a-zA-Z0-9]+-\\d+$")) {
-            showAlert("Invalid Roll No Format", "Roll No must be in the format [Year]-[Major]-[Number] (e.g., II-CEIT-2).", Alert.AlertType.ERROR);
+            showAlert("Invalid Roll No Format",
+                    "Roll No must be in the format [Year]-[Major]-[Number] (e.g., II-CEIT-2).", Alert.AlertType.ERROR);
             return;
         }
 
         String validatedMajor = findValidMajor(rawMajor);
         if (validatedMajor == null) {
-            showAlert("Invalid Major", "Selected Major '" + rawMajor + "' does not match any valid Major:\nCE, ME, EC, EP, CEIT, MC, ChE, Arch, PE, MnE, Met, Tex, FE.", Alert.AlertType.ERROR);
+            showAlert("Invalid Major", "Selected Major '" + rawMajor
+                    + "' does not match any valid Major:\nCE, ME, EC, EP, CEIT, MC, ChE, Arch, PE, MnE, Met, Tex, FE.",
+                    Alert.AlertType.ERROR);
             return;
         }
 
@@ -696,12 +799,15 @@ public class StudentAddController {
         boolean majorMismatch = !rollMajor.equalsIgnoreCase(validatedMajor);
 
         if (yearMismatch || majorMismatch) {
-            StringBuilder errorMsg = new StringBuilder("Mismatch detected between Roll No and entered student details:\n\n");
+            StringBuilder errorMsg = new StringBuilder(
+                    "Mismatch detected between Roll No and entered student details:\n\n");
             if (yearMismatch) {
-                errorMsg.append(String.format("• Year Mismatch: Roll No indicates '%s' but Year is '%s' (%s).\n", rollYearRoman, validatedYear, expectedYearRoman));
+                errorMsg.append(String.format("• Year Mismatch: Roll No indicates '%s' but Year is '%s' (%s).\n",
+                        rollYearRoman, validatedYear, expectedYearRoman));
             }
             if (majorMismatch) {
-                errorMsg.append(String.format("• Major Mismatch: Roll No indicates '%s' but Major is '%s'.\n", rollMajor, validatedMajor));
+                errorMsg.append(String.format("• Major Mismatch: Roll No indicates '%s' but Major is '%s'.\n",
+                        rollMajor, validatedMajor));
             }
             errorMsg.append("\nPlease correct either the Roll No or the corresponding Year / Major.");
             showAlert("Detail Mismatch Error", errorMsg.toString(), Alert.AlertType.ERROR);
@@ -712,7 +818,9 @@ public class StudentAddController {
         txtRollNo.setText(standardizedRollNo);
 
         if (!phoneInput.matches("^09-\\d+$")) {
-            showAlert("Invalid Phone Number", "Student phone number must be in the format 09-xxxxxxxx (starting with 09- followed by numbers).", Alert.AlertType.ERROR);
+            showAlert("Invalid Phone Number",
+                    "Student phone number must be in the format 09-xxxxxxxx (starting with 09- followed by numbers).",
+                    Alert.AlertType.ERROR);
             return;
         }
         if (!emailInput.contains("@")) {
@@ -721,7 +829,8 @@ public class StudentAddController {
         }
 
         if (!fPhoneInput.isEmpty() && !fPhoneInput.matches("^09-\\d+$")) {
-            showAlert("Invalid Father's Phone Number", "Father's phone number must be in the format 09-xxxxxxxx.", Alert.AlertType.ERROR);
+            showAlert("Invalid Father's Phone Number", "Father's phone number must be in the format 09-xxxxxxxx.",
+                    Alert.AlertType.ERROR);
             return;
         }
         if (!fEmailInput.isEmpty() && !fEmailInput.contains("@")) {
@@ -730,7 +839,8 @@ public class StudentAddController {
         }
 
         if (!mPhoneInput.isEmpty() && !mPhoneInput.matches("^09-\\d+$")) {
-            showAlert("Invalid Mother's Phone Number", "Mother's phone number must be in the format 09-xxxxxxxx.", Alert.AlertType.ERROR);
+            showAlert("Invalid Mother's Phone Number", "Mother's phone number must be in the format 09-xxxxxxxx.",
+                    Alert.AlertType.ERROR);
             return;
         }
         if (!mEmailInput.isEmpty() && !mEmailInput.contains("@")) {
@@ -739,7 +849,8 @@ public class StudentAddController {
         }
 
         if (!yearCompInput.isEmpty() && !yearCompInput.matches("^\\d{4}$")) {
-            showAlert("Invalid Year Completed", "Year Completed must be a 4-digit year (e.g., 2020).", Alert.AlertType.ERROR);
+            showAlert("Invalid Year Completed", "Year Completed must be a 4-digit year (e.g., 2020).",
+                    Alert.AlertType.ERROR);
             return;
         }
 
@@ -750,10 +861,13 @@ public class StudentAddController {
         confirmAlert.getDialogPane().setMinWidth(480);
 
         Optional<ButtonType> result = confirmAlert.showAndWait();
-        if (result.isEmpty() || result.get() != ButtonType.OK) return;
+        if (result.isEmpty() || result.get() != ButtonType.OK)
+            return;
 
         int newNo = StudentController.masterData != null ? StudentController.masterData.size() + 1 : 1;
-        String nationality = txtNationality != null && !txtNationality.getText().trim().isEmpty() ? txtNationality.getText().trim() : "Myanmar";
+        String nationality = txtNationality != null && !txtNationality.getText().trim().isEmpty()
+                ? txtNationality.getText().trim()
+                : "Myanmar";
         String nrc = txtNrc != null ? txtNrc.getText().trim() : "";
         String currAddr = txtCurrentAddress != null ? txtCurrentAddress.getText().trim() : "";
         String permAddr = txtPermanentAddress != null ? txtPermanentAddress.getText().trim() : "";
@@ -765,10 +879,18 @@ public class StudentAddController {
         String addInfo = txtAdditionalInfo != null ? txtAdditionalInfo.getText().trim() : "";
         String finalPhotoPath = (selectedPhotoPath != null) ? selectedPhotoPath : DEFAULT_IMAGE_PATH;
 
-        Student newStudent = new Student(newNo, standardizedRollNo, nameInput, validatedMajor, validatedYear, "Pending", phoneInput,
+        Student newStudent = new Student(newNo, standardizedRollNo, nameInput, validatedMajor, validatedYear,
+                "Pending", phoneInput,
                 dobInput, genderInput, nationality, nrc, emailInput, currAddr, permAddr,
                 fName, fOcc, fPhoneInput, fEmailInput, mName, mOcc, mPhoneInput, mEmailInput,
                 prevSchool, yearCompInput, addInfo, finalPhotoPath);
+        
+        StudentDAO studentDAO = new StudentDAO();
+        int insertResult = studentDAO.insertStudent(newStudent);
+        if (insertResult <= 0) {
+            showAlert("Database Error", "Insertion Failed. Transaction has rolled back.", AlertType.ERROR);
+            return;
+        }
 
         if (StudentController.masterData != null) {
             StudentController.masterData.add(newStudent);
@@ -780,35 +902,60 @@ public class StudentAddController {
 
     @FXML
     public void handleResetData() {
-        if (txtRollNo != null) txtRollNo.clear();
-        if (dpDob != null) dpDob.setValue(null);
-        if (txtName != null) txtName.clear();
-        if (comboGender != null) comboGender.setValue("Male");
-        if (comboMajor != null) comboMajor.setValue("CEIT");
-        if (txtNationality != null) txtNationality.clear();
-        if (comboYear != null) comboYear.setValue("First Year");
-        if (txtNrc != null) txtNrc.clear();
-        if (txtPhone != null) txtPhone.clear();
-        if (txtEmail != null) txtEmail.clear();
-        if (txtCurrentAddress != null) txtCurrentAddress.clear();
-        if (txtPermanentAddress != null) txtPermanentAddress.clear();
-        if (txtFatherName != null) txtFatherName.clear();
-        if (txtFatherOcc != null) txtFatherOcc.clear();
-        if (txtFatherPhone != null) txtFatherPhone.clear();
-        if (txtFatherEmail != null) txtFatherEmail.clear();
-        if (txtMotherName != null) txtMotherName.clear();
-        if (txtMotherOcc != null) txtMotherOcc.clear();
-        if (txtMotherPhone != null) txtMotherPhone.clear();
-        if (txtMotherEmail != null) txtMotherEmail.clear();
-        if (txtPrevSchool != null) txtPrevSchool.clear();
-        if (txtYearCompleted != null) txtYearCompleted.clear();
-        if (txtAdditionalInfo != null) txtAdditionalInfo.clear();
-        if (txtExcelPath != null) txtExcelPath.clear();
+        if (txtRollNo != null)
+            txtRollNo.clear();
+        if (dpDob != null)
+            dpDob.setValue(null);
+        if (txtName != null)
+            txtName.clear();
+        if (comboGender != null)
+            comboGender.setValue("Male");
+        if (comboMajor != null)
+            comboMajor.setValue("CEIT");
+        if (txtNationality != null)
+            txtNationality.clear();
+        if (comboYear != null)
+            comboYear.setValue("First Year");
+        if (txtNrc != null)
+            txtNrc.clear();
+        if (txtPhone != null)
+            txtPhone.clear();
+        if (txtEmail != null)
+            txtEmail.clear();
+        if (txtCurrentAddress != null)
+            txtCurrentAddress.clear();
+        if (txtPermanentAddress != null)
+            txtPermanentAddress.clear();
+        if (txtFatherName != null)
+            txtFatherName.clear();
+        if (txtFatherOcc != null)
+            txtFatherOcc.clear();
+        if (txtFatherPhone != null)
+            txtFatherPhone.clear();
+        if (txtFatherEmail != null)
+            txtFatherEmail.clear();
+        if (txtMotherName != null)
+            txtMotherName.clear();
+        if (txtMotherOcc != null)
+            txtMotherOcc.clear();
+        if (txtMotherPhone != null)
+            txtMotherPhone.clear();
+        if (txtMotherEmail != null)
+            txtMotherEmail.clear();
+        if (txtPrevSchool != null)
+            txtPrevSchool.clear();
+        if (txtYearCompleted != null)
+            txtYearCompleted.clear();
+        if (txtAdditionalInfo != null)
+            txtAdditionalInfo.clear();
+        if (txtExcelPath != null)
+            txtExcelPath.clear();
         selectedExcelFile = null;
         selectedPhotoPath = null;
         try {
             passportImageView.setImage(new Image(getClass().getResourceAsStream(DEFAULT_IMAGE_PATH)));
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
         showAlert("Data Reset", "Form inputs have been cleared.", Alert.AlertType.INFORMATION);
     }
