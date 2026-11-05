@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import application.dao.StudentDAO;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -25,21 +26,34 @@ import javafx.scene.layout.VBox;
 
 public class StudentController {
 
-    @FXML private VBox rootPane;
-    @FXML private TableView<Student> studentTable;
-    @FXML private TableColumn<Student, Integer> colNo;
-    @FXML private TableColumn<Student, String> colRollNo;
-    @FXML private TableColumn<Student, String> colName;
-    @FXML private TableColumn<Student, String> colMajor;
-    @FXML private TableColumn<Student, String> colYear;
-    @FXML private TableColumn<Student, String> colSemester;
-    @FXML private TableColumn<Student, String> colPhone;
+    @FXML
+    private VBox rootPane;
+    @FXML
+    private TableView<Student> studentTable;
+    @FXML
+    private TableColumn<Student, Integer> colNo;
+    @FXML
+    private TableColumn<Student, String> colRollNo;
+    @FXML
+    private TableColumn<Student, String> colName;
+    @FXML
+    private TableColumn<Student, String> colMajor;
+    @FXML
+    private TableColumn<Student, String> colYear;
+    @FXML
+    private TableColumn<Student, String> colSemester;
+    @FXML
+    private TableColumn<Student, String> colPhone;
 
-    @FXML private Button modify;
-    @FXML private Button add;
-    @FXML private Button remove;
+    @FXML
+    private Button modify;
+    @FXML
+    private Button add;
+    @FXML
+    private Button remove;
 
-    @FXML private TextField searchField;
+    @FXML
+    private TextField searchField;
 
     public static ObservableList<Student> masterData = null;
     private FilteredList<Student> filteredData;
@@ -57,7 +71,8 @@ public class StudentController {
             });
         }
 
-        colNo.setCellValueFactory(cellData -> cellData.getValue().noProperty().asObject());
+        colNo.setCellValueFactory(
+                cellData -> new ReadOnlyObjectWrapper<>(studentTable.getItems().indexOf(cellData.getValue()) + 1));
         colRollNo.setCellValueFactory(cellData -> cellData.getValue().rollNoProperty());
         colName.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
         colMajor.setCellValueFactory(cellData -> cellData.getValue().majorProperty());
@@ -67,17 +82,15 @@ public class StudentController {
 
         // Added "Pending" to the Major filter dropdown options
         ObservableList<String> majorOptions = FXCollections.observableArrayList(
-            "All Majors", "Pending", "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex", "FE"
-        );
+                "All Majors", "Pending", "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex",
+                "FE");
 
         ObservableList<String> yearOptions = FXCollections.observableArrayList(
-            "All Years", "First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year"
-        );
+                "All Years", "First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year");
 
-        // Standard semester options (without Pending)
+        // Added "Pending" to the Semester filter dropdown options
         ObservableList<String> semesterOptions = FXCollections.observableArrayList(
-            "All Semesters", "First Semester", "Second Semester"
-        );
+                "All Semesters", "Pending", "First Semester", "Second Semester");
 
         majorHeaderCombo = new ComboBox<>(majorOptions);
         majorHeaderCombo.setPromptText("Major");
