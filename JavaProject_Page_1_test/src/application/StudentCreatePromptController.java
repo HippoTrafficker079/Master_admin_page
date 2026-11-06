@@ -15,29 +15,19 @@ import javafx.scene.layout.VBox;
 
 public class StudentCreatePromptController {
 
-    @FXML
-    private VBox rootPane;
-    @FXML
-    private ImageView logoImageView;
-    @FXML
-    private TextField usernameField;
-    @FXML
-    private TextField emailField;
-
-    @FXML
-    private PasswordField passwordField;
-    @FXML
-    private TextField passwordTextField;
-    @FXML
-    private Label eyeIcon1;
+    @FXML private VBox rootPane;
+    @FXML private ImageView logoImageView;
+    @FXML private TextField usernameField;
+    @FXML private TextField emailField;
+    
+    @FXML private PasswordField passwordField;
+    @FXML private TextField passwordTextField;
+    @FXML private Label eyeIcon1;
     private boolean isPasswordVisible = false;
 
-    @FXML
-    private PasswordField confirmPasswordField;
-    @FXML
-    private TextField confirmPasswordTextField;
-    @FXML
-    private Label eyeIcon2;
+    @FXML private PasswordField confirmPasswordField;
+    @FXML private TextField confirmPasswordTextField;
+    @FXML private Label eyeIcon2;
     private boolean isConfirmPasswordVisible = false;
 
     @FXML
@@ -115,7 +105,7 @@ public class StudentCreatePromptController {
             return;
         }
 
-        // Save into session temporary storage
+     // Save into session temporary storage
         Session.setAccountData(username, email);
 
         // Navigate to the StudentAdd form page upon successful validation
@@ -154,5 +144,6 @@ public class StudentCreatePromptController {
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         alert.showAndWait();
     }
-
+    
+    
 }

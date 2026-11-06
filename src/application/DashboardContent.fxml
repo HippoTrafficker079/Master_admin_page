@@ -123,6 +123,7 @@
             <!-- Vertical Stack for Analytics Cards & Tables -->
             <VBox spacing="15.0">
                <children>
+<<<<<<< HEAD
                   <!-- Student Enrollment Trend Card -->
 <VBox spacing="10.0" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
    <children>
@@ -179,6 +180,50 @@
       </HBox>
    </children>
 </VBox>
+=======
+                  <!-- 1. Student Enrollment Trend Card -->
+                  <VBox spacing="10.0" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
+                     <children>
+                        <HBox alignment="CENTER_LEFT">
+                           <children>
+                              <Label text="📊 Student Enrollment Trend" textFill="#1e3a8a"><font><Font name="System Bold" size="13.0" /></font></Label>
+                              <Pane HBox.hgrow="ALWAYS" />
+                              <ComboBox fx:id="comboEnrollmentFilter" prefWidth="130.0" style="-fx-background-color: #f8fafc; -fx-border-color: #cbd5e1; -fx-border-radius: 4; -fx-padding: 2;" value="Last 6 Years" />
+                           </children>
+                        </HBox>
+                        <BarChart fx:id="enrollmentBarChart" prefHeight="240.0">
+                          <xAxis>
+                            <CategoryAxis fx:id="xAxisEnrollment" side="BOTTOM" />
+                          </xAxis>
+                          <yAxis>
+                            <NumberAxis fx:id="yAxisEnrollment" autoRanging="false" lowerBound="0.0" side="LEFT" tickUnit="300.0" upperBound="1200.0" />
+                          </yAxis>
+                        </BarChart>
+                     </children>
+                  </VBox>
+
+                  <!-- 2. Mark Registration Card (Temporarily Hidden) -->
+                  <VBox visible="false" managed="false" spacing="10.0" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
+                     <children>
+                        <HBox alignment="CENTER_LEFT">
+                           <children>
+                              <Label text="📝 Mark Registration" textFill="#1e3a8a"><font><Font name="System Bold" size="13.0" /></font></Label>
+                              <Pane HBox.hgrow="ALWAYS" />
+                              <Label text="View All" textFill="#2563eb"><font><Font size="11.0" /></font></Label>
+                           </children>
+                        </HBox>
+                        <TableView fx:id="markTable" prefHeight="200.0">
+                          <columns>
+                            <TableColumn fx:id="colStudentId" prefWidth="110.0" text="Student ID" />
+                            <TableColumn fx:id="colStudentName" prefWidth="150.0" text="Student Name" />
+                            <TableColumn fx:id="colSubject" prefWidth="180.0" text="Subject" />
+                            <TableColumn fx:id="colMarks" prefWidth="100.0" text="Marks" />
+                            <TableColumn fx:id="colStatus" prefWidth="120.0" text="Status" />
+                          </columns>
+                        </TableView>
+                     </children>
+                  </VBox>
+>>>>>>> clean-restored-main
 
                   <!-- Mark Registration Card (Temporarily Hidden) -->
                   <VBox visible="false" managed="false" spacing="10.0" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">

@@ -1,6 +1,7 @@
 package application.dao;
 
 import java.sql.Connection;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,7 +11,6 @@ import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-import application.Session;
 import application.Student;
 
 public class StudentDAO {
@@ -71,7 +71,7 @@ public class StudentDAO {
             String semester) {
         StringBuilder sql = new StringBuilder(
                 """
-                                    WITH
+                            WITH
                             RankedStudents AS (
                                 SELECT s.student_id, s.roll_no, s.full_name, d.dept_code, s.current_year, COALESCE(co.term, 'Pending') AS term, ci.primary_phone_number, ua.status, ROW_NUMBER() OVER (
                                         PARTITION BY
@@ -155,13 +155,13 @@ public class StudentDAO {
 
     public Student getStudentbyId(int studentId) {
         String sql = """
-                                    WITH
+                      WITH
                     RankedStudent AS (
                         SELECT
                             s.student_id,
                             s.roll_no,
                             s.full_name,
-                            d.dept_name AS faculty,
+                            d.dept_code AS faculty,
                             s.current_year,
                             COALESCE(co.term, 'Pending') AS term,
                             s.date_of_birth,
@@ -228,7 +228,7 @@ public class StudentDAO {
                 FROM RankedStudent
                 WHERE
                     rn = 1;
-                    """;
+                      """;
         try (Connection conn = DatabaseConnector.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, studentId);
@@ -282,7 +282,7 @@ public class StudentDAO {
             int studentId = insertSingleStudent(conn, student, "Default123");
 
             conn.commit();
-            return 1; // Success indicator
+            return studentId;
 
         } catch (SQLException e) {
             if (conn != null) {
@@ -293,7 +293,7 @@ public class StudentDAO {
                 }
             }
             e.printStackTrace();
-            return -1; // Failure indicator
+            return -1;
         } finally {
             if (conn != null) {
                 try {
@@ -312,7 +312,7 @@ public class StudentDAO {
             conn = DatabaseConnector.getConnection();
             conn.setAutoCommit(false);
             for (Student student : students) {
-                int studentId = insertSingleStudent(conn, student, "Default123"); // Default Password
+                int studentId = insertSingleStudent(conn, student, "Default123");
                 if (studentId > -1) {
                     successCount++;
                 }
@@ -389,20 +389,26 @@ public class StudentDAO {
                     mother_email_address
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """;
+
         String studentEducationBackgroundSql = """
-                        INSERT INTO
-                    student_education_background (
-                        student_id,
-                        previous_school,
-                        year_completed,
-                        additional_info
-                    )
+                INSERT INTO
+                student_education_background (
+                    student_id,
+                    previous_school,
+                    year_completed,
+                    additional_info
+                )
                 VALUES (?, ?, ?, ?);
-                        """;
+                """;
+
         String username = student.getRollNo();
-        String email = student.getRollNo().toLowerCase().replace("-", "") + "@ytu.edu.mm";
+        String email = student.getEmail() != null && !student.getEmail().trim().isEmpty()
+                ? student.getEmail().trim()
+                : student.getRollNo().toLowerCase().replace("-", "") + "@ytu.edu.mm";
+
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12));
         int userId = -1;
+
         try (PreparedStatement pstmtUser = conn.prepareStatement(userCreateSql, Statement.RETURN_GENERATED_KEYS)) {
             pstmtUser.setString(1, username);
             pstmtUser.setString(2, email);
@@ -413,7 +419,7 @@ public class StudentDAO {
                 if (generatedKeys.next()) {
                     userId = generatedKeys.getInt(1);
                 } else {
-                    throw new SQLException("Creating user failed! no userID found.");
+                    throw new SQLException("Creating user failed! No userID found.");
                 }
             }
         }
@@ -425,11 +431,11 @@ public class StudentDAO {
             DepartmentDAO departmentDAO = new DepartmentDAO();
             int deptId = departmentDAO.getDeptIdByCodeOrName(conn, student.getMajor());
 
-            String rawDob = student.getDob(); // e.g., "12-05-2005"
+            String rawDob = student.getDob();
             String formattedDob = rawDob;
             if (rawDob != null && rawDob.matches("\\d{2}-\\d{2}-\\d{4}")) {
                 String[] parts = rawDob.split("-");
-                formattedDob = parts[2] + "-" + parts[1] + "-" + parts[0]; // Converts to "2005-05-12"
+                formattedDob = parts[2] + "-" + parts[1] + "-" + parts[0];
             }
 
             pstmtStudent.setInt(1, userId);
@@ -478,6 +484,7 @@ public class StudentDAO {
 
             pstmtGuardian.executeUpdate();
         }
+
         try (PreparedStatement pstmtBackground = conn.prepareStatement(studentEducationBackgroundSql)) {
             pstmtBackground.setInt(1, studentId);
             pstmtBackground.setString(2, student.getPrevSchool());
@@ -486,6 +493,158 @@ public class StudentDAO {
 
             pstmtBackground.executeUpdate();
         }
+
         return studentId;
+    }
+
+    public boolean modifyStudent(Student student) {
+        Connection conn = null;
+        String studentSql = """
+                UPDATE student
+                SET
+                    roll_no = ?,
+                    full_name = ?,
+                    dept_id = ?,
+                    current_year = ?,
+                    date_of_birth = ?,
+                    gender = ?,
+                    nationality = ?,
+                    nrc = ?,
+                    profile_image_url = ?
+                WHERE
+                    student_id = ?
+                    """;
+        String studentContactSql = """
+                UPDATE student_contact_information
+                SET
+                    primary_phone_number = ?,
+                    email_address = ?,
+                    current_address = ?,
+                    permanent_address = ?
+                WHERE
+                    student_id = ?
+                        """;
+        String studentGuardianSql = """
+                UPDATE student_guardian
+                SET
+                    father_full_name = ?,
+                    father_occupation = ?,
+                    father_phone_number = ?,
+                    father_email_address = ?,
+                    mother_full_name = ?,
+                    mother_occupation = ?,
+                    mother_phone_number = ?,
+                    mother_email_address = ?
+                WHERE
+                    student_id = ?
+                        """;
+        String studentEducationSql = """
+                UPDATE student_education_background
+                SET
+                    previous_school = ?,
+                    year_completed = ?,
+                    additional_info = ?
+                WHERE
+                    student_id = ?
+                        """;
+        try {
+            conn = DatabaseConnector.getConnection();
+            conn.setAutoCommit(false);
+            try (PreparedStatement pstmtStudent = conn.prepareStatement(studentSql)) {
+                DepartmentDAO departmentDAO = new DepartmentDAO();
+                int deptId = departmentDAO.getDeptIdByCodeOrName(conn, student.getMajor());
+
+                String rawDob = student.getDob();
+                String formattedDob = rawDob;
+                if (rawDob != null && rawDob.matches("\\d{2}-\\d{2}-\\d{4}")) {
+                    String[] parts = rawDob.split("-");
+                    formattedDob = parts[2] + "-" + parts[1] + "-" + parts[0];
+                }
+                pstmtStudent.setString(1, student.getRollNo());
+                pstmtStudent.setString(2, student.getName());
+                pstmtStudent.setInt(3, deptId);
+                pstmtStudent.setString(4, student.getYear());
+                pstmtStudent.setString(5, formattedDob);
+                pstmtStudent.setString(6, student.getGender());
+                pstmtStudent.setString(7, student.getNationality());
+                pstmtStudent.setString(8, student.getNrc());
+                pstmtStudent.setString(9, student.getPhotoPath());
+                pstmtStudent.setInt(10, student.getNo());
+                pstmtStudent.executeUpdate();
+            }
+            try (PreparedStatement pstmtContact = conn.prepareStatement(studentContactSql)) {
+                pstmtContact.setString(1, student.getPhoneNo());
+                pstmtContact.setString(2, student.getEmail());
+                pstmtContact.setString(3, student.getCurrentAddress());
+                pstmtContact.setString(4, student.getPermanentAddress());
+                pstmtContact.setInt(5, student.getNo());
+                pstmtContact.executeUpdate();
+            }
+            try (PreparedStatement pstmtGuardian = conn.prepareStatement(studentGuardianSql)) {
+                pstmtGuardian.setString(1, student.getFatherName());
+                pstmtGuardian.setString(2, student.getFatherOccupation());
+                pstmtGuardian.setString(3, student.getFatherPhone());
+                pstmtGuardian.setString(4, student.getFatherEmail());
+                pstmtGuardian.setString(5, student.getMotherName());
+                pstmtGuardian.setString(6, student.getMotherOccupation());
+                pstmtGuardian.setString(7, student.getMotherPhone());
+                pstmtGuardian.setString(8, student.getMotherEmail());
+                pstmtGuardian.setInt(9, student.getNo());
+                pstmtGuardian.executeUpdate();
+            }
+            try (PreparedStatement pstmtEducation = conn.prepareStatement(studentEducationSql)) {
+                pstmtEducation.setString(1, student.getPrevSchool());
+                pstmtEducation.setString(2, student.getYearCompleted());
+                pstmtEducation.setString(3, student.getAdditionalInfo());
+                pstmtEducation.setInt(4, student.getNo());
+                pstmtEducation.executeUpdate();
+            }
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+            }
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException closeEx) {
+                    closeEx.printStackTrace();
+                }
+            }
+        }
+
+    }
+
+    public boolean removeStudent(int studentId) {
+        String sql = """
+                UPDATE user_account
+                SET
+                    `status` = FALSE
+                WHERE
+                    user_id = (
+                        SELECT user_id
+                        FROM student
+                        WHERE
+                            student_id = ?
+                    );
+                        """;
+        try (Connection conn = DatabaseConnector.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, studentId);
+
+            int deletedRows = pstmt.executeUpdate();
+            return deletedRows > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 }

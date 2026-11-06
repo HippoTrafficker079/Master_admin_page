@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -291,22 +292,23 @@ public class StudentAddController {
                 int importedRow = studentDAO.insertBatchStudents(students);
                 if (importedRow > 0) {
                     if (StudentController.masterData != null) {
-                        int startingNo = StudentController.masterData.size() + 1;
-                        for (Student s : students) {
-                            s.setNo(startingNo++);
-                            StudentController.masterData.add(s);
-                        }
+                        List<Student> freshList = studentDAO.getAllStudent();
+                        StudentController.masterData.setAll(freshList);
                     }
-                } else {
-                    showAlert("Import Failed", "Database transaction failed. No records were imported.",
-                            AlertType.ERROR);
+                    showAlert("Success",
+                            String.format("Successfully registered %d student(s) into the system.", students.size()),
+                            Alert.AlertType.INFORMATION);
+                    handleReturn();
                 }
-                showAlert("Success",
-                        String.format("Successfully registered %d student(s) into the system.", students.size()),
-                        Alert.AlertType.INFORMATION);
-                handleReturn();
             } else if (result.get() == btnPickOne) {
-                openSingleStudentPickerDialog(students);
+                if (students != null && !students.isEmpty()) {
+                    openSingleStudentPickerDialog(students);
+                } else {
+                    showAlert("Empty List", "No student records were found in the imported file.",
+                            Alert.AlertType.WARNING);
+                }
+            } else {
+                handleReturn();
             }
         }
     }
@@ -371,6 +373,12 @@ public class StudentAddController {
     }
 
     private void populateFormWithStudent(Student s) {
+        DateTimeFormatter formatter = new DateTimeFormatterBuilder()
+                .appendOptional(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                .appendOptional(DateTimeFormatter.ofPattern("dd-MM-yyyy"))
+                .appendOptional(DateTimeFormatter.ofPattern("yyyy/MM/dd"))
+                .appendOptional(DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                .toFormatter();
         isUpdating = true;
         try {
             if (txtRollNo != null)
@@ -378,7 +386,7 @@ public class StudentAddController {
 
             if (dpDob != null && s.getDob() != null && !s.getDob().trim().isEmpty()) {
                 try {
-                    dpDob.setValue(LocalDate.parse(s.getDob().trim(), DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+                    dpDob.setValue(LocalDate.parse(s.getDob().trim(), formatter));
                 } catch (Exception ex) {
                     dpDob.setValue(null);
                 }
@@ -884,10 +892,12 @@ public class StudentAddController {
                 dobInput, genderInput, nationality, nrc, emailInput, currAddr, permAddr,
                 fName, fOcc, fPhoneInput, fEmailInput, mName, mOcc, mPhoneInput, mEmailInput,
                 prevSchool, yearCompInput, addInfo, finalPhotoPath);
+
         StudentDAO studentDAO = new StudentDAO();
         int insertResult = studentDAO.insertStudent(newStudent);
         if (insertResult <= 0) {
             showAlert("Database Error", "Insertion Failed. Transaction has rolled back.", AlertType.ERROR);
+            return;
         }
 
         if (StudentController.masterData != null) {

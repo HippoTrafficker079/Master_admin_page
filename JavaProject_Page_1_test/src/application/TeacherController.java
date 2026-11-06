@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Optional;
 
 import application.dao.TeacherDAO;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -26,32 +25,20 @@ import javafx.scene.layout.VBox;
 
 public class TeacherController {
 
-    @FXML
-    private VBox rootPane;
-    @FXML
-    private TableView<Teacher> teacherTable;
-    @FXML
-    private TableColumn<Teacher, Integer> colNo;
-    @FXML
-    private TableColumn<Teacher, String> colTeacherId;
-    @FXML
-    private TableColumn<Teacher, String> colName;
-    @FXML
-    private TableColumn<Teacher, String> colDepartment;
-    @FXML
-    private TableColumn<Teacher, String> colPosition;
-    @FXML
-    private TableColumn<Teacher, String> colPhone;
+    @FXML private VBox rootPane;
+    @FXML private TableView<Teacher> teacherTable;
+    @FXML private TableColumn<Teacher, Integer> colNo;
+    @FXML private TableColumn<Teacher, String> colTeacherId;
+    @FXML private TableColumn<Teacher, String> colName;
+    @FXML private TableColumn<Teacher, String> colDepartment;
+    @FXML private TableColumn<Teacher, String> colPosition;
+    @FXML private TableColumn<Teacher, String> colPhone;
 
-    @FXML
-    private Button modify;
-    @FXML
-    private Button add;
-    @FXML
-    private Button remove;
+    @FXML private Button modify;
+    @FXML private Button add;
+    @FXML private Button remove;
 
-    @FXML
-    private TextField searchField;
+    @FXML private TextField searchField;
 
     public static ObservableList<Teacher> masterData = null;
     private FilteredList<Teacher> filteredData;
@@ -68,9 +55,8 @@ public class TeacherController {
             });
         }
 
-        colNo.setCellValueFactory(
-                cellData -> new ReadOnlyObjectWrapper<>(teacherTable.getItems().indexOf(cellData.getValue()) + 1));
-
+        colNo.setCellValueFactory(cellData -> cellData.getValue().teacherIdProperty().asObject());
+        
         if (colTeacherId != null) {
             colTeacherId.setCellValueFactory(cellData -> cellData.getValue().teacherCodeProperty());
         }
@@ -81,12 +67,12 @@ public class TeacherController {
         colPhone.setCellValueFactory(cellData -> cellData.getValue().phoneNoProperty());
 
         ObservableList<String> departmentOptions = FXCollections.observableArrayList(
-                "All Departments", "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex",
-                "FE");
+            "All Departments", "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex", "FE"
+        );
 
         ObservableList<String> positionOptions = FXCollections.observableArrayList(
-                "All Positions", "Professor & Head", "Professor", "Associate Professor", "Lecturer",
-                "Assistant Lecturer", "Tutor");
+            "All Positions", "Professor & Head", "Professor", "Associate Professor", "Lecturer", "Assistant Lecturer", "Tutor"
+        );
 
         deptHeaderCombo = new ComboBox<>(departmentOptions);
         deptHeaderCombo.setPromptText("Department");

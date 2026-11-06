@@ -41,21 +41,14 @@ import javafx.stage.Stage;
 
 public class TeacherDetailController {
 
-    @FXML
-    private Label lblFormTitle, lblPhotoAction;
-    @FXML
-    private Label lblTeacherId, lblDob, lblName, lblGender, lblDept, lblNationality, lblPosition, lblNrc;
-    @FXML
-    private Label lblPhone, lblEmail, lblCurrentAddress, lblPermanentAddress;
-    @FXML
-    private Label lblDegree, lblUniversity, lblYearCompleted, lblSpecialization, lblEmergency;
+    @FXML private Label lblFormTitle, lblPhotoAction;
+    @FXML private Label lblTeacherId, lblDob, lblName, lblGender, lblDept, lblNationality, lblPosition, lblNrc;
+    @FXML private Label lblPhone, lblEmail, lblCurrentAddress, lblPermanentAddress;
+    @FXML private Label lblDegree, lblUniversity, lblYearCompleted, lblSpecialization, lblEmergency;
 
-    @FXML
-    private GridPane gridTeacherDetails;
-    @FXML
-    private GridPane gridContactInfo;
-    @FXML
-    private GridPane gridAcademicInfo;
+    @FXML private GridPane gridTeacherDetails;
+    @FXML private GridPane gridContactInfo;
+    @FXML private GridPane gridAcademicInfo;
 
     private TextField txtTeacherId, txtDob, txtName, txtNationality, txtNrc;
     private ComboBox<String> comboGender;
@@ -65,25 +58,16 @@ public class TeacherDetailController {
     private TextField txtPhone, txtEmail, txtCurrentAddress, txtPermanentAddress;
     private TextField txtDegree, txtUniversity, txtYearCompleted, txtSpecialization, txtEmergency;
 
-    @FXML
-    private ImageView passportImageView;
-    @FXML
-    private Button btnSave;
-    @FXML
-    private Button btnReset;
-    @FXML
-    private HBox topActionBar;
-    @FXML
-    private HBox bottomActionBar;
-    @FXML
-    private VBox contentContainer;
+    @FXML private ImageView passportImageView;
+    @FXML private Button btnSave;
+    @FXML private Button btnReset;
+    @FXML private HBox topActionBar;
+    @FXML private HBox bottomActionBar;
+    @FXML private VBox contentContainer;
 
-    @FXML
-    private VBox importBox;
-    @FXML
-    private TextField txtExcelPath;
-    @FXML
-    private VBox dropZone;
+    @FXML private VBox importBox;
+    @FXML private TextField txtExcelPath;
+    @FXML private VBox dropZone;
 
     private Teacher currentTeacher;
     private boolean isEditMode = false;
@@ -94,10 +78,8 @@ public class TeacherDetailController {
     private HBox bannerBox = null;
     private final String DEFAULT_IMAGE_PATH = "/freddy.jpg";
 
-    private final String[] VALID_DEPTS = { "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met",
-            "Tex", "FE" };
-    private final String[] VALID_POSITIONS = { "Professor & Head", "Professor", "Associate Professor", "Lecturer",
-            "Assistant Lecturer", "Tutor" };
+    private final String[] VALID_DEPTS = {"CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex", "FE"};
+    private final String[] VALID_POSITIONS = {"Professor & Head", "Professor", "Associate Professor", "Lecturer", "Assistant Lecturer", "Tutor"};
 
     public void initData(Teacher teacher) {
         initData(teacher, false);
@@ -114,8 +96,7 @@ public class TeacherDetailController {
         }
 
         if (lblFormTitle != null) {
-            lblFormTitle.setText(editMode ? "FACULTY / TEACHER INFORMATION FORM (MODIFY)"
-                    : "FACULTY / TEACHER INFORMATION FORM (VIEW)");
+            lblFormTitle.setText(editMode ? "FACULTY / TEACHER INFORMATION FORM (MODIFY)" : "FACULTY / TEACHER INFORMATION FORM (VIEW)");
         }
         if (lblPhotoAction != null) {
             lblPhotoAction.setVisible(editMode);
@@ -127,15 +108,15 @@ public class TeacherDetailController {
                 contentContainer.getChildren().remove(bannerBox);
             }
             bannerBox = new HBox();
-            bannerBox.setStyle(
-                    "-fx-background-color: #dbeafe; -fx-border-color: #2563eb; -fx-border-width: 1.5; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 12 18;");
-
+            bannerBox.setStyle("-fx-background-color: #dbeafe; -fx-border-color: #2563eb; -fx-border-width: 1.5; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 12 18;");
+            
             String bannerText = String.format("⭐     %d     |     %s     |     %s     |     %s     |     %s",
-                    teacher.getTeacherId(),
-                    teacher.getTeacherCode(),
-                    teacher.getName(),
-                    teacher.getDepartment(),
-                    teacher.getPosition());
+                teacher.getTeacherId(),
+                teacher.getTeacherCode(),
+                teacher.getName(),
+                teacher.getDepartment(),
+                teacher.getPosition()
+            );
 
             Label bannerLabel = new Label(bannerText);
             bannerLabel.setStyle("-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 15px;");
@@ -152,34 +133,25 @@ public class TeacherDetailController {
             lblNationality.setText(teacher.getNationality());
             lblPosition.setText(teacher.getPosition());
             lblNrc.setText(teacher.getNrc());
-
+            
             lblPhone.setText(teacher.getPhoneNo());
             lblEmail.setText(teacher.getEmail());
             lblCurrentAddress.setText(teacher.getCurrentAddress());
             lblPermanentAddress.setText(teacher.getPermanentAddress());
-
+            
             lblDegree.setText(teacher.getDegree());
             lblUniversity.setText(teacher.getUniversity());
             lblYearCompleted.setText(teacher.getYearCompleted());
             lblSpecialization.setText(teacher.getSpecialization());
             lblEmergency.setText(teacher.getEmergencyContact());
 
-            if (bottomActionBar != null) {
-                bottomActionBar.setVisible(false);
-                bottomActionBar.setManaged(false);
-            }
-            if (btnReset != null) {
-                btnReset.setVisible(false);
-                btnReset.setManaged(false);
-            }
+            if (bottomActionBar != null) { bottomActionBar.setVisible(false); bottomActionBar.setManaged(false); }
+            if (btnReset != null) { btnReset.setVisible(false); btnReset.setManaged(false); }
         } else {
             createTextFields(teacher);
             setupTeacherBidirectionalSync();
 
-            if (bottomActionBar != null) {
-                bottomActionBar.setVisible(true);
-                bottomActionBar.setManaged(true);
-            }
+            if (bottomActionBar != null) { bottomActionBar.setVisible(true); bottomActionBar.setManaged(true); }
             if (btnSave != null) {
                 btnSave.setText("Save Changes");
                 btnSave.setVisible(true);
@@ -195,13 +167,11 @@ public class TeacherDetailController {
     }
 
     private void setupTeacherBidirectionalSync() {
-        if (!isEditMode && !isAddMode)
-            return;
+        if (!isEditMode && !isAddMode) return;
 
         if (txtTeacherId != null) {
             txtTeacherId.focusedProperty().addListener((obs, oldVal, newVal) -> {
-                if (!newVal && !isUpdating)
-                    syncDeptFromTeacherId();
+                if (!newVal && !isUpdating) syncDeptFromTeacherId();
             });
             txtTeacherId.textProperty().addListener((obs, oldVal, newVal) -> {
                 if (!isUpdating && newVal != null && newVal.contains("-")) {
@@ -223,15 +193,13 @@ public class TeacherDetailController {
 
         if (comboDept != null) {
             comboDept.valueProperty().addListener((obs, oldVal, newVal) -> {
-                if (!isUpdating && newVal != null)
-                    syncTeacherIdFromDept();
+                if (!isUpdating && newVal != null) syncTeacherIdFromDept();
             });
         }
     }
 
     private void syncDeptFromTeacherId() {
-        if (txtTeacherId == null || txtTeacherId.getText() == null)
-            return;
+        if (txtTeacherId == null || txtTeacherId.getText() == null) return;
         String raw = txtTeacherId.getText().trim();
         String[] parts = raw.split("-");
         if (parts.length >= 2) {
@@ -248,8 +216,7 @@ public class TeacherDetailController {
     }
 
     private void syncTeacherIdFromDept() {
-        if (comboDept == null || txtTeacherId == null)
-            return;
+        if (comboDept == null || txtTeacherId == null) return;
         String validDept = findValidDepartment(comboDept.getValue());
         if (validDept != null) {
             String currentCode = txtTeacherId.getText() != null ? txtTeacherId.getText().trim() : "";
@@ -288,10 +255,11 @@ public class TeacherDetailController {
         }
 
         Teacher blankTeacher = new Teacher(
-                TeacherController.masterData != null ? TeacherController.masterData.size() + 1 : 1,
-                "TCH-CEIT-101", "", "CEIT", "Tutor", "",
-                "", "Male", "Myanmar", "", "",
-                "", "", "", "", "", "", "", DEFAULT_IMAGE_PATH);
+            TeacherController.masterData != null ? TeacherController.masterData.size() + 1 : 1,
+            "TCH-CEIT-101", "", "CEIT", "Tutor", "",
+            "", "Male", "Myanmar", "", "",
+            "", "", "", "", "", "", "", DEFAULT_IMAGE_PATH
+        );
 
         createTextFields(blankTeacher);
         setupTeacherBidirectionalSync();
@@ -311,10 +279,7 @@ public class TeacherDetailController {
         txtEmergency.setText("");
         txtEmergency.setPromptText("09-231231231");
 
-        if (bottomActionBar != null) {
-            bottomActionBar.setVisible(true);
-            bottomActionBar.setManaged(true);
-        }
+        if (bottomActionBar != null) { bottomActionBar.setVisible(true); bottomActionBar.setManaged(true); }
         if (btnSave != null) {
             btnSave.setText("+ Add New Teacher");
             btnSave.setVisible(true);
@@ -330,17 +295,13 @@ public class TeacherDetailController {
     }
 
     private void createTextFields(Teacher teacher) {
-        replaceLabelWithControl(lblTeacherId,
-                txtTeacherId = new TextField(teacher != null ? teacher.getTeacherCode() : ""));
-        replaceLabelWithControl(lblDob,
-                txtDob = new TextField(teacher != null ? formatToYearMonthDay(teacher.getDob()) : ""));
+        replaceLabelWithControl(lblTeacherId, txtTeacherId = new TextField(teacher != null ? teacher.getTeacherCode() : ""));
+        replaceLabelWithControl(lblDob, txtDob = new TextField(teacher != null ? formatToYearMonthDay(teacher.getDob()) : ""));
         replaceLabelWithControl(lblName, txtName = new TextField(teacher != null ? teacher.getName() : ""));
 
         comboGender = new ComboBox<>(FXCollections.observableArrayList("Male", "Female"));
         comboGender.setMaxWidth(Double.MAX_VALUE);
-        String g = (teacher != null && teacher.getGender() != null && teacher.getGender().equalsIgnoreCase("Female"))
-                ? "Female"
-                : "Male";
+        String g = (teacher != null && teacher.getGender() != null && teacher.getGender().equalsIgnoreCase("Female")) ? "Female" : "Male";
         comboGender.setValue(g);
         replaceLabelWithControl(lblGender, comboGender);
 
@@ -350,8 +311,7 @@ public class TeacherDetailController {
         comboDept.setValue(d != null ? d : "CEIT");
         replaceLabelWithControl(lblDept, comboDept);
 
-        replaceLabelWithControl(lblNationality,
-                txtNationality = new TextField(teacher != null ? teacher.getNationality() : "Myanmar"));
+        replaceLabelWithControl(lblNationality, txtNationality = new TextField(teacher != null ? teacher.getNationality() : "Myanmar"));
 
         comboPosition = new ComboBox<>(FXCollections.observableArrayList(VALID_POSITIONS));
         comboPosition.setMaxWidth(Double.MAX_VALUE);
@@ -363,20 +323,14 @@ public class TeacherDetailController {
 
         replaceLabelWithControl(lblPhone, txtPhone = new TextField(teacher != null ? teacher.getPhoneNo() : ""));
         replaceLabelWithControl(lblEmail, txtEmail = new TextField(teacher != null ? teacher.getEmail() : ""));
-        replaceLabelWithControl(lblCurrentAddress,
-                txtCurrentAddress = new TextField(teacher != null ? teacher.getCurrentAddress() : ""));
-        replaceLabelWithControl(lblPermanentAddress,
-                txtPermanentAddress = new TextField(teacher != null ? teacher.getPermanentAddress() : ""));
+        replaceLabelWithControl(lblCurrentAddress, txtCurrentAddress = new TextField(teacher != null ? teacher.getCurrentAddress() : ""));
+        replaceLabelWithControl(lblPermanentAddress, txtPermanentAddress = new TextField(teacher != null ? teacher.getPermanentAddress() : ""));
 
         replaceLabelWithControl(lblDegree, txtDegree = new TextField(teacher != null ? teacher.getDegree() : ""));
-        replaceLabelWithControl(lblUniversity,
-                txtUniversity = new TextField(teacher != null ? teacher.getUniversity() : ""));
-        replaceLabelWithControl(lblYearCompleted,
-                txtYearCompleted = new TextField(teacher != null ? teacher.getYearCompleted() : ""));
-        replaceLabelWithControl(lblSpecialization,
-                txtSpecialization = new TextField(teacher != null ? teacher.getSpecialization() : ""));
-        replaceLabelWithControl(lblEmergency,
-                txtEmergency = new TextField(teacher != null ? teacher.getEmergencyContact() : ""));
+        replaceLabelWithControl(lblUniversity, txtUniversity = new TextField(teacher != null ? teacher.getUniversity() : ""));
+        replaceLabelWithControl(lblYearCompleted, txtYearCompleted = new TextField(teacher != null ? teacher.getYearCompleted() : ""));
+        replaceLabelWithControl(lblSpecialization, txtSpecialization = new TextField(teacher != null ? teacher.getSpecialization() : ""));
+        replaceLabelWithControl(lblEmergency, txtEmergency = new TextField(teacher != null ? teacher.getEmergencyContact() : ""));
 
         txtPhone.setPromptText("09-231231231");
         txtEmail.setPromptText("teacher@ytu.edu.mm");
@@ -398,20 +352,17 @@ public class TeacherDetailController {
     }
 
     private String formatToYearMonthDay(String dateStr) {
-        if (dateStr == null || dateStr.trim().isEmpty() || dateStr.trim().equals("-"))
-            return "";
+        if (dateStr == null || dateStr.trim().isEmpty() || dateStr.trim().equals("-")) return "";
         String s = dateStr.trim();
         if (s.matches("^\\d{4}-\\d{1,2}-\\d{1,2}$")) {
             String[] parts = s.split("-");
-            return String.format("%04d-%02d-%02d", Integer.parseInt(parts[0]), Integer.parseInt(parts[1]),
-                    Integer.parseInt(parts[2]));
+            return String.format("%04d-%02d-%02d", Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
         }
         String delimiter = s.contains("-") ? "-" : (s.contains("/") ? "/" : null);
         if (delimiter != null) {
             String[] parts = s.split(Pattern.quote(delimiter));
             if (parts.length == 3 && parts[2].length() == 4) {
-                return String.format("%04d-%02d-%02d", Integer.parseInt(parts[2]), Integer.parseInt(parts[1]),
-                        Integer.parseInt(parts[0]));
+                return String.format("%04d-%02d-%02d", Integer.parseInt(parts[2]), Integer.parseInt(parts[1]), Integer.parseInt(parts[0]));
             }
         }
         return s;
@@ -422,8 +373,9 @@ public class TeacherDetailController {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Faculty Excel / CSV File");
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Spreadsheet & CSV Files (*.xlsx, *.csv)", "*.xlsx", "*.csv"),
-                new FileChooser.ExtensionFilter("All Files (*.*)", "*.*"));
+            new FileChooser.ExtensionFilter("Spreadsheet & CSV Files (*.xlsx, *.csv)", "*.xlsx", "*.csv"),
+            new FileChooser.ExtensionFilter("All Files (*.*)", "*.*")
+        );
 
         Stage stage = (Stage) topActionBar.getScene().getWindow();
         File file = fileChooser.showOpenDialog(stage);
@@ -443,8 +395,7 @@ public class TeacherDetailController {
                 String name = file.getName().toLowerCase();
                 if (name.endsWith(".xlsx") || name.endsWith(".csv") || name.endsWith(".txt")) {
                     event.acceptTransferModes(TransferMode.COPY);
-                    dropZone.setStyle(
-                            "-fx-border-color: #2563eb; -fx-border-width: 2.0; -fx-border-style: dashed; -fx-border-radius: 6; -fx-background-color: #eff6ff; -fx-background-radius: 6; -fx-cursor: hand;");
+                    dropZone.setStyle("-fx-border-color: #2563eb; -fx-border-width: 2.0; -fx-border-style: dashed; -fx-border-radius: 6; -fx-background-color: #eff6ff; -fx-background-radius: 6; -fx-cursor: hand;");
                     break;
                 }
             }
@@ -455,8 +406,7 @@ public class TeacherDetailController {
     @FXML
     public void handleDragExited(DragEvent event) {
         if (dropZone != null) {
-            dropZone.setStyle(
-                    "-fx-border-color: #94a3b8; -fx-border-width: 1.5; -fx-border-style: dashed; -fx-border-radius: 6; -fx-background-color: #f8fafc; -fx-background-radius: 6; -fx-cursor: hand;");
+            dropZone.setStyle("-fx-border-color: #94a3b8; -fx-border-width: 1.5; -fx-border-style: dashed; -fx-border-radius: 6; -fx-background-color: #f8fafc; -fx-background-radius: 6; -fx-cursor: hand;");
         }
         event.consume();
     }
@@ -483,8 +433,7 @@ public class TeacherDetailController {
 
         event.setDropCompleted(success);
         if (dropZone != null) {
-            dropZone.setStyle(
-                    "-fx-border-color: #94a3b8; -fx-border-width: 1.5; -fx-border-style: dashed; -fx-border-radius: 6; -fx-background-color: #f8fafc; -fx-cursor: hand;");
+            dropZone.setStyle("-fx-border-color: #94a3b8; -fx-border-width: 1.5; -fx-border-style: dashed; -fx-border-radius: 6; -fx-background-color: #f8fafc; -fx-cursor: hand;");
         }
         event.consume();
     }
@@ -492,8 +441,7 @@ public class TeacherDetailController {
     @FXML
     public void handleImportExcel() {
         if (selectedExcelFile == null || !selectedExcelFile.exists()) {
-            showAlert("No File Selected", "Please browse or drag and drop a valid Excel or CSV file first.",
-                    Alert.AlertType.WARNING);
+            showAlert("No File Selected", "Please browse or drag and drop a valid Excel or CSV file first.", Alert.AlertType.WARNING);
             return;
         }
 
@@ -504,9 +452,7 @@ public class TeacherDetailController {
             } else if (fileName.endsWith(".xlsx")) {
                 boolean success = importFromNativeXlsx(selectedExcelFile);
                 if (!success) {
-                    showAlert("Import Notice",
-                            "Could not parse data from .xlsx file. Please try the .csv template instead.",
-                            Alert.AlertType.WARNING);
+                    showAlert("Import Notice", "Could not parse data from .xlsx file. Please try the .csv template instead.", Alert.AlertType.WARNING);
                 }
             } else {
                 showAlert("Unsupported File", "Please select a supported file (.xlsx or .csv).", Alert.AlertType.ERROR);
@@ -529,8 +475,7 @@ public class TeacherDetailController {
 
             String dataLine = br.readLine();
             if (dataLine == null) {
-                showAlert("No Data Row", "The selected file does not contain a row of faculty data below the header.",
-                        Alert.AlertType.WARNING);
+                showAlert("No Data Row", "The selected file does not contain a row of faculty data below the header.", Alert.AlertType.WARNING);
                 return;
             }
 
@@ -544,8 +489,7 @@ public class TeacherDetailController {
             }
 
             populateTeacherFieldsFromMap(map, values);
-            showAlert("Import Successful", "Teacher data from " + file.getName() + " has been loaded into the form.",
-                    Alert.AlertType.INFORMATION);
+            showAlert("Import Successful", "Teacher data from " + file.getName() + " has been loaded into the form.", Alert.AlertType.INFORMATION);
         }
     }
 
@@ -568,8 +512,7 @@ public class TeacherDetailController {
             }
 
             ZipEntry sheetEntry = zip.getEntry("xl/worksheets/sheet1.xml");
-            if (sheetEntry == null)
-                return false;
+            if (sheetEntry == null) return false;
 
             String sheetXml = new String(zip.getInputStream(sheetEntry).readAllBytes(), StandardCharsets.UTF_8);
             Matcher rowMatcher = Pattern.compile("<row[^>]*>(.*?)</row>", Pattern.DOTALL).matcher(sheetXml);
@@ -584,8 +527,7 @@ public class TeacherDetailController {
                 values = extractCellsFromRow(rowMatcher.group(1), sharedStrings);
             }
 
-            if (headers == null || values == null || headers.isEmpty())
-                return false;
+            if (headers == null || values == null || headers.isEmpty()) return false;
 
             Map<String, String> map = new HashMap<>();
             String[] rawValues = new String[headers.size()];
@@ -598,9 +540,7 @@ public class TeacherDetailController {
             }
 
             populateTeacherFieldsFromMap(map, rawValues);
-            showAlert("Import Successful",
-                    "Faculty data from Excel file (" + file.getName() + ") has been loaded into the form.",
-                    Alert.AlertType.INFORMATION);
+            showAlert("Import Successful", "Faculty data from Excel file (" + file.getName() + ") has been loaded into the form.", Alert.AlertType.INFORMATION);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -640,8 +580,7 @@ public class TeacherDetailController {
                         if (sIndex >= 0 && sIndex < sharedStrings.size()) {
                             val = sharedStrings.get(sIndex);
                         }
-                    } catch (Exception ex) {
-                    }
+                    } catch (Exception ex) {}
                 }
             } else {
                 Matcher isMatcher = Pattern.compile("<is>.*?<t[^>]*>(.*?)</t>.*?</is>", Pattern.DOTALL).matcher(body);
@@ -665,62 +604,43 @@ public class TeacherDetailController {
     }
 
     private String unescapeXml(String text) {
-        if (text == null)
-            return "";
-        return text.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"")
-                .replace("&apos;", "'");
+        if (text == null) return "";
+        return text.replace("&amp;", "&").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("&apos;", "'");
     }
 
     private void populateTeacherFieldsFromMap(Map<String, String> map, String[] rawOrder) {
-        if (txtTeacherId != null)
-            txtTeacherId.setText(
-                    getMapOrIndex(map, rawOrder, 0, "teacher id", "id", "teacherid", "employee id", "teacher code"));
-        if (txtName != null)
-            txtName.setText(getMapOrIndex(map, rawOrder, 1, "name", "full name", "fullname", "teacher name"));
-
+        if (txtTeacherId != null) txtTeacherId.setText(getMapOrIndex(map, rawOrder, 0, "teacher id", "id", "teacherid", "employee id", "teacher code"));
+        if (txtName != null) txtName.setText(getMapOrIndex(map, rawOrder, 1, "name", "full name", "fullname", "teacher name"));
+        
         String importedDept = getMapOrIndex(map, rawOrder, 2, "department", "dept");
         String normDept = findValidDepartment(importedDept);
-        if (comboDept != null && normDept != null)
-            comboDept.setValue(normDept);
+        if (comboDept != null && normDept != null) comboDept.setValue(normDept);
 
         String importedPos = getMapOrIndex(map, rawOrder, 3, "position", "rank", "title");
         String normPos = findValidPosition(importedPos);
-        if (comboPosition != null && normPos != null)
-            comboPosition.setValue(normPos);
+        if (comboPosition != null && normPos != null) comboPosition.setValue(normPos);
 
-        if (txtPhone != null)
-            txtPhone.setText(getMapOrIndex(map, rawOrder, 4, "phone", "phone number", "phone-no", "mobile"));
-        if (txtDob != null)
-            txtDob.setText(formatToYearMonthDay(getMapOrIndex(map, rawOrder, 5, "dob", "date of birth", "birthdate")));
-
+        if (txtPhone != null) txtPhone.setText(getMapOrIndex(map, rawOrder, 4, "phone", "phone number", "phone-no", "mobile"));
+        if (txtDob != null) txtDob.setText(formatToYearMonthDay(getMapOrIndex(map, rawOrder, 5, "dob", "date of birth", "birthdate")));
+        
         String sex = getMapOrIndex(map, rawOrder, 6, "gender", "sex");
         if (comboGender != null) {
             comboGender.setValue(sex.equalsIgnoreCase("Female") ? "Female" : "Male");
         }
-
+        
         String nat = getMapOrIndex(map, rawOrder, 7, "nationality", "country");
-        if (txtNationality != null)
-            txtNationality.setText(!nat.isEmpty() ? nat : "Myanmar");
-
-        if (txtNrc != null)
-            txtNrc.setText(getMapOrIndex(map, rawOrder, 8, "nrc", "nrc / id no.", "nrc number"));
-        if (txtEmail != null)
-            txtEmail.setText(getMapOrIndex(map, rawOrder, 9, "email", "email address"));
-        if (txtCurrentAddress != null)
-            txtCurrentAddress.setText(getMapOrIndex(map, rawOrder, 10, "current address", "address"));
-        if (txtPermanentAddress != null)
-            txtPermanentAddress.setText(getMapOrIndex(map, rawOrder, 11, "permanent address"));
-
-        if (txtDegree != null)
-            txtDegree.setText(getMapOrIndex(map, rawOrder, 12, "highest degree", "degree"));
-        if (txtUniversity != null)
-            txtUniversity.setText(getMapOrIndex(map, rawOrder, 13, "university", "institution", "college"));
-        if (txtYearCompleted != null)
-            txtYearCompleted.setText(getMapOrIndex(map, rawOrder, 14, "year completed", "graduation year"));
-        if (txtSpecialization != null)
-            txtSpecialization.setText(getMapOrIndex(map, rawOrder, 15, "specialization", "area", "major"));
-        if (txtEmergency != null)
-            txtEmergency.setText(getMapOrIndex(map, rawOrder, 16, "emergency contact", "emergency phone", "emergency"));
+        if (txtNationality != null) txtNationality.setText(!nat.isEmpty() ? nat : "Myanmar");
+        
+        if (txtNrc != null) txtNrc.setText(getMapOrIndex(map, rawOrder, 8, "nrc", "nrc / id no.", "nrc number"));
+        if (txtEmail != null) txtEmail.setText(getMapOrIndex(map, rawOrder, 9, "email", "email address"));
+        if (txtCurrentAddress != null) txtCurrentAddress.setText(getMapOrIndex(map, rawOrder, 10, "current address", "address"));
+        if (txtPermanentAddress != null) txtPermanentAddress.setText(getMapOrIndex(map, rawOrder, 11, "permanent address"));
+        
+        if (txtDegree != null) txtDegree.setText(getMapOrIndex(map, rawOrder, 12, "highest degree", "degree"));
+        if (txtUniversity != null) txtUniversity.setText(getMapOrIndex(map, rawOrder, 13, "university", "institution", "college"));
+        if (txtYearCompleted != null) txtYearCompleted.setText(getMapOrIndex(map, rawOrder, 14, "year completed", "graduation year"));
+        if (txtSpecialization != null) txtSpecialization.setText(getMapOrIndex(map, rawOrder, 15, "specialization", "area", "major"));
+        if (txtEmergency != null) txtEmergency.setText(getMapOrIndex(map, rawOrder, 16, "emergency contact", "emergency phone", "emergency"));
     }
 
     private String getMapOrIndex(Map<String, String> map, String[] rawOrder, int index, String... keys) {
@@ -736,21 +656,17 @@ public class TeacherDetailController {
     }
 
     private String findValidDepartment(String input) {
-        if (input == null)
-            return null;
+        if (input == null) return null;
         for (String d : VALID_DEPTS) {
-            if (d.equalsIgnoreCase(input.trim()))
-                return d;
+            if (d.equalsIgnoreCase(input.trim())) return d;
         }
         return null;
     }
 
     private String findValidPosition(String input) {
-        if (input == null)
-            return null;
+        if (input == null) return null;
         for (String p : VALID_POSITIONS) {
-            if (p.equalsIgnoreCase(input.trim()))
-                return p;
+            if (p.equalsIgnoreCase(input.trim())) return p;
         }
         return null;
     }
@@ -760,8 +676,8 @@ public class TeacherDetailController {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Select Faculty Passport Photo");
         fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Image Files (*.png, *.jpg, *.jpeg, *.bmp)", "*.png", "*.jpg", "*.jpeg",
-                        "*.bmp"));
+            new FileChooser.ExtensionFilter("Image Files (*.png, *.jpg, *.jpeg, *.bmp)", "*.png", "*.jpg", "*.jpeg", "*.bmp")
+        );
 
         if (passportImageView != null && passportImageView.getScene() != null) {
             Stage stage = (Stage) passportImageView.getScene().getWindow();
@@ -775,8 +691,7 @@ public class TeacherDetailController {
     }
 
     private void loadImage(String path) {
-        if (passportImageView == null)
-            return;
+        if (passportImageView == null) return;
         if (path != null && !path.trim().isEmpty()) {
             try {
                 Image img = (path.startsWith("file:") || path.startsWith("http:"))
@@ -785,8 +700,7 @@ public class TeacherDetailController {
                 if (img != null) {
                     passportImageView.setImage(img);
                 }
-            } catch (Exception e) {
-            }
+            } catch (Exception e) {}
         }
     }
 
@@ -795,8 +709,7 @@ public class TeacherDetailController {
         String rawCode = txtTeacherId != null ? txtTeacherId.getText().trim() : "";
         String rawName = txtName != null ? txtName.getText().trim() : "";
         String rawDept = comboDept != null && comboDept.getValue() != null ? comboDept.getValue().trim() : "";
-        String rawPos = comboPosition != null && comboPosition.getValue() != null ? comboPosition.getValue().trim()
-                : "";
+        String rawPos = comboPosition != null && comboPosition.getValue() != null ? comboPosition.getValue().trim() : "";
         String rawPhone = txtPhone != null ? txtPhone.getText().trim() : "";
         String rawEmail = txtEmail != null ? txtEmail.getText().trim() : "";
         String rawDob = txtDob != null ? txtDob.getText().trim() : "";
@@ -805,16 +718,12 @@ public class TeacherDetailController {
         String gender = comboGender != null && comboGender.getValue() != null ? comboGender.getValue().trim() : "Male";
 
         if (rawCode.isEmpty() || rawName.isEmpty() || rawDept.isEmpty() || rawPos.isEmpty() || rawPhone.isEmpty()) {
-            showAlert("Missing Information",
-                    "Please fill in Teacher ID, Full Name, Department, Position, and Phone Number.",
-                    Alert.AlertType.ERROR);
+            showAlert("Missing Information", "Please fill in Teacher ID, Full Name, Department, Position, and Phone Number.", Alert.AlertType.ERROR);
             return;
         }
 
         if (!rawCode.matches("^[a-zA-Z]+-[a-zA-Z0-9]+-\\d+$")) {
-            showAlert("Invalid Teacher ID Format",
-                    "Teacher ID must be in the format: [Prefix]-[Department]-[Number] (e.g., TCH-CEIT-101).",
-                    Alert.AlertType.ERROR);
+            showAlert("Invalid Teacher ID Format", "Teacher ID must be in the format: [Prefix]-[Department]-[Number] (e.g., TCH-CEIT-101).", Alert.AlertType.ERROR);
             return;
         }
 
@@ -825,8 +734,7 @@ public class TeacherDetailController {
 
         String deptFromCode = findValidDepartment(idDeptCode);
         if (deptFromCode == null) {
-            showAlert("Invalid Department in Teacher ID",
-                    "The department code '" + idDeptCode + "' in Teacher ID is invalid.", Alert.AlertType.ERROR);
+            showAlert("Invalid Department in Teacher ID", "The department code '" + idDeptCode + "' in Teacher ID is invalid.", Alert.AlertType.ERROR);
             return;
         }
 
@@ -845,11 +753,9 @@ public class TeacherDetailController {
         String standardizedCode = rawCode;
         if (isAddMode) {
             if (!deptFromCode.equalsIgnoreCase(validatedDept)) {
-                showAlert("Detail Mismatch Error",
-                        String.format(
-                                "Mismatch detected between Teacher ID and Department:\n\n• Teacher ID indicates Department '%s' but selected Department is '%s'.\n\nPlease correct either the Teacher ID or Department.",
-                                idDeptCode, validatedDept),
-                        Alert.AlertType.ERROR);
+                showAlert("Detail Mismatch Error", 
+                    String.format("Mismatch detected between Teacher ID and Department:\n\n• Teacher ID indicates Department '%s' but selected Department is '%s'.\n\nPlease correct either the Teacher ID or Department.", idDeptCode, validatedDept), 
+                    Alert.AlertType.ERROR);
                 return;
             }
             standardizedCode = idPrefix + "-" + validatedDept + "-" + idNum;
@@ -870,16 +776,12 @@ public class TeacherDetailController {
         }
 
         if (!rawDob.isEmpty() && !rawDob.matches("^\\d{4}-\\d{1,2}-\\d{1,2}$")) {
-            showAlert("Invalid Date of Birth",
-                    "Date of Birth must be in the format: Year-Month-Day (e.g., 1985-05-15) with no letters.",
-                    Alert.AlertType.ERROR);
+            showAlert("Invalid Date of Birth", "Date of Birth must be in the format: Year-Month-Day (e.g., 1985-05-15) with no letters.", Alert.AlertType.ERROR);
             return;
         }
 
         if (!rawPhone.matches("^09-\\d+$")) {
-            showAlert("Invalid Phone Number",
-                    "Teacher phone number must be in the format 09-xxxxxxxx (starting with 09- followed by numbers).",
-                    Alert.AlertType.ERROR);
+            showAlert("Invalid Phone Number", "Teacher phone number must be in the format 09-xxxxxxxx (starting with 09- followed by numbers).", Alert.AlertType.ERROR);
             return;
         }
         if (!rawEmail.isEmpty() && !rawEmail.contains("@")) {
@@ -887,19 +789,15 @@ public class TeacherDetailController {
             return;
         }
         if (!rawEmergency.isEmpty() && !rawEmergency.matches("^09-\\d+$")) {
-            showAlert("Invalid Emergency Contact",
-                    "Emergency contact must be in the format 09-xxxxxxxx (starting with 09- followed by numbers).",
-                    Alert.AlertType.ERROR);
+            showAlert("Invalid Emergency Contact", "Emergency contact must be in the format 09-xxxxxxxx (starting with 09- followed by numbers).", Alert.AlertType.ERROR);
             return;
         }
         if (!rawYearComp.isEmpty() && !rawYearComp.matches("^\\d{4}$")) {
-            showAlert("Invalid Year Completed", "Year Completed must be a 4-digit year (e.g., 2012).",
-                    Alert.AlertType.ERROR);
+            showAlert("Invalid Year Completed", "Year Completed must be a 4-digit year (e.g., 2012).", Alert.AlertType.ERROR);
             return;
         }
 
-        String finalPhoto = updatedPhotoPath != null ? updatedPhotoPath
-                : (currentTeacher != null ? currentTeacher.getPhotoPath() : DEFAULT_IMAGE_PATH);
+        String finalPhoto = updatedPhotoPath != null ? updatedPhotoPath : (currentTeacher != null ? currentTeacher.getPhotoPath() : DEFAULT_IMAGE_PATH);
 
         if (isAddMode) {
             Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
@@ -909,18 +807,16 @@ public class TeacherDetailController {
             confirmAlert.getDialogPane().setMinWidth(480);
 
             Optional<ButtonType> result = confirmAlert.showAndWait();
-            if (result.isEmpty() || result.get() != ButtonType.OK)
-                return;
+            if (result.isEmpty() || result.get() != ButtonType.OK) return;
 
             int newId = TeacherController.masterData != null ? TeacherController.masterData.size() + 1 : 1;
             Teacher newTeacher = new Teacher(
-                    newId, standardizedCode, rawName, validatedDept, validatedPos, rawPhone,
-                    rawDob, gender, txtNationality.getText().trim(),
-                    txtNrc.getText().trim(), rawEmail, txtCurrentAddress.getText().trim(),
-                    txtPermanentAddress.getText().trim(),
-                    txtDegree.getText().trim(), txtUniversity.getText().trim(), rawYearComp,
-                    txtSpecialization.getText().trim(),
-                    rawEmergency, finalPhoto);
+                newId, standardizedCode, rawName, validatedDept, validatedPos, rawPhone,
+                rawDob, gender, txtNationality.getText().trim(),
+                txtNrc.getText().trim(), rawEmail, txtCurrentAddress.getText().trim(), txtPermanentAddress.getText().trim(),
+                txtDegree.getText().trim(), txtUniversity.getText().trim(), rawYearComp, txtSpecialization.getText().trim(),
+                rawEmergency, finalPhoto
+            );
 
             if (TeacherController.masterData != null) {
                 TeacherController.masterData.add(newTeacher);
@@ -955,42 +851,24 @@ public class TeacherDetailController {
     @FXML
     public void handleResetData() {
         if (isAddMode) {
-            if (txtTeacherId != null)
-                txtTeacherId.clear();
-            if (txtName != null)
-                txtName.clear();
-            if (comboDept != null)
-                comboDept.setValue("CEIT");
-            if (comboPosition != null)
-                comboPosition.setValue("Tutor");
-            if (txtPhone != null)
-                txtPhone.clear();
-            if (txtDob != null)
-                txtDob.clear();
-            if (comboGender != null)
-                comboGender.setValue("Male");
-            if (txtNationality != null)
-                txtNationality.setText("Myanmar");
-            if (txtNrc != null)
-                txtNrc.clear();
-            if (txtEmail != null)
-                txtEmail.clear();
-            if (txtCurrentAddress != null)
-                txtCurrentAddress.clear();
-            if (txtPermanentAddress != null)
-                txtPermanentAddress.clear();
-            if (txtDegree != null)
-                txtDegree.clear();
-            if (txtUniversity != null)
-                txtUniversity.clear();
-            if (txtYearCompleted != null)
-                txtYearCompleted.clear();
-            if (txtSpecialization != null)
-                txtSpecialization.clear();
-            if (txtEmergency != null)
-                txtEmergency.clear();
-            if (txtExcelPath != null)
-                txtExcelPath.clear();
+            if (txtTeacherId != null) txtTeacherId.clear();
+            if (txtName != null) txtName.clear();
+            if (comboDept != null) comboDept.setValue("CEIT");
+            if (comboPosition != null) comboPosition.setValue("Tutor");
+            if (txtPhone != null) txtPhone.clear();
+            if (txtDob != null) txtDob.clear();
+            if (comboGender != null) comboGender.setValue("Male");
+            if (txtNationality != null) txtNationality.setText("Myanmar");
+            if (txtNrc != null) txtNrc.clear();
+            if (txtEmail != null) txtEmail.clear();
+            if (txtCurrentAddress != null) txtCurrentAddress.clear();
+            if (txtPermanentAddress != null) txtPermanentAddress.clear();
+            if (txtDegree != null) txtDegree.clear();
+            if (txtUniversity != null) txtUniversity.clear();
+            if (txtYearCompleted != null) txtYearCompleted.clear();
+            if (txtSpecialization != null) txtSpecialization.clear();
+            if (txtEmergency != null) txtEmergency.clear();
+            if (txtExcelPath != null) txtExcelPath.clear();
             selectedExcelFile = null;
             updatedPhotoPath = null;
             loadImage(DEFAULT_IMAGE_PATH);
@@ -1004,8 +882,7 @@ public class TeacherDetailController {
                 currentTeacher.resetToOriginal();
             }
             initData(currentTeacher, isEditMode);
-            showAlert("Data Reset", "Faculty record has been reset to its database state.",
-                    Alert.AlertType.INFORMATION);
+            showAlert("Data Reset", "Faculty record has been reset to its database state.", Alert.AlertType.INFORMATION);
         }
     }
 

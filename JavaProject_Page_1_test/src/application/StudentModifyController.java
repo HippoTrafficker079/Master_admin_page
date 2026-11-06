@@ -518,6 +518,12 @@ public class StudentModifyController {
             if (updatedPhotoPath != null) {
                 currentStudent.setPhotoPath(updatedPhotoPath);
             }
+            StudentDAO studentDAO = new StudentDAO();
+            boolean success = studentDAO.modifyStudent(currentStudent);
+            if (!success) {
+                showAlert("Database Error", "Failed to save changes to the database", Alert.AlertType.ERROR);
+                return;
+            }
 
             if (StudentController.masterData != null) {
                 for (int i = 0; i < StudentController.masterData.size(); i++) {
