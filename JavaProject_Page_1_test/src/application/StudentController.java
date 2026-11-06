@@ -232,13 +232,17 @@ public class StudentController {
 
             Optional<ButtonType> result = confirmAlert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
-                masterData.remove(selected);
-                int index = 1;
-                for (Student s : masterData) {
-                    s.setNo(index++);
+                StudentDAO studentDAO = new StudentDAO();
+                boolean success = studentDAO.removeStudent(selected.getNo());
+                if (success) {
+                    masterData.remove(selected);
+                    List<Student> freshList = studentDAO.getAllStudent();
+                    masterData.setAll(freshList);
+                    studentTable.getSelectionModel().clearSelection();
+                    studentTable.refresh();
+                } else {
+                    showAlert("Database Error", "Failed to remove student from the database.", Alert.AlertType.ERROR);
                 }
-                studentTable.getSelectionModel().clearSelection();
-                studentTable.refresh();
             }
         } else {
             showAlert("No Selection", "Please select a student row to remove.", Alert.AlertType.WARNING);

@@ -243,6 +243,14 @@ SET
 WHERE
     student_id = ?
 
+UPDATE student_education_background
+SET
+    previous_school = ?,
+    year_completed = ?,
+    additional_info = ?
+WHERE
+    student_id = ?
+
 --DELETE student query
 UPDATE user_account
 SET
