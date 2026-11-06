@@ -1,20 +1,26 @@
 package application.dao;
 
 import java.sql.Connection;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.mindrot.jbcrypt.BCrypt;
+
 import application.Student;
 
 public class StudentDAO {
     public List<Student> getAllStudent() {
         List<Student> students = new ArrayList<>();
         String sql = """
-                        WITH
+                    WITH
                     RankedStudents AS (
-                        SELECT s.student_id, s.roll_no, s.full_name, d.dept_code, s.current_year, co.term, ci.primary_phone_number, ua.status, ROW_NUMBER() OVER (
+                        SELECT s.student_id, s.roll_no, s.full_name, d.dept_code, s.current_year, COALESCE(co.term, 'Pending') AS term,
+                            ci.primary_phone_number, ua.status, ROW_NUMBER() OVER (
                                 PARTITION BY
                                     s.student_id
                                 ORDER BY ce.enrollment_id DESC
@@ -24,9 +30,9 @@ public class StudentDAO {
                             JOIN user_account ua ON s.user_id = ua.user_id
                             JOIN department d ON s.dept_id = d.dept_id
                             JOIN student_contact_information ci ON s.student_id = ci.student_id
-                            JOIN course_enrollment ce ON s.student_id = ce.student_id
-                            JOIN course_offering co ON ce.offering_id = co.offering_id
-                    )
+                            LEFT JOIN course_enrollment ce ON s.student_id = ce.student_id
+                            LEFT JOIN course_offering co ON ce.offering_id = co.offering_id)
+
                 SELECT
                     student_id,
                     roll_no,
@@ -38,8 +44,7 @@ public class StudentDAO {
                 FROM RankedStudents
                 WHERE
                     rn = 1
-                    AND `status` = TRUE
-                    AND 1 = 1;""";
+                    AND `status` = TRUE;""";
         try (Connection conn = DatabaseConnector.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);
                 ResultSet rs = pstmt.executeQuery()) {
@@ -66,9 +71,9 @@ public class StudentDAO {
             String semester) {
         StringBuilder sql = new StringBuilder(
                 """
-                                    WITH
+                            WITH
                             RankedStudents AS (
-                                SELECT s.student_id, s.roll_no, s.full_name, d.dept_code, s.current_year, co.term, ci.primary_phone_number, ua.status, ROW_NUMBER() OVER (
+                                SELECT s.student_id, s.roll_no, s.full_name, d.dept_code, s.current_year, COALESCE(co.term, 'Pending') AS term, ci.primary_phone_number, ua.status, ROW_NUMBER() OVER (
                                         PARTITION BY
                                             s.student_id
                                         ORDER BY ce.enrollment_id DESC
@@ -78,8 +83,8 @@ public class StudentDAO {
                                     JOIN user_account ua ON s.user_id = ua.user_id
                                     JOIN department d ON s.dept_id = d.dept_id
                                     JOIN student_contact_information ci ON s.student_id = ci.student_id
-                                    JOIN course_enrollment ce ON s.student_id = ce.student_id
-                                    JOIN course_offering co ON ce.offering_id = co.offering_id
+                                    LEFT JOIN course_enrollment ce ON s.student_id = ce.student_id
+                                    LEFT JOIN course_offering co ON ce.offering_id = co.offering_id
                             )
                         SELECT
                             student_id,
@@ -93,8 +98,7 @@ public class StudentDAO {
                         WHERE
                             rn = 1
                             AND `status` = TRUE
-                            AND 1 = 1
-                                    """);
+                             """);
         List<Object> parameters = new ArrayList<>();
         if (searchText != null && !searchText.trim().isEmpty()) {
             sql.append("""
@@ -159,7 +163,7 @@ public class StudentDAO {
                             s.full_name,
                             d.dept_code AS faculty,
                             s.current_year,
-                            co.term,
+                            COALESCE(co.term, 'Pending') AS term,
                             s.date_of_birth,
                             s.gender,
                             s.nationality,
@@ -189,8 +193,8 @@ public class StudentDAO {
                             LEFT JOIN student_contact_information ci ON s.student_id = ci.student_id
                             LEFT JOIN student_guardian sg ON s.student_id = sg.student_id
                             LEFT JOIN student_education_background seb ON s.student_id = seb.student_id
-                            JOIN course_enrollment ce ON s.student_id = ce.student_id
-                            JOIN course_offering co ON ce.offering_id = co.offering_id
+                            LEFT JOIN course_enrollment ce ON s.student_id = ce.student_id
+                            LEFT JOIN course_offering co ON ce.offering_id = co.offering_id
                         WHERE
                             s.student_id = ?
                     )
@@ -269,4 +273,227 @@ public class StudentDAO {
         return null;
     }
 
+    public int insertStudent(Student student) {
+        Connection conn = null;
+        try {
+            conn = DatabaseConnector.getConnection();
+            conn.setAutoCommit(false);
+
+            int studentId = insertSingleStudent(conn, student, "Default123");
+
+            conn.commit();
+            return studentId; 
+
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+            }
+            e.printStackTrace();
+            return -1; 
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException closeEx) {
+                    closeEx.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public int insertBatchStudents(List<Student> students) {
+        Connection conn = null;
+        int successCount = 0;
+        try {
+            conn = DatabaseConnector.getConnection();
+            conn.setAutoCommit(false);
+            for (Student student : students) {
+                int studentId = insertSingleStudent(conn, student, "Default123");
+                if (studentId > -1) {
+                    successCount++;
+                }
+            }
+            conn.commit();
+            return successCount;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+            }
+            e.printStackTrace();
+            return -1;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException closeEx) {
+                    closeEx.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private int insertSingleStudent(Connection conn, Student student, String password) throws SQLException {
+        String userCreateSql = """
+                INSERT INTO user_account (
+                    username,
+                    email,
+                    password_hash,
+                    user_role
+                ) VALUES (?, ?, ?, 'STUDENT');
+                """;
+
+        String studentCreateSql = """
+                INSERT INTO student (
+                    user_id,
+                    roll_no,
+                    full_name,
+                    dept_id,
+                    current_year,
+                    date_of_birth,
+                    gender,
+                    nationality,
+                    nrc,
+                    profile_image_url
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                """;
+
+        String studentContactSql = """
+                INSERT INTO student_contact_information (
+                    student_id,
+                    primary_phone_number,
+                    secondary_phone_number,
+                    email_address,
+                    current_address,
+                    permanent_address
+                ) VALUES (?, ?, ?, ?, ?, ?);
+                """;
+
+        String studentGuardianSql = """
+                INSERT INTO student_guardian (
+                    student_id,
+                    father_full_name,
+                    father_occupation,
+                    father_phone_number,
+                    father_email_address,
+                    mother_full_name,
+                    mother_occupation,
+                    mother_phone_number,
+                    mother_email_address
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+                """;
+                
+        String studentEducationBackgroundSql = """
+                INSERT INTO
+                student_education_background (
+                    student_id,
+                    previous_school,
+                    year_completed,
+                    additional_info
+                )
+                VALUES (?, ?, ?, ?);
+                """;
+
+        String username = student.getRollNo();
+        String email = student.getEmail() != null && !student.getEmail().trim().isEmpty() 
+            ? student.getEmail().trim() 
+            : student.getRollNo().toLowerCase().replace("-", "") + "@ytu.edu.mm";
+            
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12));
+        int userId = -1;
+        
+        try (PreparedStatement pstmtUser = conn.prepareStatement(userCreateSql, Statement.RETURN_GENERATED_KEYS)) {
+            pstmtUser.setString(1, username);
+            pstmtUser.setString(2, email);
+            pstmtUser.setString(3, hashedPassword);
+            pstmtUser.executeUpdate();
+
+            try (ResultSet generatedKeys = pstmtUser.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    userId = generatedKeys.getInt(1);
+                } else {
+                    throw new SQLException("Creating user failed! No userID found.");
+                }
+            }
+        }
+
+        int studentId = -1;
+        try (PreparedStatement pstmtStudent = conn.prepareStatement(studentCreateSql,
+                Statement.RETURN_GENERATED_KEYS)) {
+
+            DepartmentDAO departmentDAO = new DepartmentDAO();
+            int deptId = departmentDAO.getDeptIdByCodeOrName(conn, student.getMajor());
+
+            String rawDob = student.getDob(); 
+            String formattedDob = rawDob;
+            if (rawDob != null && rawDob.matches("\\d{2}-\\d{2}-\\d{4}")) {
+                String[] parts = rawDob.split("-");
+                formattedDob = parts[2] + "-" + parts[1] + "-" + parts[0]; 
+            }
+
+            pstmtStudent.setInt(1, userId);
+            pstmtStudent.setString(2, student.getRollNo());
+            pstmtStudent.setString(3, student.getName());
+            pstmtStudent.setInt(4, deptId);
+            pstmtStudent.setString(5, student.getYear());
+            pstmtStudent.setString(6, formattedDob);
+            pstmtStudent.setString(7, student.getGender());
+            pstmtStudent.setString(8, student.getNationality());
+            pstmtStudent.setString(9, student.getNrc());
+            pstmtStudent.setString(10, student.getPhotoPath());
+
+            pstmtStudent.executeUpdate();
+
+            try (ResultSet generatedKeys = pstmtStudent.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    studentId = generatedKeys.getInt(1);
+                } else {
+                    throw new SQLException("Creating student failed, no student ID obtained.");
+                }
+            }
+        }
+
+        try (PreparedStatement pstmtContact = conn.prepareStatement(studentContactSql)) {
+            pstmtContact.setInt(1, studentId);
+            pstmtContact.setString(2, student.getPhoneNo());
+            pstmtContact.setString(3, null);
+            pstmtContact.setString(4, student.getEmail());
+            pstmtContact.setString(5, student.getCurrentAddress());
+            pstmtContact.setString(6, student.getPermanentAddress());
+
+            pstmtContact.executeUpdate();
+        }
+
+        try (PreparedStatement pstmtGuardian = conn.prepareStatement(studentGuardianSql)) {
+            pstmtGuardian.setInt(1, studentId);
+            pstmtGuardian.setString(2, student.getFatherName());
+            pstmtGuardian.setString(3, student.getFatherOccupation());
+            pstmtGuardian.setString(4, student.getFatherPhone());
+            pstmtGuardian.setString(5, student.getFatherEmail());
+            pstmtGuardian.setString(6, student.getMotherName());
+            pstmtGuardian.setString(7, student.getMotherOccupation());
+            pstmtGuardian.setString(8, student.getMotherPhone());
+            pstmtGuardian.setString(9, student.getMotherEmail());
+
+            pstmtGuardian.executeUpdate();
+        }
+
+        try (PreparedStatement pstmtBackground = conn.prepareStatement(studentEducationBackgroundSql)) {
+            pstmtBackground.setInt(1, studentId);
+            pstmtBackground.setString(2, student.getPrevSchool());
+            pstmtBackground.setString(3, student.getYearCompleted());
+            pstmtBackground.setString(4, student.getAdditionalInfo());
+
+            pstmtBackground.executeUpdate();
+        }
+
+        return studentId;
+    }
 }

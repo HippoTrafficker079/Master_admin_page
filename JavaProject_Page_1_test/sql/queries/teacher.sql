@@ -61,7 +61,7 @@ INSERT INTO
         password_hash,
         user_role
     )
-VALUES (?, ?, ?, 'TEACHER')
+VALUES (?, ?, ?, 'TEACHER');
 
 INSERT INTO
     teacher (
@@ -75,7 +75,7 @@ INSERT INTO
         nrc,
         profile_image_url
     )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 INSERT INTO
     teacher_contact_information (
@@ -85,7 +85,7 @@ INSERT INTO
         current_address,
         permanent_address
     )
-VALUES (?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?);
 
 INSERT INTO
     teacher_academic_background (
@@ -110,7 +110,7 @@ SET
     nrc = ?,
     profile_image_url = ?
 WHERE
-    teacher_id = ?
+    teacher_id = ?;
 
 --Contact SQL
 UPDATE teacher_contact_information
@@ -120,7 +120,7 @@ SET
     current_address = ?,
     permanent_address = ?
 WHERE
-    teacher_id = ?
+    teacher_id = ?;
 
 --Academic Background SQL
 UPDATE teacher_academic_background

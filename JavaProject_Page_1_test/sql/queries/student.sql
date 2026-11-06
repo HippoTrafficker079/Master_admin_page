@@ -252,5 +252,5 @@ WHERE
         SELECT user_id
         FROM student
         WHERE
-            student_id = ?
+            student_id =
     );
