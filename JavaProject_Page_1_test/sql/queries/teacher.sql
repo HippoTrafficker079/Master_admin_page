@@ -11,9 +11,12 @@ FROM
 WHERE
     1 = 1
     AND ua.status = TRUE
-
---Append Dynamically when searchbar is not null
-AND ( t.full_name LIKE ? OR tci.primary_phone_number LIKE ? )
+ORDER BY t.teacher_id
+    --Append Dynamically when searchbar is not null
+    AND (
+        t.full_name LIKE ?
+        OR tci.primary_phone_number LIKE ?
+    )
 
 --Append Dynamically when department is filtered
 AND (d.dept_code = ?)

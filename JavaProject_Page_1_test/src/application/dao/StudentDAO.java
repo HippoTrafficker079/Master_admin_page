@@ -1,6 +1,7 @@
 package application.dao;
 
 import java.sql.Connection;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,7 +11,6 @@ import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-import application.Session;
 import application.Student;
 
 public class StudentDAO {
@@ -71,7 +71,7 @@ public class StudentDAO {
             String semester) {
         StringBuilder sql = new StringBuilder(
                 """
-                                    WITH
+                            WITH
                             RankedStudents AS (
                                 SELECT s.student_id, s.roll_no, s.full_name, d.dept_code, s.current_year, COALESCE(co.term, 'Pending') AS term, ci.primary_phone_number, ua.status, ROW_NUMBER() OVER (
                                         PARTITION BY
@@ -155,13 +155,13 @@ public class StudentDAO {
 
     public Student getStudentbyId(int studentId) {
         String sql = """
-                                    WITH
+                      WITH
                     RankedStudent AS (
                         SELECT
                             s.student_id,
                             s.roll_no,
                             s.full_name,
-                            d.dept_name AS faculty,
+                            d.dept_code AS faculty,
                             s.current_year,
                             COALESCE(co.term, 'Pending') AS term,
                             s.date_of_birth,
@@ -228,7 +228,7 @@ public class StudentDAO {
                 FROM RankedStudent
                 WHERE
                     rn = 1;
-                    """;
+                      """;
         try (Connection conn = DatabaseConnector.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, studentId);
@@ -245,25 +245,25 @@ public class StudentDAO {
                             rs.getString("current_year"),
                             rs.getString("term"),
                             rs.getString("primary_phone_number"), // 7: phoneNo
-                            dobString, // 8: dob
-                            rs.getString("gender"), // 9: gender ("Female")
-                            rs.getString("nationality"), // 10: nationality ("Myanmar")
-                            rs.getString("nrc"), // 11: nrc ("12/TaTaNa(N)...")
-                            rs.getString("email_address"), // 12: email
-                            rs.getString("current_address"), // 13: currentAddress
-                            rs.getString("permanent_address"), // 14: permanentAddress
-                            rs.getString("father_name"), // 15: fatherName
-                            rs.getString("father_occupation"), // 16: fatherOccupation
-                            rs.getString("father_phone"), // 17: fatherPhone
-                            rs.getString("father_email"), // 18: fatherEmail
-                            rs.getString("mother_name"), // 19: motherName
-                            rs.getString("mother_occupation"), // 20: motherOccupation
-                            rs.getString("mother_phone"), // 21: motherPhone
-                            rs.getString("mother_email"), // 22: motherEmail
-                            rs.getString("previous_school"), // 23: prevSchool
-                            rs.getString("year_completed"), // 24: yearCompleted
-                            rs.getString("additional_info"), // 25: additionalInfo
-                            rs.getString("profile_image_url") // 26: photoPath
+                            dobString,                            // 8: dob
+                            rs.getString("gender"),               // 9: gender ("Female")
+                            rs.getString("nationality"),          // 10: nationality ("Myanmar")
+                            rs.getString("nrc"),                  // 11: nrc ("12/TaTaNa(N)...")
+                            rs.getString("email_address"),        // 12: email
+                            rs.getString("current_address"),      // 13: currentAddress
+                            rs.getString("permanent_address"),    // 14: permanentAddress
+                            rs.getString("father_name"),          // 15: fatherName
+                            rs.getString("father_occupation"),    // 16: fatherOccupation
+                            rs.getString("father_phone"),         // 17: fatherPhone
+                            rs.getString("father_email"),         // 18: fatherEmail
+                            rs.getString("mother_name"),          // 19: motherName
+                            rs.getString("mother_occupation"),    // 20: motherOccupation
+                            rs.getString("mother_phone"),         // 21: motherPhone
+                            rs.getString("mother_email"),         // 22: motherEmail
+                            rs.getString("previous_school"),      // 23: prevSchool
+                            rs.getString("year_completed"),       // 24: yearCompleted
+                            rs.getString("additional_info"),      // 25: additionalInfo
+                            rs.getString("profile_image_url")     // 26: photoPath
                     );
                 }
             }
@@ -282,7 +282,7 @@ public class StudentDAO {
             int studentId = insertSingleStudent(conn, student, "Default123");
 
             conn.commit();
-            return 1; // Success indicator
+            return studentId; 
 
         } catch (SQLException e) {
             if (conn != null) {
@@ -293,7 +293,7 @@ public class StudentDAO {
                 }
             }
             e.printStackTrace();
-            return -1; // Failure indicator
+            return -1; 
         } finally {
             if (conn != null) {
                 try {
@@ -312,7 +312,7 @@ public class StudentDAO {
             conn = DatabaseConnector.getConnection();
             conn.setAutoCommit(false);
             for (Student student : students) {
-                int studentId = insertSingleStudent(conn, student, "Default123"); // Default Password
+                int studentId = insertSingleStudent(conn, student, "Default123");
                 if (studentId > -1) {
                     successCount++;
                 }
@@ -389,20 +389,26 @@ public class StudentDAO {
                     mother_email_address
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
                 """;
+                
         String studentEducationBackgroundSql = """
-                        INSERT INTO
-                    student_education_background (
-                        student_id,
-                        previous_school,
-                        year_completed,
-                        additional_info
-                    )
+                INSERT INTO
+                student_education_background (
+                    student_id,
+                    previous_school,
+                    year_completed,
+                    additional_info
+                )
                 VALUES (?, ?, ?, ?);
-                        """;
+                """;
+
         String username = student.getRollNo();
-        String email = student.getRollNo().toLowerCase().replace("-", "") + "@ytu.edu.mm";
+        String email = student.getEmail() != null && !student.getEmail().trim().isEmpty() 
+            ? student.getEmail().trim() 
+            : student.getRollNo().toLowerCase().replace("-", "") + "@ytu.edu.mm";
+            
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12));
         int userId = -1;
+        
         try (PreparedStatement pstmtUser = conn.prepareStatement(userCreateSql, Statement.RETURN_GENERATED_KEYS)) {
             pstmtUser.setString(1, username);
             pstmtUser.setString(2, email);
@@ -413,7 +419,7 @@ public class StudentDAO {
                 if (generatedKeys.next()) {
                     userId = generatedKeys.getInt(1);
                 } else {
-                    throw new SQLException("Creating user failed! no userID found.");
+                    throw new SQLException("Creating user failed! No userID found.");
                 }
             }
         }
@@ -425,11 +431,11 @@ public class StudentDAO {
             DepartmentDAO departmentDAO = new DepartmentDAO();
             int deptId = departmentDAO.getDeptIdByCodeOrName(conn, student.getMajor());
 
-            String rawDob = student.getDob(); // e.g., "12-05-2005"
+            String rawDob = student.getDob(); 
             String formattedDob = rawDob;
             if (rawDob != null && rawDob.matches("\\d{2}-\\d{2}-\\d{4}")) {
                 String[] parts = rawDob.split("-");
-                formattedDob = parts[2] + "-" + parts[1] + "-" + parts[0]; // Converts to "2005-05-12"
+                formattedDob = parts[2] + "-" + parts[1] + "-" + parts[0]; 
             }
 
             pstmtStudent.setInt(1, userId);
@@ -478,6 +484,7 @@ public class StudentDAO {
 
             pstmtGuardian.executeUpdate();
         }
+
         try (PreparedStatement pstmtBackground = conn.prepareStatement(studentEducationBackgroundSql)) {
             pstmtBackground.setInt(1, studentId);
             pstmtBackground.setString(2, student.getPrevSchool());
@@ -486,6 +493,7 @@ public class StudentDAO {
 
             pstmtBackground.executeUpdate();
         }
+
         return studentId;
     }
 }

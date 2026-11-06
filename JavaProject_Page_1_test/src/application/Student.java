@@ -36,86 +36,25 @@ public class Student {
 
     // Original backups for reset functionality
     private final String origRollNo, origName, origMajor, origYear, origSemester, origPhoneNo;
-    private final String origDob, origGender, origNationality, origNrc, origEmail, origCurrentAddress,
-            origPermanentAddress;
+    private final String origDob, origGender, origNationality, origNrc, origEmail, origCurrentAddress, origPermanentAddress;
     private final String origFatherName, origFatherOccupation, origFatherPhone, origFatherEmail;
     private final String origMotherName, origMotherOccupation, origMotherPhone, origMotherEmail;
     private final String origPrevSchool, origYearCompleted, origAdditionalInfo;
 
-    // Default Constructor
-
-    public Student() {
-        this.no = new SimpleIntegerProperty(0);
-        this.rollNo = new SimpleStringProperty("");
-        this.name = new SimpleStringProperty("");
-        this.major = new SimpleStringProperty("");
-        this.year = new SimpleStringProperty("");
-        this.semester = new SimpleStringProperty("");
-        this.phoneNo = new SimpleStringProperty("");
-
-        this.dob = new SimpleStringProperty("");
-        this.gender = new SimpleStringProperty("");
-        this.nationality = new SimpleStringProperty("");
-        this.nrc = new SimpleStringProperty("");
-        this.email = new SimpleStringProperty("");
-        this.currentAddress = new SimpleStringProperty("");
-        this.permanentAddress = new SimpleStringProperty("");
-
-        this.fatherName = new SimpleStringProperty("");
-        this.fatherOccupation = new SimpleStringProperty("");
-        this.fatherPhone = new SimpleStringProperty("");
-        this.fatherEmail = new SimpleStringProperty("");
-
-        this.motherName = new SimpleStringProperty("");
-        this.motherOccupation = new SimpleStringProperty("");
-        this.motherPhone = new SimpleStringProperty("");
-        this.motherEmail = new SimpleStringProperty("");
-
-        this.prevSchool = new SimpleStringProperty("");
-        this.yearCompleted = new SimpleStringProperty("");
-        this.additionalInfo = new SimpleStringProperty("");
-        this.photoPath = new SimpleStringProperty("");
-        this.origRollNo = "";
-        this.origName = "";
-        this.origMajor = "";
-        this.origYear = "";
-        this.origSemester = "";
-        this.origPhoneNo = "";
-        this.origDob = "";
-        this.origGender = "";
-        this.origNationality = "";
-        this.origNrc = "";
-        this.origEmail = "";
-        this.origCurrentAddress = "";
-        this.origPermanentAddress = "";
-        this.origFatherName = "";
-        this.origFatherOccupation = "";
-        this.origFatherPhone = "";
-        this.origFatherEmail = "";
-        this.origMotherName = "";
-        this.origMotherOccupation = "";
-        this.origMotherPhone = "";
-        this.origMotherEmail = "";
-        this.origPrevSchool = "";
-        this.origYearCompleted = "";
-        this.origAdditionalInfo = "";
-    }
-
     // Blank constructor for new student addition
     public Student(int no, String rollNo, String name, String major, String year, String semester, String phoneNo) {
-        this(no, rollNo, name, major, year, semester, phoneNo,
-                "", "", "", "", name.toLowerCase().replace(" ", "") + "",
-                "", "", "", "", "", "",
-                "", "", "", "",
-                "", "", "", null);
+        this(no, rollNo, name, major, year, semester, phoneNo, 
+             "", "", "", "", name.toLowerCase().replace(" ", "") + "", 
+             "", "", "", "", "", "", 
+             "", "", "", "", 
+             "", "", "", null);
     }
 
     public Student(int no, String rollNo, String name, String major, String year, String semester, String phoneNo,
-            String dob, String gender, String nationality, String nrc, String email,
-            String currentAddress, String permanentAddress, String fatherName, String fatherOccupation,
-            String fatherPhone, String fatherEmail, String motherName, String motherOccupation,
-            String motherPhone, String motherEmail, String prevSchool, String yearCompleted, String additionalInfo,
-            String photoPath) {
+                   String dob, String gender, String nationality, String nrc, String email, 
+                   String currentAddress, String permanentAddress, String fatherName, String fatherOccupation, 
+                   String fatherPhone, String fatherEmail, String motherName, String motherOccupation, 
+                   String motherPhone, String motherEmail, String prevSchool, String yearCompleted, String additionalInfo, String photoPath) {
         this.no = new SimpleIntegerProperty(no);
         this.rollNo = new SimpleStringProperty(rollNo);
         this.name = new SimpleStringProperty(name);
@@ -196,236 +135,90 @@ public class Student {
         additionalInfo.set(origAdditionalInfo);
     }
 
-    public int getNo() {
-        return no.get();
-    }
+    public int getNo() { return no.get(); }
+    public IntegerProperty noProperty() { return no; }
+    public void setNo(int no) { this.no.set(no); }
 
-    public IntegerProperty noProperty() {
-        return no;
-    }
+    public String getRollNo() { return rollNo.get(); }
+    public StringProperty rollNoProperty() { return rollNo; }
+    public void setRollNo(String rollNo) { this.rollNo.set(rollNo); }
 
-    public void setNo(int no) {
-        this.no.set(no);
-    }
+    public String getName() { return name.get(); }
+    public StringProperty nameProperty() { return name; }
+    public void setName(String name) { this.name.set(name); }
 
-    public String getRollNo() {
-        return rollNo.get();
-    }
+    public String getMajor() { return major.get(); }
+    public StringProperty majorProperty() { return major; }
+    public void setMajor(String major) { this.major.set(major); }
 
-    public StringProperty rollNoProperty() {
-        return rollNo;
-    }
+    public String getYear() { return year.get(); }
+    public StringProperty yearProperty() { return year; }
+    public void setYear(String year) { this.year.set(year); }
 
-    public void setRollNo(String rollNo) {
-        this.rollNo.set(rollNo);
-    }
+    public String getSemester() { return semester.get(); }
+    public StringProperty semesterProperty() { return semester; }
+    public void setSemester(String semester) { this.semester.set(semester); }
 
-    public String getName() {
-        return name.get();
-    }
+    public String getPhoneNo() { return phoneNo.get(); }
+    public StringProperty phoneNoProperty() { return phoneNo; }
+    public void setPhoneNo(String phoneNo) { this.phoneNo.set(phoneNo); }
 
-    public StringProperty nameProperty() {
-        return name;
-    }
+    public String getDob() { return dob.get(); }
+    public void setDob(String dob) { this.dob.set(dob); }
 
-    public void setName(String name) {
-        this.name.set(name);
-    }
+    public String getGender() { return gender.get(); }
+    public void setGender(String gender) { this.gender.set(gender); }
 
-    public String getMajor() {
-        return major.get();
-    }
+    public String getNationality() { return nationality.get(); }
+    public void setNationality(String nationality) { this.nationality.set(nationality); }
 
-    public StringProperty majorProperty() {
-        return major;
-    }
+    public String getNrc() { return nrc.get(); }
+    public void setNrc(String nrc) { this.nrc.set(nrc); }
 
-    public void setMajor(String major) {
-        this.major.set(major);
-    }
+    public String getEmail() { return email.get(); }
+    public void setEmail(String email) { this.email.set(email); }
 
-    public String getYear() {
-        return year.get();
-    }
+    public String getCurrentAddress() { return currentAddress.get(); }
+    public void setCurrentAddress(String currentAddress) { this.currentAddress.set(currentAddress); }
 
-    public StringProperty yearProperty() {
-        return year;
-    }
+    public String getPermanentAddress() { return permanentAddress.get(); }
+    public void setPermanentAddress(String permanentAddress) { this.permanentAddress.set(permanentAddress); }
 
-    public void setYear(String year) {
-        this.year.set(year);
-    }
+    public String getFatherName() { return fatherName.get(); }
+    public void setFatherName(String fatherName) { this.fatherName.set(fatherName); }
 
-    public String getSemester() {
-        return semester.get();
-    }
+    public String getFatherOccupation() { return fatherOccupation.get(); }
+    public void setFatherOccupation(String fatherOccupation) { this.fatherOccupation.set(fatherOccupation); }
 
-    public StringProperty semesterProperty() {
-        return semester;
-    }
+    public String getFatherPhone() { return fatherPhone.get(); }
+    public void setFatherPhone(String fatherPhone) { this.fatherPhone.set(fatherPhone); }
 
-    public void setSemester(String semester) {
-        this.semester.set(semester);
-    }
+    public String getFatherEmail() { return fatherEmail.get(); }
+    public void setFatherEmail(String fatherEmail) { this.fatherEmail.set(fatherEmail); }
 
-    public String getPhoneNo() {
-        return phoneNo.get();
-    }
+    public String getMotherName() { return motherName.get(); }
+    public void setMotherName(String motherName) { this.motherName.set(motherName); }
 
-    public StringProperty phoneNoProperty() {
-        return phoneNo;
-    }
+    public String getMotherOccupation() { return motherOccupation.get(); }
+    public void setMotherOccupation(String motherOccupation) { this.motherOccupation.set(motherOccupation); }
 
-    public void setPhoneNo(String phoneNo) {
-        this.phoneNo.set(phoneNo);
-    }
+    public String getMotherPhone() { return motherPhone.get(); }
+    public void setMotherPhone(String motherPhone) { this.motherPhone.set(motherPhone); }
 
-    public String getDob() {
-        return dob.get();
-    }
+    public String getMotherEmail() { return motherEmail.get(); }
+    public void setMotherEmail(String motherEmail) { this.motherEmail.set(motherEmail); }
 
-    public void setDob(String dob) {
-        this.dob.set(dob);
-    }
+    public String getPrevSchool() { return prevSchool.get(); }
+    public void setPrevSchool(String prevSchool) { this.prevSchool.set(prevSchool); }
 
-    public String getGender() {
-        return gender.get();
-    }
+    public String getYearCompleted() { return yearCompleted.get(); }
+    public void setYearCompleted(String yearCompleted) { this.yearCompleted.set(yearCompleted); }
 
-    public void setGender(String gender) {
-        this.gender.set(gender);
-    }
+    public String getAdditionalInfo() { return additionalInfo.get(); }
+    public void setAdditionalInfo(String additionalInfo) { this.additionalInfo.set(additionalInfo); }
 
-    public String getNationality() {
-        return nationality.get();
-    }
-
-    public void setNationality(String nationality) {
-        this.nationality.set(nationality);
-    }
-
-    public String getNrc() {
-        return nrc.get();
-    }
-
-    public void setNrc(String nrc) {
-        this.nrc.set(nrc);
-    }
-
-    public String getEmail() {
-        return email.get();
-    }
-
-    public void setEmail(String email) {
-        this.email.set(email);
-    }
-
-    public String getCurrentAddress() {
-        return currentAddress.get();
-    }
-
-    public void setCurrentAddress(String currentAddress) {
-        this.currentAddress.set(currentAddress);
-    }
-
-    public String getPermanentAddress() {
-        return permanentAddress.get();
-    }
-
-    public void setPermanentAddress(String permanentAddress) {
-        this.permanentAddress.set(permanentAddress);
-    }
-
-    public String getFatherName() {
-        return fatherName.get();
-    }
-
-    public void setFatherName(String fatherName) {
-        this.fatherName.set(fatherName);
-    }
-
-    public String getFatherOccupation() {
-        return fatherOccupation.get();
-    }
-
-    public void setFatherOccupation(String fatherOccupation) {
-        this.fatherOccupation.set(fatherOccupation);
-    }
-
-    public String getFatherPhone() {
-        return fatherPhone.get();
-    }
-
-    public void setFatherPhone(String fatherPhone) {
-        this.fatherPhone.set(fatherPhone);
-    }
-
-    public String getFatherEmail() {
-        return fatherEmail.get();
-    }
-
-    public void setFatherEmail(String fatherEmail) {
-        this.fatherEmail.set(fatherEmail);
-    }
-
-    public String getMotherName() {
-        return motherName.get();
-    }
-
-    public void setMotherName(String motherName) {
-        this.motherName.set(motherName);
-    }
-
-    public String getMotherOccupation() {
-        return motherOccupation.get();
-    }
-
-    public void setMotherOccupation(String motherOccupation) {
-        this.motherOccupation.set(motherOccupation);
-    }
-
-    public String getMotherPhone() {
-        return motherPhone.get();
-    }
-
-    public void setMotherPhone(String motherPhone) {
-        this.motherPhone.set(motherPhone);
-    }
-
-    public String getMotherEmail() {
-        return motherEmail.get();
-    }
-
-    public void setMotherEmail(String motherEmail) {
-        this.motherEmail.set(motherEmail);
-    }
-
-    public String getPrevSchool() {
-        return prevSchool.get();
-    }
-
-    public void setPrevSchool(String prevSchool) {
-        this.prevSchool.set(prevSchool);
-    }
-
-    public String getYearCompleted() {
-        return yearCompleted.get();
-    }
-
-    public void setYearCompleted(String yearCompleted) {
-        this.yearCompleted.set(yearCompleted);
-    }
-
-    public String getAdditionalInfo() {
-        return additionalInfo.get();
-    }
-
-    public void setAdditionalInfo(String additionalInfo) {
-        this.additionalInfo.set(additionalInfo);
-    }
-
-    public String getPhotoPath() {
-        return photoPath.get();
+    public String getPhotoPath() { 
+        return photoPath.get(); 
     }
 
     public void setPhotoPath(String path) {

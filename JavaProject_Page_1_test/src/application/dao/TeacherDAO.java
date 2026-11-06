@@ -18,7 +18,8 @@ public class TeacherDAO {
                 JOIN user_account ua ON t.user_id = ua.user_id
                 JOIN department d ON t.dept_id = d.dept_id
                 JOIN teacher_contact_information tci ON t.teacher_id = tci.teacher_id
-                WHERE ua.status = TRUE;
+                WHERE ua.status = TRUE
+                ORDER BY t.teacher_id ASC;
                 """;
         try (Connection conn = DatabaseConnector.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);

@@ -884,10 +884,12 @@ public class StudentAddController {
                 dobInput, genderInput, nationality, nrc, emailInput, currAddr, permAddr,
                 fName, fOcc, fPhoneInput, fEmailInput, mName, mOcc, mPhoneInput, mEmailInput,
                 prevSchool, yearCompInput, addInfo, finalPhotoPath);
+        
         StudentDAO studentDAO = new StudentDAO();
         int insertResult = studentDAO.insertStudent(newStudent);
         if (insertResult <= 0) {
             showAlert("Database Error", "Insertion Failed. Transaction has rolled back.", AlertType.ERROR);
+            return;
         }
 
         if (StudentController.masterData != null) {

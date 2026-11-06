@@ -88,9 +88,9 @@ public class StudentController {
         ObservableList<String> yearOptions = FXCollections.observableArrayList(
                 "All Years", "First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year");
 
-        // Standard semester options (without Pending)
+        // Added "Pending" to the Semester filter dropdown options
         ObservableList<String> semesterOptions = FXCollections.observableArrayList(
-                "All Semesters", "First Semester", "Second Semester");
+                "All Semesters", "Pending", "First Semester", "Second Semester");
 
         majorHeaderCombo = new ComboBox<>(majorOptions);
         majorHeaderCombo.setPromptText("Major");
