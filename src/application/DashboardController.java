@@ -4,10 +4,6 @@ import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-<<<<<<< HEAD
-=======
-import java.util.LinkedHashMap;
->>>>>>> clean-restored-main
 import java.util.List;
 import java.util.Map;
 import application.dao.StudentDAO;
@@ -48,10 +44,6 @@ public class DashboardController {
     @FXML private TableColumn<MarkRecord, String> colMarks;
     @FXML private TableColumn<MarkRecord, String> colStatus;
 
-<<<<<<< HEAD
-=======
-    @FXML private ComboBox<String> comboEnrollmentFilter;
->>>>>>> clean-restored-main
     @FXML private PieChart departmentPieChart;
     @FXML private BarChart<String, Number> enrollmentBarChart;
     @FXML private CategoryAxis xAxisEnrollment;
@@ -66,20 +58,6 @@ public class DashboardController {
     public void initialize() {
         if (lblCurrentDate != null) {
             lblCurrentDate.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, dd MMM yyyy")));
-        }
-
-        if (comboEnrollmentFilter != null) {
-            comboEnrollmentFilter.setItems(FXCollections.observableArrayList("Last 6 Years", "Last 4 Years", "Last 2 Years"));
-            comboEnrollmentFilter.setValue("Last 6 Years");
-            comboEnrollmentFilter.valueProperty().addListener((obs, oldVal, newVal) -> {
-                updateDashboardMetricsAndCharts();
-                // Force chart layout refresh to prevent label overlap on resize/dropdown switch
-                Platform.runLater(() -> {
-                    if (enrollmentBarChart != null) {
-                        enrollmentBarChart.requestLayout();
-                    }
-                });
-            });
         }
 
         if (markTable != null) {
@@ -125,7 +103,6 @@ public class DashboardController {
     }
 
     private void updateDashboardMetricsAndCharts() {
-<<<<<<< HEAD
         // 1. --- Fetch Fresh Live Counts Directly From Database DAOs ---
         int totalStudents = 0;
         int totalTeachers = 0;
@@ -175,42 +152,6 @@ public class DashboardController {
         updateEnrollmentTrend(studentsObservable);
 
         // 3. --- Update Mark Registrations Table ---
-=======
-        // 1. --- Pull Live Data from Database / Master Data ---
-        ObservableList<Student> students;
-        if (StudentController.masterData != null) {
-            students = StudentController.masterData;
-        } else {
-            StudentDAO studentDAO = new StudentDAO();
-            students = FXCollections.observableArrayList(studentDAO.getAllStudent());
-        }
-
-        ObservableList<Teacher> teachers;
-        if (TeacherController.masterData != null) {
-            teachers = TeacherController.masterData;
-        } else {
-            TeacherDAO teacherDAO = new TeacherDAO();
-            teachers = FXCollections.observableArrayList(teacherDAO.getAllTeacher());
-        }
-
-        // 2. --- Update Top 5 KPI Cards ---
-        int totalStudents = Math.max(students.size(), 1250);
-        int totalTeachers = Math.max(teachers.size(), 84);
-        int activeStudents = (int) (totalStudents * 0.96);
-        int totalCourses = 96;
-        double todaysAttendance = 94.5;
-
-        if (lblTotalStudents != null) lblTotalStudents.setText(String.format("%,d", totalStudents));
-        if (lblActiveStudents != null) lblActiveStudents.setText(String.format("%,d", activeStudents));
-        if (lblTotalTeachers != null) lblTotalTeachers.setText(String.valueOf(totalTeachers));
-        if (lblTotalCourses != null) lblTotalCourses.setText(String.valueOf(totalCourses));
-        if (lblTodaysAttendance != null) lblTodaysAttendance.setText(String.format("%.1f%%", todaysAttendance));
-
-        // 3. --- Update Student Enrollment Trend Bar Chart ---
-        updateEnrollmentTrend(students);
-
-        // 4. --- Update Mark Registrations Table ---
->>>>>>> clean-restored-main
         if (markTable != null) {
             ObservableList<MarkRecord> markRecords = FXCollections.observableArrayList();
             if (!studentsObservable.isEmpty()) {
@@ -221,7 +162,7 @@ public class DashboardController {
                     String id = getStudentProperty(s, "getStudentId", "getNo", "YTU2026018");
                     String name = getStudentProperty(s, "getName", "getStudentName", "Student");
                     String subj = subjects[i % subjects.length];
-                    String score = String.valueOf(78 + (i * 3) % 22);
+                    String score = String.valueOf(75 + (i * 3) % 25);
                     
                     markRecords.add(new MarkRecord(
                         id.startsWith("YTU") ? id : "YTU20260" + id,
@@ -240,21 +181,16 @@ public class DashboardController {
             markTable.setItems(markRecords);
         }
 
-<<<<<<< HEAD
         // 4. --- Update Students by Department Pie Chart ---
         updateDepartmentPieChart(studentsObservable, totalStudents);
-=======
-        // 5. --- Update Students by Department Pie Chart ---
-        updateDepartmentPieChart(students, totalStudents);
->>>>>>> clean-restored-main
 
-        // 6. --- Update Attendance Overview Area Chart ---
+        // 5. --- Update Attendance Overview Area Chart ---
         updateAttendanceChart();
     }
 
     private String getStudentDepartmentSafe(Student s) {
         String dept = getStudentProperty(s, "getDepartment", "getDept", "CEIT");
-        return dept != null ? dept.trim() : "CEIT";
+        return dept != null ? dept : "CEIT";
     }
 
     private String getStudentProperty(Object obj, String method1, String method2, String fallback) {
@@ -314,12 +250,6 @@ public class DashboardController {
 
         for (int i = 0; i < years.length; i++) {
             String yr = years[i];
-<<<<<<< HEAD
-=======
-
-            // 🧪 CUSTOM TEST VALUES PER YEAR
-            // You can change these numbers freely to test bar lengths!
->>>>>>> clean-restored-main
             int f1 = 0, f2 = 0, f3 = 0, f4 = 0, f5 = 0;
 
             switch (yr) {
@@ -339,16 +269,7 @@ public class DashboardController {
                     f1 = 50; f2 = 150; f3 = 250; f4 = 60; f5 = 450;
                     break;
                 case "2026":
-<<<<<<< HEAD
                     f1 = 1150; f2 = 900; f3 = 1000; f4 = 100; f5 = 50;
-=======
-                    // 🎯 Try changing these specific numbers to test 2026 bars!
-                    f1 = 1150; // Super long First Year bar
-                    f2 = 900;  
-                    f3 = 1000;  
-                    f4 = 100;  
-                    f5 = 50;  
->>>>>>> clean-restored-main
                     break;
                 default:
                     f1 = 300; f2 = 250; f3 = 200; f4 = 150; f5 = 100;
@@ -363,7 +284,6 @@ public class DashboardController {
         }
 
         enrollmentBarChart.getData().addAll(s1, s2, s3, s4, s5);
-<<<<<<< HEAD
 
         // Lock consistent colors to each series name regardless of filter/index shifts
         enrollmentBarChart.applyCss();
@@ -404,23 +324,11 @@ public class DashboardController {
         });
     }
 
-=======
-
-        Platform.runLater(() -> {
-            if (xAxisEnrollment != null) {
-                xAxisEnrollment.requestAxisLayout();
-            }
-            enrollmentBarChart.applyCss();
-            enrollmentBarChart.requestLayout();
-        });
-    }
-    
->>>>>>> clean-restored-main
     private void updateDepartmentPieChart(ObservableList<Student> students, int totalStudents) {
         if (departmentPieChart == null) return;
         departmentPieChart.getData().clear();
 
-        Map<String, Integer> deptCounts = new LinkedHashMap<>();
+        Map<String, Integer> deptCounts = new HashMap<>();
         String[] standardDepts = {"ARCH", "ChE", "CE", "CEIT", "EP", "EcE", "FE", "ME", "McE", "MmsE", "MnE", "PE", "TE", "TxE"};
         
         for (String d : standardDepts) {
@@ -428,16 +336,14 @@ public class DashboardController {
         }
 
         for (Student s : students) {
-            String rawDept = getStudentDepartmentSafe(s);
-            String normalizedDept = normalizeDeptCode(rawDept);
-            if (deptCounts.containsKey(normalizedDept)) {
-                deptCounts.put(normalizedDept, deptCounts.get(normalizedDept) + 1);
+            String dept = getStudentDepartmentSafe(s).trim().toUpperCase();
+            if (deptCounts.containsKey(dept)) {
+                deptCounts.put(dept, deptCounts.get(dept) + 1);
             } else {
                 deptCounts.put("CEIT", deptCounts.get("CEIT") + 1);
             }
         }
 
-<<<<<<< HEAD
         long activeDeptsCount = deptCounts.values().stream().filter(v -> v > 0).count();
         int total = totalStudents > 0 ? totalStudents : students.size();
 
@@ -457,30 +363,12 @@ public class DashboardController {
             deptCounts.put("TE", 80);
             deptCounts.put("TxE", 40);
             total = 1250;
-=======
-        if (students.isEmpty() || totalStudents <= 1250) {
-            deptCounts.put("ARCH", 115);
-            deptCounts.put("ChE", 95);
-            deptCounts.put("CE", 135);
-            deptCounts.put("CEIT", 210);
-            deptCounts.put("EP", 145);
-            deptCounts.put("EcE", 120);
-            deptCounts.put("FE", 55);
-            deptCounts.put("ME", 110);
-            deptCounts.put("McE", 85);
-            deptCounts.put("MmsE", 60);
-            deptCounts.put("MnE", 45);
-            deptCounts.put("PE", 95);
-            deptCounts.put("TE", 85);
-            deptCounts.put("TxE", 45);
-            totalStudents = 1400;
->>>>>>> clean-restored-main
         }
 
         ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
         for (Map.Entry<String, Integer> entry : deptCounts.entrySet()) {
             if (entry.getValue() > 0) {
-                double pct = (entry.getValue() * 100.0) / totalStudents;
+                double pct = (entry.getValue() * 100.0) / total;
                 pieData.add(new PieChart.Data(String.format("%s (%.1f%%)", entry.getKey(), pct), entry.getValue()));
             }
         }
@@ -505,38 +393,18 @@ public class DashboardController {
         }
     }
 
-    private String normalizeDeptCode(String code) {
-        if (code == null) return "CEIT";
-        String upper = code.trim().toUpperCase();
-        if (upper.contains("ARCH")) return "ARCH";
-        if (upper.contains("CHE") || upper.contains("CHEMICAL")) return "ChE";
-        if (upper.contains("CE") && !upper.contains("CEIT")) return "CE";
-        if (upper.contains("CEIT") || upper.contains("COMPUTER")) return "CEIT";
-        if (upper.contains("EP") || upper.contains("POWER")) return "EP";
-        if (upper.contains("ECE") || upper.contains("ELECTRONIC")) return "EcE";
-        if (upper.contains("FE") || upper.contains("FOOD")) return "FE";
-        if (upper.contains("ME") && !upper.contains("MCE") && !upper.contains("MMS")) return "ME";
-        if (upper.contains("MCE") || upper.contains("MECHATRONIC")) return "McE";
-        if (upper.contains("MMS") || upper.contains("METALLURGY")) return "MmsE";
-        if (upper.contains("MN") || upper.contains("MINING")) return "MnE";
-        if (upper.contains("PE") || upper.contains("PETROLEUM")) return "PE";
-        if (upper.contains("TE") && !upper.contains("TEXTILE")) return "TE";
-        if (upper.contains("TX") || upper.contains("TEXTILE")) return "TxE";
-        return upper;
-    }
-
     private void updateAttendanceChart() {
         if (attendanceAreaChart == null) return;
         attendanceAreaChart.getData().clear();
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Attendance");
-        series.getData().add(new XYChart.Data<>("Mon", 93.5));
-        series.getData().add(new XYChart.Data<>("Tue", 92.1));
-        series.getData().add(new XYChart.Data<>("Wed", 94.8));
-        series.getData().add(new XYChart.Data<>("Thu", 95.2));
-        series.getData().add(new XYChart.Data<>("Fri", 93.9));
-        series.getData().add(new XYChart.Data<>("Sat", 94.5));
+        series.getData().add(new XYChart.Data<>("Mon", 91));
+        series.getData().add(new XYChart.Data<>("Tue", 88));
+        series.getData().add(new XYChart.Data<>("Wed", 92));
+        series.getData().add(new XYChart.Data<>("Thu", 94));
+        series.getData().add(new XYChart.Data<>("Fri", 90));
+        series.getData().add(new XYChart.Data<>("Sat", 92.3));
 
         attendanceAreaChart.getData().add(series);
         attendanceAreaChart.setLegendVisible(false);

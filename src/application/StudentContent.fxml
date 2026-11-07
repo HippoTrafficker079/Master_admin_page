@@ -36,11 +36,11 @@
          </children>
       </HBox>
 
-      <!-- Search & Reset Bar (Filters only on Search button click or Enter key) -->
+      <!-- Search & Reset Bar -->
       <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 12 16; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
          <children>
             <TextField fx:id="searchField" onAction="#handleSearch"
-                       promptText="Search roll no, name, semester, or phone..."
+                       promptText="Search roll no, name, or phone..."
                        prefHeight="38.0" HBox.hgrow="ALWAYS"
                        style="-fx-background-color: #ffffff; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 0 12; -fx-font-size: 13px; -fx-text-fill: #1e293b;" />
             <Button mnemonicParsing="false" onAction="#handleSearch" prefHeight="38.0" prefWidth="95.0"
@@ -52,12 +52,12 @@
          </children>
       </HBox>
 
-      <!-- Distinct Striking Instruction Notice Banner Box -->
-      <HBox alignment="CENTER_LEFT" styleClass="instruction-banner-box">
+      <!-- Striking Instruction Banner Box matching requested design -->
+      <HBox alignment="CENTER_LEFT" style="-fx-background-color: #eff6ff; -fx-padding: 10 14; -fx-background-radius: 6; -fx-border-color: #bfdbfe; -fx-border-radius: 6;">
          <children>
-            <Label text="💡  Hint: Double-click any student row in the table below to view its Detailed Information." textFill="#1d4ed8">
+            <Label text="💡  Select student row(s) below to remove (Hold Ctrl or Shift for multi-selection):" textFill="#1d4ed8">
                <font>
-                  <Font size="13.0" />
+                  <Font name="System Bold" size="13.0" />
                </font>
             </Label>
          </children>

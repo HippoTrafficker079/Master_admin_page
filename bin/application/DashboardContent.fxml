@@ -123,65 +123,7 @@
             <!-- Vertical Stack for Analytics Cards & Tables -->
             <VBox spacing="15.0">
                <children>
-<<<<<<< HEAD
-                  <!-- Student Enrollment Trend Card -->
-<VBox spacing="10.0" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
-   <children>
-      <HBox alignment="CENTER_LEFT">
-         <children>
-            <Label text="📊 Student Enrollment Trend" textFill="#1e3a8a"><font><Font name="System Bold" size="13.0" /></font></Label>
-            <Pane HBox.hgrow="ALWAYS" />
-            <ComboBox fx:id="comboEnrollmentFilter" prefWidth="130.0" style="-fx-background-color: #f8fafc; -fx-border-color: #cbd5e1; -fx-border-radius: 4; -fx-padding: 2;" value="Last 6 Years" />
-         </children>
-      </HBox>
-      <BarChart fx:id="enrollmentBarChart" legendVisible="false" prefHeight="240.0">
-        <xAxis>
-          <CategoryAxis fx:id="xAxisEnrollment" side="BOTTOM" />
-        </xAxis>
-        <yAxis>
-          <NumberAxis fx:id="yAxisEnrollment" autoRanging="false" lowerBound="0.0" side="LEFT" tickUnit="300.0" upperBound="1200.0" />
-        </yAxis>
-      </BarChart>
-
-      <!-- Custom Consistent Legend matching the exact bar colors -->
-      <HBox alignment="CENTER" spacing="20.0" style="-fx-background-color: #f8fafc; -fx-padding: 8; -fx-background-radius: 6; -fx-border-color: #e2e8f0; -fx-border-radius: 6;">
-         <children>
-            <HBox alignment="CENTER" spacing="6.0">
-               <children>
-                  <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #1d4ed8; -fx-background-radius: 3;" />
-                  <Label text="First Year" textFill="#334155"><font><Font size="11.0" /></font></Label>
-               </children>
-            </HBox>
-            <HBox alignment="CENTER" spacing="6.0">
-               <children>
-                  <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #2563eb; -fx-background-radius: 3;" />
-                  <Label text="Second Year" textFill="#334155"><font><Font size="11.0" /></font></Label>
-               </children>
-            </HBox>
-            <HBox alignment="CENTER" spacing="6.0">
-               <children>
-                  <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #3b82f6; -fx-background-radius: 3;" />
-                  <Label text="Third Year" textFill="#334155"><font><Font size="11.0" /></font></Label>
-               </children>
-            </HBox>
-            <HBox alignment="CENTER" spacing="6.0">
-               <children>
-                  <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #60a5fa; -fx-background-radius: 3;" />
-                  <Label text="Fourth Year" textFill="#334155"><font><Font size="11.0" /></font></Label>
-               </children>
-            </HBox>
-            <HBox alignment="CENTER" spacing="6.0">
-               <children>
-                  <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #93c5fd; -fx-background-radius: 3;" />
-                  <Label text="Fifth Year" textFill="#334155"><font><Font size="11.0" /></font></Label>
-               </children>
-            </HBox>
-         </children>
-      </HBox>
-   </children>
-</VBox>
-=======
-                  <!-- 1. Student Enrollment Trend Card -->
+                  <!-- Student Enrollment Trend Card with Custom Legend -->
                   <VBox spacing="10.0" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
                      <children>
                         <HBox alignment="CENTER_LEFT">
@@ -191,7 +133,7 @@
                               <ComboBox fx:id="comboEnrollmentFilter" prefWidth="130.0" style="-fx-background-color: #f8fafc; -fx-border-color: #cbd5e1; -fx-border-radius: 4; -fx-padding: 2;" value="Last 6 Years" />
                            </children>
                         </HBox>
-                        <BarChart fx:id="enrollmentBarChart" prefHeight="240.0">
+                        <BarChart fx:id="enrollmentBarChart" legendVisible="false" prefHeight="240.0">
                           <xAxis>
                             <CategoryAxis fx:id="xAxisEnrollment" side="BOTTOM" />
                           </xAxis>
@@ -199,31 +141,44 @@
                             <NumberAxis fx:id="yAxisEnrollment" autoRanging="false" lowerBound="0.0" side="LEFT" tickUnit="300.0" upperBound="1200.0" />
                           </yAxis>
                         </BarChart>
-                     </children>
-                  </VBox>
 
-                  <!-- 2. Mark Registration Card (Temporarily Hidden) -->
-                  <VBox visible="false" managed="false" spacing="10.0" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
-                     <children>
-                        <HBox alignment="CENTER_LEFT">
+                        <!-- Custom Consistent Legend matching the exact bar colors -->
+                        <HBox alignment="CENTER" spacing="20.0" style="-fx-background-color: #f8fafc; -fx-padding: 8; -fx-background-radius: 6; -fx-border-color: #e2e8f0; -fx-border-radius: 6;">
                            <children>
-                              <Label text="📝 Mark Registration" textFill="#1e3a8a"><font><Font name="System Bold" size="13.0" /></font></Label>
-                              <Pane HBox.hgrow="ALWAYS" />
-                              <Label text="View All" textFill="#2563eb"><font><Font size="11.0" /></font></Label>
+                              <HBox alignment="CENTER" spacing="6.0">
+                                 <children>
+                                    <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #1d4ed8; -fx-background-radius: 3;" />
+                                    <Label text="First Year" textFill="#334155"><font><Font size="11.0" /></font></Label>
+                                 </children>
+                              </HBox>
+                              <HBox alignment="CENTER" spacing="6.0">
+                                 <children>
+                                    <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #2563eb; -fx-background-radius: 3;" />
+                                    <Label text="Second Year" textFill="#334155"><font><Font size="11.0" /></font></Label>
+                                 </children>
+                              </HBox>
+                              <HBox alignment="CENTER" spacing="6.0">
+                                 <children>
+                                    <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #3b82f6; -fx-background-radius: 3;" />
+                                    <Label text="Third Year" textFill="#334155"><font><Font size="11.0" /></font></Label>
+                                 </children>
+                              </HBox>
+                              <HBox alignment="CENTER" spacing="6.0">
+                                 <children>
+                                    <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #60a5fa; -fx-background-radius: 3;" />
+                                    <Label text="Fourth Year" textFill="#334155"><font><Font size="11.0" /></font></Label>
+                                 </children>
+                              </HBox>
+                              <HBox alignment="CENTER" spacing="6.0">
+                                 <children>
+                                    <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #93c5fd; -fx-background-radius: 3;" />
+                                    <Label text="Fifth Year" textFill="#334155"><font><Font size="11.0" /></font></Label>
+                                 </children>
+                              </HBox>
                            </children>
                         </HBox>
-                        <TableView fx:id="markTable" prefHeight="200.0">
-                          <columns>
-                            <TableColumn fx:id="colStudentId" prefWidth="110.0" text="Student ID" />
-                            <TableColumn fx:id="colStudentName" prefWidth="150.0" text="Student Name" />
-                            <TableColumn fx:id="colSubject" prefWidth="180.0" text="Subject" />
-                            <TableColumn fx:id="colMarks" prefWidth="100.0" text="Marks" />
-                            <TableColumn fx:id="colStatus" prefWidth="120.0" text="Status" />
-                          </columns>
-                        </TableView>
                      </children>
                   </VBox>
->>>>>>> clean-restored-main
 
                   <!-- Mark Registration Card (Temporarily Hidden) -->
                   <VBox visible="false" managed="false" spacing="10.0" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">

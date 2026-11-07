@@ -3,6 +3,7 @@ package application;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import application.dao.StudentDAO;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -17,6 +18,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -71,6 +73,9 @@ public class StudentController {
             });
         }
 
+        // Enable multiple selection for batch operations directly in the main table
+        studentTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
         colNo.setCellValueFactory(
                 cellData -> new ReadOnlyObjectWrapper<>(studentTable.getItems().indexOf(cellData.getValue()) + 1));
         colRollNo.setCellValueFactory(cellData -> cellData.getValue().rollNoProperty());
@@ -80,7 +85,6 @@ public class StudentController {
         colSemester.setCellValueFactory(cellData -> cellData.getValue().semesterProperty());
         colPhone.setCellValueFactory(cellData -> cellData.getValue().phoneNoProperty());
 
-        // Added "Pending" to the Major filter dropdown options
         ObservableList<String> majorOptions = FXCollections.observableArrayList(
                 "All Majors", "Pending", "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex",
                 "FE");
@@ -88,7 +92,6 @@ public class StudentController {
         ObservableList<String> yearOptions = FXCollections.observableArrayList(
                 "All Years", "First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year");
 
-        // Added "Pending" to the Semester filter dropdown options
         ObservableList<String> semesterOptions = FXCollections.observableArrayList(
                 "All Semesters", "Pending", "First Semester", "Second Semester");
 
@@ -221,27 +224,43 @@ public class StudentController {
 
     @FXML
     public void handleRemove() {
-        Student selected = studentTable.getSelectionModel().getSelectedItem();
-        if (selected != null) {
+        ObservableList<Student> selectedStudents = studentTable.getSelectionModel().getSelectedItems();
+        if (selectedStudents != null && !selectedStudents.isEmpty()) {
             Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
             confirmAlert.setTitle("Confirm Deletion");
-            confirmAlert.setHeaderText("Are you sure you want to remove this student?");
-            confirmAlert.setContentText("Roll No: " + selected.getRollNo() + "\nName: " + selected.getName());
+            
+            if (selectedStudents.size() == 1) {
+                Student selected = selectedStudents.get(0);
+                confirmAlert.setHeaderText("Are you sure you want to remove this student?");
+                confirmAlert.setContentText("Roll No: " + selected.getRollNo() + "\nName: " + selected.getName());
+            } else {
+                confirmAlert.setHeaderText("Are you sure you want to remove " + selectedStudents.size() + " selected students?");
+                confirmAlert.setContentText("This action will soft-delete all selected student records.");
+            }
+            
             confirmAlert.getDialogPane().setMinWidth(450);
             confirmAlert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
 
             Optional<ButtonType> result = confirmAlert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
-                masterData.remove(selected);
-                int index = 1;
-                for (Student s : masterData) {
-                    s.setNo(index++);
+                StudentDAO studentDAO = new StudentDAO();
+                List<Integer> idsToRemove = selectedStudents.stream()
+                        .map(Student::getNo)
+                        .collect(Collectors.toList());
+
+                boolean success = studentDAO.removeStudents(idsToRemove);
+                if (success) {
+                    masterData.removeAll(selectedStudents);
+                    List<Student> freshList = studentDAO.getAllStudent();
+                    masterData.setAll(freshList);
+                    studentTable.getSelectionModel().clearSelection();
+                    studentTable.refresh();
+                } else {
+                    showAlert("Database Error", "Failed to remove selected student(s) from the database.", Alert.AlertType.ERROR);
                 }
-                studentTable.getSelectionModel().clearSelection();
-                studentTable.refresh();
             }
         } else {
-            showAlert("No Selection", "Please select a student row to remove.", Alert.AlertType.WARNING);
+            showAlert("No Selection", "Please select one or more student rows to remove.", Alert.AlertType.WARNING);
         }
     }
 
