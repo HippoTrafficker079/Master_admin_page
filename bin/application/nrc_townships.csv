@@ -1,0 +1,217 @@
+state_code,township_code_en,township_code_mm,township_en,township_mm,state_en,state_mm
+1,BAMANA,ဗမန,Bhamo
+1,KHAPHANA,ခဖန,Chipwi
+1,AHGAYA,အဂယ,Injangyang
+1,HAPANA,ဟပန,Hopin
+1,KAMATA,ကမတ,Kamaing
+1,KAPATA,ကပတ,Kan Yeik Ti
+1,MAKATA,မကတ,Mogaung
+1,MAMANA,မမန,Momauk
+1,MANYANA,မညန,Mohnyin
+1,MAKANA,မကန,Myitkyina
+1,PHAKANA,ဖကန,Hpakant
+1,PATAAH,ပတအ,Puta-O
+1,WAMANA,ဝမန,Waingmaw
+2,BALAKHA,ဘလခ,Baw La Khe
+2,DAMASA,ဒမဆ,Di Maw So
+2,LAKANA,လကန,Loikaw
+2,MASANA,မစန,Meisi
+2,PHASANA,ဖဆန,Hpasawng
+2,PHAYASA,ဖရဆ,Hpruso
+2,YATANA,ရတန,Shar Daw
+2,YATHANA,ရသန,Ywarthit
+3,BAAHNA,ဘအန,Hpa-An
+3,BAGALA,ဘဂလ,Baw Ga Li
+3,LABANA,လဘန,Hlaingbwe
+3,KAKAYA,ကကရ,Kawkareik
+3,MAWATA,မဝတ,Myawaddy
+3,PHAPANA,ဖပန,Hpapun
+3,THATAKA,သတက,Thandaunggyi
+4,HAKHANA,ဟခန,Hakha
+4,PHALANA,ဖလန,Falam
+4,KAPALA,ကပလ,Kanpetlet
+4,MATAPA,မတပ,Matupi
+4,MATANA,မတန,Mindat
+4,PALAWA,ပလဝ,Paletwa
+4,TATANA,တတန,Tedim
+4,HTATALA,ထတလ,Thantlang
+4,TAZANA,တဇန,Ton Zaung
+5,AHYATA,အရတ,Ayadaw
+5,BAMANA,ဗမန,Banmauk
+5,BATALA,ဘတလ,Budalin
+5,KALAHTA,ကလထ,Kale
+5,KATHANA,ကသန,Katha
+5,KABALA,ကဘလ,Kanbalu
+5,KANANA,ကနန,Kani
+5,KALATA,ကလတ,Kawlin
+5,KHATANA,ခတန,Hkamti
+5,KHAPANA,ခပန,Kham Pat
+5,MAPALA,မပလ,Mo Paing Lut
+5,MAYANA,မရန,Monywa
+5,MALANA,မလန,Mawlaik
+5,PALANA,ပလန,Pale
+5,SAKANA,စကန,Sagaing
+5,SALAKA,ဆလက,Salingyi
+5,YABANA,ရဘန,Shwebo
+5,WALANA,ဝလန,Wetlet
+5,YAMAPA,ယမပ,Yinmarbin
+5,YAOUNA,ရဥန,Ye-U
+6,HTAWANA,ထဝန,Dawei
+6,BAPANA,ဘပန,Bokpyin
+6,KALAAH,ကလအ,Kaleinaung
+6,KATHANA,ကသန,Kawthoung
+6,KASANA,ကစန,Kyunsu
+6,LALANA,လလန,Loung Lon
+6,MAMANA,မမန,Myeik
+6,PALANA,ပလန,Palaw
+6,TATHAYA,တသရ,Tanintharyi
+6,THAYAKHA,သရခ,Thayetchaung
+6,YAPHANA,ရဖန,Yebyu
+7,PAKHANA,ပခန,Bago
+7,KAPAKA,ကပက,Gyobingauk
+7,HTATAPA,ထတပ,Htantabin
+7,KAKANA,ကကန,Kyaukkyi
+7,LAPATA,လပတ,Letpadan
+7,NYALAPA,ညလပ,Nyaunglebin
+7,PAMANA,ပမန,Pyay
+7,PATATA,ပတတ,Paungde
+7,PHAMANA,ဖမန,Phyu
+7,TANGANA,တငန,Taungoo
+7,THAWATA,သဝတ,Thayarwady
+7,WAMANA,ဝမန,Waw
+7,YATAYA,ရတရ,Yedashe
+8,GAGANA,ဂဂန,Gangaw
+8,KHAMANA,ခမန,Chauk
+8,AHLANA,အလန,Aunglan
+8,MAKANA,မကန,Magway
+8,MABANA,မဘန,Minbu
+8,MALANA,မလန,Minhla
+8,MATANA,မတန,Mindon
+8,PAMANA,ပမန,Pauk
+8,PAKHAKA,ပခက,Pakokku
+8,SALANA,စလန,Salin
+8,TATAKA,တတက,Taungdwingyi
+8,THAYANA,သရန,Thayet
+8,YANAKHA,ရနခ,Yenangyaung
+8,YASAKA,ရစက,Yesagyo
+9,AHMAYA,အမရ,Amarapura
+9,AHMAZA,အမဇ,Aungmyaythazan
+9,KHAAHZA,ခအဇ,Chanayethazan
+9,KHAMASA,ခမစ,Chan Mya Thar Zi
+9,KAPATA,ကပတ,Kyaukpadaung
+9,KASANA,ကဆန,Kyaukse
+9,LAWANA,လဝန,Lewe
+9,MATAYA,မတရ,Madaya
+9,MAHAMA,မဟမ,Mahaaungmyay
+9,MAKANA,မကန,Mogoke
+9,MAHTALA,မထလ,Meiktila
+9,MAKHANA,မခန,Myingyan
+9,NAHTAKA,နထက,Natogyi
+9,NYAOUNA,ညဥန,Nyaung-U
+9,PAMANA,ပမန,Pyinmana
+9,PAKAKHA,ပကခ,Pyigyitagon
+9,PATHAKA,ပသက,Patheingyi
+9,PABATHA,ပဗသ,Poke Ba Thi Ri
+9,TAKANA,တကန,Tatkon
+9,ZABATHA,ဇဗသ,Za Bu Thi Ri
+10,BALANA,ဘလန,Bi Lin
+10,KHASANA,ခဆန,Chaungzon
+10,KAMAYA,ကမရ,Kyaikmaraw
+10,KAHTANA,ကထန,Kyaikto
+10,MALAMA,မလမ,Mawlamyine
+10,MADANA,မဒန,Mudon
+10,PAMANA,ပမန,Paung
+10,THAHTANA,သထန,Thaton
+10,THAPHAYA,သဖရ,Thanbyuzayat
+10,YAMANA,ရမန,Ye
+11,AHMANA,အမန,Ann
+11,BATHATA,ဘသတ,Buthidaung
+11,GAMANA,ဂမန,Gwa
+11,KAPHANA,ကဖန,Kyaukpyu
+11,MAPANA,မပန,Minbya
+11,MAOUNA,မဥန,Mrauk-U
+11,MAPATA,မပတ,Myebon
+11,PATANA,ပတန,Pauktaw
+11,PANAKA,ပဏက,Ponnagyun
+11,SATANA,စတန,Sittwe
+11,THATANA,သတန,Thandwe
+11,TAKANA,တကန,Toungup
+11,YATHATA,ရသတ,Rathedaung
+12,AHLANA,အလန,Ahlone
+12,BAHANA,ဗဟန,Bahan
+12,BATAHTA,ဗတထ,Botahtaung
+12,DAGANA,ဒဂန,Dagon
+12,DAGAYA,ဒဂရ,Dagon Myothit East
+12,DAGASA,ဒဂဆ,Dagon Myothit Seikkan
+12,DAGAMA,ဒဂမ,North Dagon
+12,DAGATA,ဒဂတ,South Dagon
+12,DALANA,ဒလန,Dala
+12,DAPANA,ဒပန,Dawbon
+12,HTATAPA,ထတပ,Htantabin
+12,LAKANA,လကန,Hlegu
+12,LAMANA,လမန,Hlaing
+12,LATHAYA,လသယ,Hlaingtharya
+12,MABANA,မဘန,Hmawbi
+12,AHSANA,အစန,Insein
+12,KAMAYA,ကမရ,Kamaryut
+12,KAMANA,ကမန,Kawhmu
+12,KATATA,ကတတ,Kyauktada
+12,KATANA,ကတန,Kyauktan
+12,KAMATA,ကမတ,Kyeemyindaing
+12,KHAYANA,ခရန,Kayan
+12,KAKHAKA,ကခက,Kungyangon
+12,LAMATA,လမတ,Lanmadaw
+12,LATHANA,လသန,Latha
+12,MAYAKA,မရက,Mayangone
+12,MAGADA,မဂဒ,Mingaladon
+12,MAGATA,မဂတ,Mingala Taung Nyunt
+12,OUKAMA,ဥကမ,North Okkalapa
+12,OUKATA,ဥကတ,South Okkalapa
+12,PABATA,ပဘတ,Pabedan
+12,PAZATA,ပဇတ,Pazundaung
+12,SAKHANA,စခန,Sanchaung
+12,SAKANA,ဆကန,Seikkan
+12,THAKATA,သကတ,Thaketa
+12,THALANA,သလန,Thanlyin
+12,THAGAKA,သဃက,Thingangyun
+12,THAKHANA,သခန,Thongwa
+12,TAMANA,တမန,Tamwe
+12,TATANA,တတန,Twantay
+12,YAPATHA,ရပသ,Shwepyithar
+12,YAKANA,ရကန,Yankin
+13,AHPANA,အပန,Aungpan
+13,KALANA,ကလန,Kalaw
+13,KATANA,ကတန,Kengtung
+13,KAKHANA,ကခန,Kutkai
+13,LAYANA,လရန,Lashio
+13,LAKANA,လကန,Laukkaing
+13,MASATA,မဆတ,Muse
+13,NYAYANA,ညရန,Nyaungshwe
+13,TAYANA,တယန,Tangyan
+13,TAKHALA,တခလ,Tachileik
+13,TAKANA,တကန,Taunggyi
+13,THANANA,သနန,Hseni
+13,YASANA,ရစန,Yat Sauk
+14,AHMATA,အမတ,Ahmar
+14,BAKALA,ဘကလ,Bogale
+14,DANAPHA,ဓနဖ,Danubyu
+14,DADAYA,ဒဒရ,Dedaye
+14,AHMANA,အမန,Einme
+14,HATHATA,ဟသတ,Hinthada
+14,AHGAPA,အဂပ,Ingapu
+14,KAKAHTA,ကကထ,Kangyidaunt
+14,KALANA,ကလန,Kyaiklat
+14,KAKHANA,ကခန,Kyangin
+14,LAPATA,လပတ,La But Ta
+14,MAAHPA,မအပ,Maubin
+14,MAMAKA,မမက,Mawlamyinegyun
+14,MAAHNA,မအန,Myanaung
+14,MAMANA,မမန,Myaungmya
+14,NGAPATA,ငပတ,Ngapudaw
+14,NYATANA,ညတန,Nyaungdon
+14,PATANA,ပတန,Pantanaw
+14,PHAPANA,ဖပန,Pyapon
+14,THAPANA,သပန,Thabaung
+14,WAKHAMA,ဝခမ,Wakema
+14,YAKANA,ရကန,Yegyi
+14,ZALANA,ဇလန,Zalun

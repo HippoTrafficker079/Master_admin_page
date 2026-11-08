@@ -222,3 +222,37 @@
     -fx-border-width: 1px;
     -fx-padding: 20px;
 }
+/* --- Striking Prominent Notification Badge --- */
+.striking-badge {
+    -fx-background-color: #ef4444; /* Vivid striking red / amber */
+    -fx-text-fill: white;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 50em;
+    -fx-min-width: 32px;
+    -fx-min-height: 32px;
+    -fx-max-width: 32px;
+    -fx-max-height: 32px;
+    -fx-alignment: CENTER;
+    -fx-effect: dropshadow(three-pass-box, rgba(239, 68, 68, 0.6), 8, 0, 0, 2);
+}
+/* --- Striking NRC Help Info Button --- */
+.nrc-help-button {
+    -fx-background-color: #f97316; /* Vibrant warning orange */
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 14px;
+    -fx-min-width: 28px;
+    -fx-min-height: 28px;
+    -fx-max-width: 28px;
+    -fx-max-height: 28px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 3, 0, 0, 1);
+}
+.nrc-help-button:hover {
+    -fx-background-color: #ea580c; /* Deeper orange on hover */
+}
+.nrc-help-button:pressed {
+    -fx-background-color: #c2410c;
+}

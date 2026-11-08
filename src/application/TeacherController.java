@@ -97,9 +97,25 @@ public class TeacherController {
 
         teacherTable.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2 && teacherTable.getSelectionModel().getSelectedItem() != null) {
-                openTeacherDetail(teacherTable.getSelectionModel().getSelectedItem(), false);
+                Teacher selected = teacherTable.getSelectionModel().getSelectedItem();
+                openTeacherDetail(selected);
             }
         });
+    }
+
+    private void openTeacherDetail(Teacher teacher) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherDetail.fxml"));
+            Parent view = loader.load();
+            TeacherDetailController controller = loader.getController();
+            controller.initData(teacher);
+            BorderPane mainLayout = (BorderPane) teacherTable.getScene().lookup("#mainBorderPane");
+            if (mainLayout != null) {
+                mainLayout.setCenter(view);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void refreshDataFromDatabase() {
@@ -119,18 +135,10 @@ public class TeacherController {
     @FXML
     public void handleAdd() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherCreatePrompt.fxml"));
-            Parent createPromptView = loader.load();
-
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherAdd.fxml"));
+            Parent view = loader.load();
             BorderPane mainLayout = (BorderPane) teacherTable.getScene().lookup("#mainBorderPane");
-            if (mainLayout != null) {
-                mainLayout.setCenter(createPromptView);
-            } else {
-                Parent root = teacherTable.getScene().getRoot();
-                if (root instanceof BorderPane) {
-                    ((BorderPane) root).setCenter(createPromptView);
-                }
-            }
+            mainLayout.setCenter(view);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -140,37 +148,23 @@ public class TeacherController {
     public void handleModify() {
         Teacher selected = teacherTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            openTeacherDetail(selected, true);
-        } else {
-            showAlert("No Selection", "Please select a teacher row from the table to modify.", Alert.AlertType.WARNING);
-        }
-    }
-
-    private void openTeacherDetail(Teacher teacher, boolean editMode) {
-        try {
-            TeacherDAO teacherDAO = new TeacherDAO();
-            Teacher fullTeacher = teacherDAO.getFullTeacher(teacher.getTeacherId());
-            Teacher targetTeacher = (fullTeacher != null) ? fullTeacher : teacher;
-
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherDetail.fxml"));
-            Parent detailView = loader.load();
-
-            TeacherDetailController controller = loader.getController();
-            controller.initData(targetTeacher, editMode);
-
-            BorderPane mainLayout = (BorderPane) teacherTable.getScene().lookup("#mainBorderPane");
-            if (mainLayout != null) {
-                mainLayout.setCenter(detailView);
-            } else {
-                Parent root = teacherTable.getScene().getRoot();
-                if (root instanceof BorderPane) {
-                    ((BorderPane) root).setCenter(detailView);
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherModify.fxml"));
+                Parent view = loader.load();
+                TeacherModifyController controller = loader.getController();
+                controller.initData(selected);
+                BorderPane mainLayout = (BorderPane) teacherTable.getScene().lookup("#mainBorderPane");
+                if (mainLayout != null) {
+                    mainLayout.setCenter(view);
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } else {
+            showAlert("No Selection", "Please select a teacher row to modify.", Alert.AlertType.WARNING);
         }
     }
+
 
     @FXML
     public void handleRemove() {
