@@ -64,8 +64,10 @@ public class StudentModifyController {
         setupBidirectionalSync();
     }
 
+ // --- Add these field declarations if not already present ---
     private ObservableList<String> currentTownshipOptions;
     private FilteredList<String> filteredTownships;
+
 
     private void initializeNrcComponent() {
         if (comboNrcState != null) {
@@ -76,30 +78,45 @@ public class StudentModifyController {
             comboNrcType.setValue("(N)");
         }
 
-        // FIX: Initialize with ALL townships globally so clicking the search box right away shows all options!
         currentTownshipOptions = NrcData.getAllTownships();
         filteredTownships = new FilteredList<>(currentTownshipOptions, s -> true);
         if (comboNrcTownship != null) {
             comboNrcTownship.setItems(filteredTownships);
-            comboNrcTownship.setVisibleRowCount(10);
+            comboNrcTownship.setVisibleRowCount(12);
         }
 
-        // 1. State change listener: filters townships for the selected state code
+        // Track whether a township selection is locked in. 
+        // Set to true by default on load/modify so it requires Backspace to clear first!
+        final boolean[] isTownshipLocked = {true};
+
         if (comboNrcState != null) {
             comboNrcState.valueProperty().addListener((obs, oldVal, newVal) -> {
                 if (isUpdating) return;
                 
                 if (newVal != null && !newVal.equals(oldVal)) {
-                    ObservableList<String> townships = NrcData.getTownshipsForState(newVal);
-                    
                     isUpdating = true;
                     try {
+                        // Fetch and set only the townships associated with this specific State code
+                        ObservableList<String> stateTownships = NrcData.getTownshipsForState(newVal);
+                        if (currentTownshipOptions != null) {
+                            currentTownshipOptions.setAll(stateTownships);
+                        } else {
+                            currentTownshipOptions = stateTownships;
+                            filteredTownships = new FilteredList<>(currentTownshipOptions, s -> true);
+                            if (comboNrcTownship != null) {
+                                comboNrcTownship.setItems(filteredTownships);
+                            }
+                        }
+                        
+                        isTownshipLocked[0] = false;
                         filteredTownships.setPredicate(s -> true);
-                        currentTownshipOptions.setAll(townships);
                         comboNrcTownship.getSelectionModel().clearSelection();
                         comboNrcTownship.setValue(null);
                         if (comboNrcTownship.getEditor() != null) {
                             comboNrcTownship.getEditor().clear();
+                        }
+                        if (comboNrcTownship.isShowing()) {
+                            comboNrcTownship.hide();
                         }
                     } finally {
                         isUpdating = false;
@@ -108,8 +125,8 @@ public class StudentModifyController {
             });
         }
 
-        // 2. Universal Searchable Autocomplete Filter Listener
         if (comboNrcTownship != null && comboNrcTownship.getEditor() != null) {
+            // Type-ahead autocomplete listener (allows free searching when unlocked)
             comboNrcTownship.getEditor().textProperty().addListener((obs, oldValue, newValue) -> {
                 if (isUpdating) return;
 
@@ -117,47 +134,52 @@ public class StudentModifyController {
                     return;
                 }
 
-                Platform.runLater(() -> {
-                    if (newValue == null || newValue.trim().isEmpty()) {
-                        filteredTownships.setPredicate(s -> true);
-                    } else {
+                if (newValue == null || newValue.trim().isEmpty() || newValue.equalsIgnoreCase("Township")) {
+                    isTownshipLocked[0] = false;
+                    Platform.runLater(() -> filteredTownships.setPredicate(s -> true));
+                    return;
+                }
+
+                if (!isTownshipLocked[0]) {
+                    Platform.runLater(() -> {
                         String query = newValue.toLowerCase().trim();
                         filteredTownships.setPredicate(item -> item != null && item.toLowerCase().contains(query));
                         if (!comboNrcTownship.isShowing() && !filteredTownships.isEmpty()) {
                             comboNrcTownship.show();
                         }
-                    }
-                });
+                    });
+                }
             });
 
-            // 3. Township Selection Listener: Automatically updates State code & NRC number
+            // Lock selection when a specific township is chosen from the dropdown list
             comboNrcTownship.valueProperty().addListener((obs, oldVal, newVal) -> {
                 if (isUpdating) return;
                 
                 if (newVal != null && !newVal.trim().isEmpty()) {
+                    isTownshipLocked[0] = true;
                     if (comboNrcTownship.getEditor() != null && !comboNrcTownship.getEditor().getText().equals(newVal)) {
                         isUpdating = true;
                         comboNrcTownship.getEditor().setText(newVal);
                         isUpdating = false;
                     }
 
-                    // Automatically find and set the correct State code for the selected township
                     String matchedState = NrcData.getStateForTownship(newVal);
                     if (matchedState != null && comboNrcState != null) {
                         if (!matchedState.equals(comboNrcState.getValue())) {
                             isUpdating = true;
                             try {
-                                ObservableList<String> townships = NrcData.getTownshipsForState(matchedState);
-                                currentTownshipOptions.setAll(townships);
                                 comboNrcState.setValue(matchedState);
-                                comboNrcTownship.setValue(newVal);
+                                // Ensure dropdown options match the newly synced state
+                                ObservableList<String> stateTownships = NrcData.getTownshipsForState(matchedState);
+                                if (currentTownshipOptions != null) {
+                                    currentTownshipOptions.setAll(stateTownships);
+                                }
                             } finally {
                                 isUpdating = false;
                             }
                         }
                     }
 
-                    // Automatically update associated NRC number placeholder
                     String associatedCode = NrcData.getCodeForTownship(newVal);
                     if (associatedCode != null && txtNrcNumber != null && (txtNrcNumber.getText() == null || txtNrcNumber.getText().trim().isEmpty())) {
                         isUpdating = true;
@@ -167,11 +189,56 @@ public class StudentModifyController {
                             isUpdating = false;
                         }
                     }
+                } else {
+                    isTownshipLocked[0] = false;
+                }
+            });
+
+            // Key Filter: Restrict typing over a selected township unless Backspace is pressed first
+            comboNrcTownship.getEditor().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+                if (isUpdating) return;
+
+                if (isTownshipLocked[0]) {
+                    javafx.scene.input.KeyCode code = event.getCode();
+
+                    // Allow Backspace or Delete to clear the selection and unlock typing on the FIRST press
+                    if (code == javafx.scene.input.KeyCode.BACK_SPACE || code == javafx.scene.input.KeyCode.DELETE) {
+                        isUpdating = true;
+                        try {
+                            isTownshipLocked[0] = false;
+                            comboNrcTownship.setValue(null);
+                            comboNrcTownship.getEditor().clear();
+                            
+                            // Re-load correct townships for current state upon clearing
+                            if (comboNrcState != null && comboNrcState.getValue() != null) {
+                                ObservableList<String> stateTownships = NrcData.getTownshipsForState(comboNrcState.getValue());
+                                if (currentTownshipOptions != null) {
+                                    currentTownshipOptions.setAll(stateTownships);
+                                }
+                            }
+                            filteredTownships.setPredicate(s -> true);
+                        } finally {
+                            isUpdating = false;
+                        }
+                        event.consume();
+                        return;
+                    }
+
+                    // Block any other button and trigger the warning error message popup
+                 // Block any other button and trigger the warning error message popup
+                    event.consume();
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.WARNING);
+                        alert.setTitle("Action Restricted");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Please press backspace once to clear first.");
+                        alert.getDialogPane().setMinWidth(380);
+                        alert.showAndWait();
+                    });
                 }
             });
         }
 
-        // Restrict NRC Number to strictly 6 digits max
         if (txtNrcNumber != null) {
             txtNrcNumber.textProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal != null && !newVal.matches("\\d*")) {
@@ -598,8 +665,45 @@ public class StudentModifyController {
             } else {
                 currentStudent.resetToOriginal();
             }
+            
+            // Populate form data back with fresh database values
             initData(currentStudent);
-            showAlert("Data Reset", "This student's record has been reset to its database state.", Alert.AlertType.INFORMATION);
+
+            // --- FIX NRC STATE & TOWNSHIP RESET SYNC ---
+            if (currentStudent.getNrc() != null && !currentStudent.getNrc().isEmpty()) {
+                String fullNrc = currentStudent.getNrc();
+                // Example format: 12/DaGaNa(N)123456 or similar
+                try {
+                    String stateCode = fullNrc.split("/")[0].trim();
+                    String remainder = fullNrc.split("/")[1];
+                    String townshipName = remainder.split("\\(")[0].trim();
+
+                    isUpdating = true;
+                    try {
+                        if (comboNrcState != null) {
+                            comboNrcState.setValue(stateCode);
+                            // Repopulate townships strictly for this state code
+                            ObservableList<String> stateTownships = NrcData.getTownshipsForState(stateCode);
+                            if (currentTownshipOptions != null) {
+                                currentTownshipOptions.setAll(stateTownships);
+                            }
+                        }
+                        if (comboNrcTownship != null) {
+                            comboNrcTownship.setValue(townshipName);
+                            if (comboNrcTownship.getEditor() != null) {
+                                comboNrcTownship.getEditor().setText(townshipName);
+                            }
+                        }
+                    } finally {
+                        isUpdating = false;
+                    }
+                } catch (Exception e) {
+                    // Fallback if NRC parsing format varies
+                }
+            }
+
+            showAlert("Data Reset", "This student's record has been reset to its database state.",
+                    Alert.AlertType.INFORMATION);
         }
     }
 

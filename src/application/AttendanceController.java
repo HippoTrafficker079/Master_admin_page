@@ -1,6 +1,7 @@
 package application;
 
 import java.time.LocalDate;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
@@ -15,9 +16,9 @@ public class AttendanceController {
     @FXML private Button btnClassView, btnIndividualView, btnMatrixSummary, btnDailyLog, btnExport, btnBackToList;
     @FXML private HBox subModeBar, hintBox;
     @FXML private Label studentHeaderLabel;
-    
+
     // Matrix / Individual filter controls
-    @FXML private ComboBox<String> comboDepartment, comboYear, comboSemester;
+    @FXML private ComboBox<String> comboDepartment, comboYear, comboSemester, comboSubject;
     @FXML private DatePicker startDatePicker, endDatePicker;
     @FXML private TextField searchField;
     @FXML private CheckBox chkLowAttendance;
@@ -119,7 +120,7 @@ public class AttendanceController {
         ));
         dailyPeriodCombo.setValue("All Periods");
 
-        // --- MATRIX SUMMARY DATA (All 10 Students) ---
+        // --- MATRIX SUMMARY DATA ---
         matrixData = FXCollections.observableArrayList(
             new AttendanceRecord(1, "III-CEIT-1", "Mg Mg", "CEIT", "Third Year", "Semester I", "Advanced Java", "38/40", 95.0, LocalDate.of(2026, 7, 20)),
             new AttendanceRecord(2, "III-CEIT-2", "Aye Aye", "CEIT", "Third Year", "Semester I", "Data Structures", "35/40", 87.5, LocalDate.of(2026, 7, 22)),
@@ -133,11 +134,102 @@ public class AttendanceController {
             new AttendanceRecord(10, "I-PE-2", "Hein Htet", "PE", "First Year", "Semester II", "Calculus II", "24/40", 60.0, LocalDate.of(2026, 8, 20))
         );
 
+     // --- POPULATE SUBJECT SEARCHABLE COMBOBOX ---
+        ObservableList<String> subjectOptions = FXCollections.observableArrayList(
+            "All Subjects",
+            "Advanced Java",
+            "Data Structures",
+            "Chemical Kinetics",
+            "Thermodynamics",
+            "Signal Processing",
+            "Engineering Drawing",
+            "Circuit Theory",
+            "Microcontrollers",
+            "Urban Planning",
+            "Calculus II"
+        );
+
+        FilteredList<String> filteredSubjects = new FilteredList<>(subjectOptions, s -> true);
+        comboSubject.setItems(filteredSubjects);
+        comboSubject.setValue("All Subjects");
+
+        // Track whether a selection/value is currently locked in
+        final boolean[] isLocked = {true}; // Starts true because "All Subjects" is selected by default
+
+        // Type-ahead autocomplete listener
+        if (comboSubject.getEditor() != null) {
+            comboSubject.getEditor().textProperty().addListener((obs, oldVal, newVal) -> {
+                if (comboSubject.getValue() != null && comboSubject.getValue().equals(newVal)) {
+                    return;
+                }
+
+                // If user cleared the text completely, unlock typing for search
+                if (newVal == null || newVal.trim().isEmpty()) {
+                    isLocked[0] = false;
+                    Platform.runLater(() -> filteredSubjects.setPredicate(s -> true));
+                } else if (!isLocked[0]) {
+                    // Only filter if not locked
+                    Platform.runLater(() -> {
+                        String filter = newVal.toLowerCase().trim();
+                        filteredSubjects.setPredicate(item -> item != null && item.toLowerCase().contains(filter));
+                        if (!comboSubject.isShowing() && !filteredSubjects.isEmpty()) {
+                            comboSubject.show();
+                        }
+                    });
+                }
+            });
+
+            // When a specific subject is chosen from the dropdown list
+            comboSubject.valueProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null && !newVal.trim().isEmpty()) {
+                    isLocked[0] = true; // Lock it down until backspace is pressed
+                    if (comboSubject.getEditor() != null) {
+                        if (!comboSubject.getEditor().getText().equals(newVal)) {
+                            comboSubject.getEditor().setText(newVal);
+                        }
+                    }
+                }
+            });
+
+            // --- RESTRICTED KEY FILTER ---
+            comboSubject.getEditor().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+                javafx.scene.input.KeyCode code = event.getCode();
+
+                // Always allow Backspace or Delete so the user can clear the box
+                if (code == javafx.scene.input.KeyCode.BACK_SPACE || code == javafx.scene.input.KeyCode.DELETE) {
+                    // If it was locked, hitting backspace clears and unlocks it
+                    if (isLocked[0]) {
+                        isLocked[0] = false;
+                        Platform.runLater(() -> {
+                            comboSubject.setValue(null);
+                            comboSubject.getEditor().clear();
+                            filteredSubjects.setPredicate(s -> true);
+                        });
+                        event.consume(); // Consume this backspace so it doesn't double-delete
+                    }
+                    return;
+                }
+
+                // If the box is currently locked (has "All Subjects" or a selected subject), block other keys and warn
+                if (isLocked[0]) {
+                    event.consume();
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.WARNING);
+                        alert.setTitle("Action Restricted");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Please press backspace once to clear first.");
+                        alert.getDialogPane().setMinWidth(380);
+                        alert.showAndWait();
+                    });
+                }
+            });
+        }
+
         // --- EXPANDED DAILY LOG DATA ---
         dailyLogData = FXCollections.observableArrayList(
             new AttendanceRecord(1, "III-CEIT-1", "Mg Mg", "CEIT", "Third Year", "Semester I", LocalDate.of(2026, 7, 20), 1, "Advanced Java", "Present", "U Ba", "On time"),
             new AttendanceRecord(2, "III-CEIT-1", "Mg Mg", "CEIT", "Third Year", "Semester I", LocalDate.of(2026, 7, 20), 2, "Data Structures", "Present", "U Ba", "On time"),
-            new AttendanceRecord(3, "III-CEIT-2", "Aye Aye", "CEIT", "Third Year", "Semester I", LocalDate.of(2026, 7, 22), 3, "Algorithms", "Present", "U Myint", "On time"),
+            new AttendanceRecord(3, "III-CEIT-2", "Aye Aye", "CEIT", "Third Year", "Semester I", LocalDate.of(2026, 7, 20),3,"Algorithms", "Present", "U Myint", "On time"),
             new AttendanceRecord(4, "V-ChE-2", "Su Su", "ChE", "Fifth Year", "Semester II", LocalDate.of(2026, 7, 26), 1, "Chemical Kinetics", "Absent", "Daw Mya", "Unexcused"),
             new AttendanceRecord(5, "IV-ME-1", "Aung Aung", "ME", "Fourth Year", "Semester I", LocalDate.of(2026, 7, 26), 4, "Thermodynamics", "Excused", "U Tun", "Medical Leave"),
             new AttendanceRecord(6, "III-EC-4", "Hla Hla", "EC", "Third Year", "Semester II", LocalDate.of(2026, 7, 28), 5, "Signal Processing", "Absent", "U Hla", "Unexcused"),
@@ -212,7 +304,6 @@ public class AttendanceController {
             return row;
         });
 
-        // --- STRIKING ROW COLOR FACTORY FOR DAILY LOG TABLE ---
         dailyLogTable.setRowFactory(tv -> {
             TableRow<AttendanceRecord> row = new TableRow<AttendanceRecord>() {
                 @Override
@@ -251,23 +342,11 @@ public class AttendanceController {
 
     private void applyDailyRowStyle(TableRow<AttendanceRecord> row, String status, boolean selected) {
         if (status.equalsIgnoreCase("Present")) {
-            if (selected) {
-                row.setStyle("-fx-background-color: #a7f3d0;"); // Darker mint green when selected
-            } else {
-                row.setStyle("-fx-background-color: #d1fae5;"); // Soft vibrant mint green
-            }
+            row.setStyle(selected ? "-fx-background-color: #a7f3d0;" : "-fx-background-color: #d1fae5;");
         } else if (status.equalsIgnoreCase("Absent")) {
-            if (selected) {
-                row.setStyle("-fx-background-color: #fca5a5;"); // Darker coral red when selected
-            } else {
-                row.setStyle("-fx-background-color: #fee2e2;"); // Soft striking coral red
-            }
+            row.setStyle(selected ? "-fx-background-color: #fca5a5;" : "-fx-background-color: #fee2e2;");
         } else if (status.equalsIgnoreCase("Excused") || status.equalsIgnoreCase("Excuse")) {
-            if (selected) {
-                row.setStyle("-fx-background-color: #fde68a;"); // Darker amber when selected
-            } else {
-                row.setStyle("-fx-background-color: #fef3c7;"); // Warm amber / gold
-            }
+            row.setStyle(selected ? "-fx-background-color: #fde68a;" : "-fx-background-color: #fef3c7;");
         } else {
             row.setStyle("");
         }
@@ -281,11 +360,7 @@ public class AttendanceController {
                 if (item == null || empty) {
                     setStyle("");
                 } else if (item.isLowAttendance()) {
-                    if (isSelected()) {
-                        setStyle("-fx-background-color: #fca5a5;");
-                    } else {
-                        setStyle("-fx-background-color: #fee2e2;");
-                    }
+                    setStyle(isSelected() ? "-fx-background-color: #fca5a5;" : "-fx-background-color: #fee2e2;");
                 } else {
                     setStyle("");
                 }
@@ -294,11 +369,7 @@ public class AttendanceController {
 
         row.selectedProperty().addListener((obs, oldVal, newVal) -> {
             if (row.getItem() != null && row.getItem().isLowAttendance()) {
-                if (newVal) {
-                    row.setStyle("-fx-background-color: #fca5a5;");
-                } else {
-                    row.setStyle("-fx-background-color: #fee2e2;");
-                }
+                row.setStyle(newVal ? "-fx-background-color: #fca5a5;" : "-fx-background-color: #fee2e2;");
             }
         });
         return row;
@@ -334,6 +405,12 @@ public class AttendanceController {
             matrixTable.setManaged(true);
             dailyLogTable.setVisible(false);
             dailyLogTable.setManaged(false);
+
+            // Show Subject ComboBox, Hide Semester ComboBox in Matrix View
+            comboSemester.setVisible(false);
+            comboSemester.setManaged(false);
+            comboSubject.setVisible(true);
+            comboSubject.setManaged(true);
         } else {
             matrixFilterBox.setVisible(false);
             matrixFilterBox.setManaged(false);
@@ -386,6 +463,12 @@ public class AttendanceController {
         individualTable.setVisible(true);
         individualTable.setManaged(true);
 
+        // Show Semester ComboBox, Hide Subject ComboBox in Individual View
+        comboSemester.setVisible(true);
+        comboSemester.setManaged(true);
+        comboSubject.setVisible(false);
+        comboSubject.setManaged(false);
+
         comboDepartment.setVisible(!isStudentLocked);
         comboDepartment.setManaged(!isStudentLocked);
 
@@ -423,6 +506,7 @@ public class AttendanceController {
         comboDepartment.setValue("All Departments");
         comboYear.setValue("All Years");
         comboSemester.setValue("All Semesters");
+        comboSubject.setValue("All Subjects");
         searchField.clear();
         
         applyFilters();
@@ -440,6 +524,12 @@ public class AttendanceController {
         matrixTable.setManaged(true);
         dailyLogTable.setVisible(false);
         dailyLogTable.setManaged(false);
+
+        // Show Subject ComboBox, Hide Semester ComboBox in Matrix View
+        comboSemester.setVisible(false);
+        comboSemester.setManaged(false);
+        comboSubject.setVisible(true);
+        comboSubject.setManaged(true);
 
         updateActiveButtonStyles(btnMatrixSummary, btnDailyLog);
         applyFilters();
@@ -514,7 +604,7 @@ public class AttendanceController {
             String searchText = searchField.getText() == null ? "" : searchField.getText().toLowerCase().trim();
             String selectedDept = comboDepartment.getValue();
             String selectedYear = comboYear.getValue();
-            String selectedSemester = comboSemester.getValue();
+            String selectedSubject = comboSubject.getValue();
             LocalDate startDate = startDatePicker.getValue();
             LocalDate endDate = endDatePicker.getValue();
             boolean lowOnly = chkLowAttendance.isSelected();
@@ -527,13 +617,13 @@ public class AttendanceController {
                     record.getDepartment().equalsIgnoreCase(selectedDept);
                 boolean matchesYear = (selectedYear == null || selectedYear.equals("All Years")) || 
                     matchesYearHelper(record, selectedYear);
-                boolean matchesSemester = (selectedSemester == null || selectedSemester.equals("All Semesters")) || 
-                    record.getSemester().equalsIgnoreCase(selectedSemester);
+                boolean matchesSubject = (selectedSubject == null || selectedSubject.equals("All Subjects") || selectedSubject.trim().isEmpty()) || 
+                    record.getSubject().equalsIgnoreCase(selectedSubject.trim());
                 boolean matchesDate = (startDate == null || endDate == null) || 
                     (record.getDateObj() != null && !record.getDateObj().isBefore(startDate) && !record.getDateObj().isAfter(endDate));
                 boolean matchesLow = !lowOnly || record.isLowAttendance();
 
-                return matchesSearch && matchesDept && matchesYear && matchesSemester && matchesDate && matchesLow;
+                return matchesSearch && matchesDept && matchesYear && matchesSubject && matchesDate && matchesLow;
             });
 
         } else {
@@ -600,6 +690,15 @@ public class AttendanceController {
         comboDepartment.setValue("All Departments");
         comboYear.setValue("All Years");
         comboSemester.setValue("All Semesters");
+        
+        // --- RESET SUBJECT COMBOBOX COMPLETELY ---
+        comboSubject.setValue("All Subjects");
+        if (comboSubject.getEditor() != null) {
+            comboSubject.getEditor().clear();
+        }
+        // If you are using FilteredList named 'filteredSubjects', reset its predicate here:
+        // filteredSubjects.setPredicate(s -> true);
+
         startDatePicker.setValue(null);
         endDatePicker.setValue(null);
         chkLowAttendance.setSelected(false);
