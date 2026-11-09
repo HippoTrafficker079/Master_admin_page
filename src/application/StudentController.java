@@ -164,14 +164,48 @@ public class StudentController {
         }
     }
 
+    private void openStudentDetail(Student student) {
+        try {
+            int rowIndex = studentTable.getItems().indexOf(student) + 1;
+            StudentDAO studentDAO = new StudentDAO();
+            Student fullStudent = studentDAO.getStudentbyId(student.getNo());
+            Student targetStudent = (fullStudent != null) ? fullStudent : student;
+            targetStudent.setDisplayNo(rowIndex > 0 ? rowIndex : student.getNo());
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentDetail.fxml"));
+            Parent detailView = loader.load();
+
+            StudentDetailController controller = loader.getController();
+            controller.initData(targetStudent);
+
+            BorderPane mainLayout = (BorderPane) studentTable.getScene().lookup("#mainBorderPane");
+            if (mainLayout != null) {
+                mainLayout.setCenter(detailView);
+            } else {
+                Parent root = studentTable.getScene().getRoot();
+                if (root instanceof BorderPane) {
+                    ((BorderPane) root).setCenter(detailView);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     @FXML
     public void handleModify() {
         Student selected = studentTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
             try {
+                // Calculate the 1-based index from the table view
+                int rowIndex = studentTable.getItems().indexOf(selected) + 1;
+                
                 StudentDAO studentDAO = new StudentDAO();
                 Student fullStudent = studentDAO.getStudentbyId(selected.getNo());
                 Student targetStudent = (fullStudent != null) ? fullStudent : selected;
+                
+                // Pass the calculated UI row number
+                targetStudent.setDisplayNo(rowIndex > 0 ? rowIndex : selected.getNo());
 
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentModify.fxml"));
                 Parent modifyView = loader.load();
@@ -193,32 +227,6 @@ public class StudentController {
             }
         } else {
             showAlert("No Selection", "Please select a student row from the table to modify.", Alert.AlertType.WARNING);
-        }
-    }
-
-    private void openStudentDetail(Student student) {
-        try {
-            StudentDAO studentDAO = new StudentDAO();
-            Student fullStudent = studentDAO.getStudentbyId(student.getNo());
-            Student targetStudent = (fullStudent != null) ? fullStudent : student;
-
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentDetail.fxml"));
-            Parent detailView = loader.load();
-
-            StudentDetailController controller = loader.getController();
-            controller.initData(targetStudent);
-
-            BorderPane mainLayout = (BorderPane) studentTable.getScene().lookup("#mainBorderPane");
-            if (mainLayout != null) {
-                mainLayout.setCenter(detailView);
-            } else {
-                Parent root = studentTable.getScene().getRoot();
-                if (root instanceof BorderPane) {
-                    ((BorderPane) root).setCenter(detailView);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

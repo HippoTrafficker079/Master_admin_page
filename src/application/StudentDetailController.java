@@ -38,7 +38,7 @@ public class StudentDetailController {
 
                 // FIX: Use student.getNo() for UI display row index (e.g. 8) instead of database ID (e.g. 19)
                 String bannerText = String.format("⭐     %d     |     %s     |     %s     |     %s     |     %s",
-                        student.getNo(),
+                        student.getDisplayNo(),
                         safe(student.getRollNo()),
                         safe(student.getName()),
                         safe(student.getMajor()),
