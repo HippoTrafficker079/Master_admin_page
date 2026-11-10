@@ -66,8 +66,8 @@
          </VBox.margin>
       </HBox>
 
-      <!-- Student Table View -->
-      <TableView fx:id="studentTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="400.0" prefWidth="700.0" style="-fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;" VBox.vgrow="ALWAYS">
+      <!-- Student Table View (Removed inline style to allow CSS to work) -->
+      <TableView fx:id="studentTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="400.0" prefWidth="700.0" VBox.vgrow="ALWAYS">
         <columns>
           <TableColumn fx:id="colNo" prefWidth="40.0" text="No" />
           <TableColumn fx:id="colRollNo" prefWidth="100.0" text="Roll No" />

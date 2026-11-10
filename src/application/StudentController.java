@@ -128,6 +128,12 @@ public class StudentController {
                 openStudentDetail(studentTable.getSelectionModel().getSelectedItem());
             }
         });
+        
+     // Disable sorting and reordering for all columns in the main student table
+        for (TableColumn<?, ?> col : studentTable.getColumns()) {
+            col.setSortable(false);
+            col.setReorderable(false); // Prevents dragging columns around
+        }
     }
 
     private void refreshDataFromDatabase() {

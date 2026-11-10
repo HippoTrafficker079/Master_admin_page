@@ -48,6 +48,8 @@
 /* --- Striking Attendance Row Highlight Classes --- */
 .row-present {
     -fx-background-color: #d1fae5; /* Soft vibrant mint green */
+}
+.row-present .table-cell {
     -fx-text-fill: #065f46;
 }
 .row-present:selected {
@@ -56,6 +58,8 @@
 
 .row-absent {
     -fx-background-color: #fee2e2; /* Soft striking coral red */
+}
+.row-absent .table-cell {
     -fx-text-fill: #991b1b;
 }
 .row-absent:selected {
@@ -64,9 +68,21 @@
 
 .row-excused {
     -fx-background-color: #fef3c7; /* Warm golden amber */
+}
+.row-excused .table-cell {
     -fx-text-fill: #92400e;
 }
 .row-excused:selected {
+    -fx-background-color: #2563eb !important;
+}
+
+.row-low-attendance {
+    -fx-background-color: #fee2e2;
+}
+.row-low-attendance .table-cell {
+    -fx-text-fill: #991b1b;
+}
+.row-low-attendance:selected {
     -fx-background-color: #2563eb !important;
 }
 /* ----------------------------------------------- */
@@ -255,4 +271,35 @@
 }
 .nrc-help-button:pressed {
     -fx-background-color: #c2410c;
+}
+
+/* --- Fix JavaFX DatePicker Popup Month/Year Header Text Color --- */
+.date-picker-popup .month-year-pane .label {
+    -fx-text-fill: #0f172a !important;
+    -fx-font-weight: bold;
+}
+
+.date-picker-popup .spinner .button .left-arrow,
+.date-picker-popup .spinner .button .right-arrow {
+    -fx-background-color: #0f172a;
+}
+
+/* --- Remove Empty Placeholder Rows & Lines --- */
+.table-row-cell:empty {
+    -fx-background-color: white;
+    -fx-border-color: transparent;
+}
+.table-row-cell:empty .table-cell {
+    -fx-border-width: 0px;
+}
+
+/* --- Remove Empty Placeholder Rows & Lines --- */
+.table-row-cell:empty {
+    -fx-background-color: white;
+    -fx-border-color: transparent #cbd5e1 #cbd5e1 transparent;
+    -fx-border-width: 0 1px 1px 0;
+}
+.table-row-cell:empty .table-cell {
+    -fx-border-color: transparent #cbd5e1 #cbd5e1 transparent;
+    -fx-border-width: 0 1px 1px 0;
 }

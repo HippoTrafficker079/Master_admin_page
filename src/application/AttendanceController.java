@@ -1,54 +1,95 @@
 package application;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
+import java.util.Set;
+import application.dao.StudentDAO;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.ComboBoxTableCell;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
 
 public class AttendanceController {
 
     @FXML private VBox rootPane, matrixFilterBox, dailyFilterBox;
-    @FXML private Button btnClassView, btnIndividualView, btnMatrixSummary, btnDailyLog, btnExport, btnBackToList;
-    @FXML private HBox subModeBar, hintBox;
+    @FXML private Button btnClassView, btnIndividualView, btnMatrixSummary, btnDailyLog, btnSaveChanges, btnExportStudentAudit;
+    @FXML private Button btnExport, btnBackToList;
+    @FXML private HBox subModeBar, hintBoxMatrix, hintBoxDaily, hintBoxIndiv, saveChangesBox;
+    
+    @FXML private ScrollPane individualDashboardScroll;
+    @FXML private VBox classTablesContainer, individualDashboardContainer;
+    
     @FXML private Label studentHeaderLabel;
 
-    // Matrix / Individual filter controls
+    // Matrix / Individual Top Filter Controls
     @FXML private ComboBox<String> comboDepartment, comboYear, comboSemester, comboSubject;
     @FXML private DatePicker startDatePicker, endDatePicker;
     @FXML private TextField searchField;
     @FXML private CheckBox chkLowAttendance;
 
-    // Daily Log filter controls
+    // Daily Log Filter Controls
     @FXML private DatePicker dailyDatePicker;
     @FXML private ComboBox<String> dailyPeriodCombo;
     @FXML private TextField dailySearchField;
     @FXML private CheckBox chkPresent, chkAbsent, chkExcuse;
 
+    // Matrix Table
     @FXML private TableView<AttendanceRecord> matrixTable;
     @FXML private TableColumn<AttendanceRecord, Integer> colNoMatrix;
     @FXML private TableColumn<AttendanceRecord, String> colRollMatrix, colNameMatrix, colDeptMatrix, colYearMatrix, colSubjMatrix, colOverallMatrix;
 
+    // Daily Log Table
     @FXML private TableView<AttendanceRecord> dailyLogTable;
     @FXML private TableColumn<AttendanceRecord, Integer> colNoLog;
     @FXML private TableColumn<AttendanceRecord, String> colRollLog, colNameLog, colDateLog, colSubjLog, colStatusLog, colMarkedByLog, colRemarksLog;
     @FXML private TableColumn<AttendanceRecord, Integer> colPeriodLog;
 
+    // Individual Student View Dashboard Controls
+    @FXML private ImageView indivProfileImage;
+    @FXML private Label lblIndivName, lblIndivStudentId, lblIndivProgram, lblIndivDept, lblIndivYearSec, lblIndivStatusBadge;
+    @FXML private Label lblTotalAttended, lblTotalClasses, lblAcademicStanding;
+    @FXML private Label lblIndivEmail, lblIndivPhone, lblIndivAddress;
+    @FXML private Label lblDeptTotalAttended, lblDeptTotalRate, lblDeptTotalStanding, lblPaginationInfo;
+
+    // Individual Table 1: Department Subject Breakdown
     @FXML private TableView<AttendanceRecord> individualTable;
     @FXML private TableColumn<AttendanceRecord, Integer> colNoIndiv;
-    @FXML private TableColumn<AttendanceRecord, String> colSubjIndiv, colAttendedIndiv, colPercentageIndiv, colRemarksIndiv;
+    @FXML private TableColumn<AttendanceRecord, String> colSubjIndiv, colCourseCodeIndiv, colAttendedIndiv, colPercentageIndiv, colRemarksIndiv;
+
+    // Individual Table 2: Detailed Chronological Log & Filters
+    @FXML private ComboBox<String> comboIndivLogCourse, comboIndivLogStatus;
+    @FXML private DatePicker indivLogStartDate, indivLogEndDate;
+    @FXML private TableView<AttendanceRecord> chronologicalLogTable;
+    @FXML private TableColumn<AttendanceRecord, Integer> colNoChrono;
+    @FXML private TableColumn<AttendanceRecord, String> colDateChrono, colCourseChrono, colCourseCodeChrono, colStatusChrono, colMarkedByChrono, colRemarksChrono;
+
+    // Pagination Controls
+    @FXML private Button btnPage1, btnPage2, btnPage3, btnPrevPage, btnNextPage;
+    
+    private int currentPage = 1;
+    private final int rowsPerPage = 6;
+    private int currentPaginationWindow = 1;
 
     private ObservableList<AttendanceRecord> matrixData;
     private ObservableList<AttendanceRecord> dailyLogData;
     private ObservableList<AttendanceRecord> individualData;
+    private ObservableList<AttendanceRecord> chronoLogData;
 
     private FilteredList<AttendanceRecord> filteredMatrixData;
     private FilteredList<AttendanceRecord> filteredDailyData;
     private FilteredList<AttendanceRecord> filteredIndivData;
+    private FilteredList<AttendanceRecord> filteredChronoData;
 
     private boolean isMatrixMode = true;
     private boolean isClassViewActive = true;
@@ -64,6 +105,9 @@ public class AttendanceController {
                 matrixTable.getSelectionModel().clearSelection();
                 dailyLogTable.getSelectionModel().clearSelection();
                 individualTable.getSelectionModel().clearSelection();
+                if (chronologicalLogTable != null) {
+                    chronologicalLogTable.getSelectionModel().clearSelection();
+                }
                 rootPane.requestFocus();
             });
         }
@@ -71,6 +115,39 @@ public class AttendanceController {
         matrixTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         dailyLogTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
         individualTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        if (chronologicalLogTable != null) {
+            chronologicalLogTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        }
+
+        disableTableSortingAndReordering(matrixTable);
+        disableTableSortingAndReordering(dailyLogTable);
+        disableTableSortingAndReordering(individualTable);
+        if (chronologicalLogTable != null) {
+            disableTableSortingAndReordering(chronologicalLogTable);
+        }
+
+        // --- Configure DatePickers to use dd-MM-yyyy format ---
+        StringConverter<LocalDate> dateFormatter = new StringConverter<>() {
+            private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            @Override
+            public String toString(LocalDate date) {
+                if (date != null) return formatter.format(date);
+                return "";
+            }
+            @Override
+            public LocalDate fromString(String string) {
+                if (string != null && !string.trim().isEmpty()) {
+                    try { return LocalDate.parse(string, formatter); } catch (Exception e) { return null; }
+                }
+                return null;
+            }
+        };
+
+        if (startDatePicker != null) { startDatePicker.setConverter(dateFormatter); startDatePicker.setPromptText("dd-MM-yyyy"); }
+        if (endDatePicker != null) { endDatePicker.setConverter(dateFormatter); endDatePicker.setPromptText("dd-MM-yyyy"); }
+        if (dailyDatePicker != null) { dailyDatePicker.setConverter(dateFormatter); dailyDatePicker.setPromptText("dd-MM-yyyy"); }
+        if (indivLogStartDate != null) { indivLogStartDate.setConverter(dateFormatter); indivLogStartDate.setPromptText("dd-MM-yyyy"); }
+        if (indivLogEndDate != null) { indivLogEndDate.setConverter(dateFormatter); indivLogEndDate.setPromptText("dd-MM-yyyy"); }
 
         // Matrix columns
         colNoMatrix.setCellValueFactory(cell -> cell.getValue().noProperty().asObject());
@@ -88,16 +165,35 @@ public class AttendanceController {
         colDateLog.setCellValueFactory(cell -> cell.getValue().dateProperty());
         colPeriodLog.setCellValueFactory(cell -> cell.getValue().periodProperty().asObject());
         colSubjLog.setCellValueFactory(cell -> cell.getValue().subjectProperty());
-        colStatusLog.setCellValueFactory(cell -> cell.getValue().statusProperty());
         colMarkedByLog.setCellValueFactory(cell -> cell.getValue().markedByProperty());
         colRemarksLog.setCellValueFactory(cell -> cell.getValue().remarksProperty());
 
-        // Individual columns
+        // Individual Table 1: Department Subject Breakdown columns
         colNoIndiv.setCellValueFactory(cell -> cell.getValue().noProperty().asObject());
         colSubjIndiv.setCellValueFactory(cell -> cell.getValue().subjectProperty());
+        if (colCourseCodeIndiv != null) {
+            colCourseCodeIndiv.setCellValueFactory(cell -> cell.getValue().courseCodeProperty());
+        }
         colAttendedIndiv.setCellValueFactory(cell -> cell.getValue().attendedTotalProperty());
         colPercentageIndiv.setCellValueFactory(cell -> cell.getValue().percentageProperty().asString("%.1f%%"));
         colRemarksIndiv.setCellValueFactory(cell -> cell.getValue().remarksProperty());
+        setupStandingBadgeCellFactory(colRemarksIndiv);
+
+        // Individual Table 2: Detailed Chronological Log columns
+        if (chronologicalLogTable != null) {
+            colNoChrono.setCellValueFactory(cell -> cell.getValue().noProperty().asObject());
+            colDateChrono.setCellValueFactory(cell -> {
+                LocalDate d = cell.getValue().getDateObj();
+                String formatted = (d != null) ? d.format(DateTimeFormatter.ofPattern("dd-MM-yyyy")) : cell.getValue().getDate();
+                return new javafx.beans.property.SimpleStringProperty(formatted);
+            });
+            colCourseChrono.setCellValueFactory(cell -> cell.getValue().subjectProperty());
+            colCourseCodeChrono.setCellValueFactory(cell -> cell.getValue().courseCodeProperty());
+            colStatusChrono.setCellValueFactory(cell -> cell.getValue().statusProperty());
+            colMarkedByChrono.setCellValueFactory(cell -> cell.getValue().markedByProperty());
+            colRemarksChrono.setCellValueFactory(cell -> cell.getValue().remarksProperty());
+            setupChronoStatusCellFactory(colStatusChrono);
+        }
 
         // Combo Boxes population
         comboDepartment.setItems(FXCollections.observableArrayList(
@@ -120,6 +216,19 @@ public class AttendanceController {
         ));
         dailyPeriodCombo.setValue("All Periods");
 
+        if (comboIndivLogCourse != null) {
+            comboIndivLogCourse.setItems(FXCollections.observableArrayList(
+                "All Courses", "Advanced Java", "Software Engineering", "Computer Networks", "Database Systems"
+            ));
+            comboIndivLogCourse.setValue("All Courses");
+        }
+        if (comboIndivLogStatus != null) {
+            comboIndivLogStatus.setItems(FXCollections.observableArrayList(
+                "All Status", "Present", "Absent", "Excused"
+            ));
+            comboIndivLogStatus.setValue("All Status");
+        }
+
         // --- MATRIX SUMMARY DATA ---
         matrixData = FXCollections.observableArrayList(
             new AttendanceRecord(1, "III-CEIT-1", "Mg Mg", "CEIT", "Third Year", "Semester I", "Advanced Java", "38/40", 95.0, LocalDate.of(2026, 7, 20)),
@@ -134,41 +243,27 @@ public class AttendanceController {
             new AttendanceRecord(10, "I-PE-2", "Hein Htet", "PE", "First Year", "Semester II", "Calculus II", "24/40", 60.0, LocalDate.of(2026, 8, 20))
         );
 
-     // --- POPULATE SUBJECT SEARCHABLE COMBOBOX ---
+        // --- SUBJECT SEARCHABLE COMBOBOX WITH LOCKING ---
         ObservableList<String> subjectOptions = FXCollections.observableArrayList(
-            "All Subjects",
-            "Advanced Java",
-            "Data Structures",
-            "Chemical Kinetics",
-            "Thermodynamics",
-            "Signal Processing",
-            "Engineering Drawing",
-            "Circuit Theory",
-            "Microcontrollers",
-            "Urban Planning",
-            "Calculus II"
+            "All Subjects", "Advanced Java", "Data Structures", "Chemical Kinetics",
+            "Thermodynamics", "Signal Processing", "Engineering Drawing", "Circuit Theory",
+            "Microcontrollers", "Urban Planning", "Calculus II"
         );
 
         FilteredList<String> filteredSubjects = new FilteredList<>(subjectOptions, s -> true);
         comboSubject.setItems(filteredSubjects);
         comboSubject.setValue("All Subjects");
 
-        // Track whether a selection/value is currently locked in
-        final boolean[] isLocked = {true}; // Starts true because "All Subjects" is selected by default
+        final boolean[] isLocked = {true};
 
-        // Type-ahead autocomplete listener
         if (comboSubject.getEditor() != null) {
             comboSubject.getEditor().textProperty().addListener((obs, oldVal, newVal) -> {
-                if (comboSubject.getValue() != null && comboSubject.getValue().equals(newVal)) {
-                    return;
-                }
+                if (comboSubject.getValue() != null && comboSubject.getValue().equals(newVal)) return;
 
-                // If user cleared the text completely, unlock typing for search
                 if (newVal == null || newVal.trim().isEmpty()) {
                     isLocked[0] = false;
                     Platform.runLater(() -> filteredSubjects.setPredicate(s -> true));
                 } else if (!isLocked[0]) {
-                    // Only filter if not locked
                     Platform.runLater(() -> {
                         String filter = newVal.toLowerCase().trim();
                         filteredSubjects.setPredicate(item -> item != null && item.toLowerCase().contains(filter));
@@ -179,25 +274,18 @@ public class AttendanceController {
                 }
             });
 
-            // When a specific subject is chosen from the dropdown list
             comboSubject.valueProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal != null && !newVal.trim().isEmpty()) {
-                    isLocked[0] = true; // Lock it down until backspace is pressed
-                    if (comboSubject.getEditor() != null) {
-                        if (!comboSubject.getEditor().getText().equals(newVal)) {
-                            comboSubject.getEditor().setText(newVal);
-                        }
+                    isLocked[0] = true;
+                    if (comboSubject.getEditor() != null && !comboSubject.getEditor().getText().equals(newVal)) {
+                        comboSubject.getEditor().setText(newVal);
                     }
                 }
             });
 
-            // --- RESTRICTED KEY FILTER ---
             comboSubject.getEditor().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
                 javafx.scene.input.KeyCode code = event.getCode();
-
-                // Always allow Backspace or Delete so the user can clear the box
                 if (code == javafx.scene.input.KeyCode.BACK_SPACE || code == javafx.scene.input.KeyCode.DELETE) {
-                    // If it was locked, hitting backspace clears and unlocks it
                     if (isLocked[0]) {
                         isLocked[0] = false;
                         Platform.runLater(() -> {
@@ -205,12 +293,10 @@ public class AttendanceController {
                             comboSubject.getEditor().clear();
                             filteredSubjects.setPredicate(s -> true);
                         });
-                        event.consume(); // Consume this backspace so it doesn't double-delete
+                        event.consume();
                     }
                     return;
                 }
-
-                // If the box is currently locked (has "All Subjects" or a selected subject), block other keys and warn
                 if (isLocked[0]) {
                     event.consume();
                     Platform.runLater(() -> {
@@ -229,7 +315,7 @@ public class AttendanceController {
         dailyLogData = FXCollections.observableArrayList(
             new AttendanceRecord(1, "III-CEIT-1", "Mg Mg", "CEIT", "Third Year", "Semester I", LocalDate.of(2026, 7, 20), 1, "Advanced Java", "Present", "U Ba", "On time"),
             new AttendanceRecord(2, "III-CEIT-1", "Mg Mg", "CEIT", "Third Year", "Semester I", LocalDate.of(2026, 7, 20), 2, "Data Structures", "Present", "U Ba", "On time"),
-            new AttendanceRecord(3, "III-CEIT-2", "Aye Aye", "CEIT", "Third Year", "Semester I", LocalDate.of(2026, 7, 20),3,"Algorithms", "Present", "U Myint", "On time"),
+            new AttendanceRecord(3, "III-CEIT-2", "Aye Aye", "CEIT", "Third Year", "Semester I", LocalDate.of(2026, 7, 20), 3, "Algorithms", "Present", "U Myint", "On time"),
             new AttendanceRecord(4, "V-ChE-2", "Su Su", "ChE", "Fifth Year", "Semester II", LocalDate.of(2026, 7, 26), 1, "Chemical Kinetics", "Absent", "Daw Mya", "Unexcused"),
             new AttendanceRecord(5, "IV-ME-1", "Aung Aung", "ME", "Fourth Year", "Semester I", LocalDate.of(2026, 7, 26), 4, "Thermodynamics", "Excused", "U Tun", "Medical Leave"),
             new AttendanceRecord(6, "III-EC-4", "Hla Hla", "EC", "Third Year", "Semester II", LocalDate.of(2026, 7, 28), 5, "Signal Processing", "Absent", "U Hla", "Unexcused"),
@@ -241,97 +327,98 @@ public class AttendanceController {
             new AttendanceRecord(12, "III-CEIT-1", "Mg Mg", "CEIT", "Third Year", "Semester II", LocalDate.of(2026, 8, 21), 9, "Computer Networks", "Excused", "Daw Mya", "Family Emergency")
         );
 
-        // --- EXPANDED INDIVIDUAL STUDENT VIEW DATA ---
-        individualData = FXCollections.observableArrayList(
-            new AttendanceRecord(1, "III-CEIT-1", "Mg Mg", "CEIT", "Third Year", "Semester I", "Advanced Java", "38/40", 95.0, LocalDate.of(2026, 7, 20)),
-            new AttendanceRecord(2, "III-CEIT-1", "Mg Mg", "CEIT", "Third Year", "Semester I", "Software Engineering", "37/40", 92.5, LocalDate.of(2026, 7, 21)),
-            new AttendanceRecord(3, "III-CEIT-1", "Mg Mg", "CEIT", "Third Year", "Semester II", "Computer Networks", "35/40", 87.5, LocalDate.of(2026, 7, 22)),
-            new AttendanceRecord(4, "III-CEIT-1", "Mg Mg", "CEIT", "Third Year", "Semester II", "Database Systems", "36/40", 90.0, LocalDate.of(2026, 7, 23)),
-            new AttendanceRecord(5, "III-CEIT-1", "Mg Mg", "CEIT", "Fourth Year", "Semester I", "Advanced Microprocessors", "30/40", 75.0, LocalDate.of(2026, 8, 5)),
-
-            new AttendanceRecord(1, "III-CEIT-2", "Aye Aye", "CEIT", "Third Year", "Semester I", "Advanced Java", "36/40", 90.0, LocalDate.of(2026, 7, 20)),
-            new AttendanceRecord(2, "III-CEIT-2", "Aye Aye", "CEIT", "Third Year", "Semester I", "Data Structures", "35/40", 87.5, LocalDate.of(2026, 7, 22)),
-            new AttendanceRecord(3, "III-CEIT-2", "Aye Aye", "CEIT", "Third Year", "Semester II", "Operating Systems", "34/40", 85.0, LocalDate.of(2026, 7, 24)),
-
-            new AttendanceRecord(1, "V-ChE-2", "Su Su", "ChE", "Fourth Year", "Semester II", "Fluid Mechanics", "31/40", 77.5, LocalDate.of(2026, 7, 24)),
-            new AttendanceRecord(2, "V-ChE-2", "Su Su", "ChE", "Fifth Year", "Semester II", "Chemical Kinetics", "28/40", 70.0, LocalDate.of(2026, 7, 26)),
-            new AttendanceRecord(3, "V-ChE-2", "Su Su", "ChE", "Fifth Year", "Semester II", "Reactor Design", "32/40", 80.0, LocalDate.of(2026, 8, 10)),
-            new AttendanceRecord(4, "V-ChE-2", "Su Su", "ChE", "Fifth Year", "Semester II", "Process Control", "29/40", 72.5, LocalDate.of(2026, 8, 12)),
-
-            new AttendanceRecord(1, "IV-ME-1", "Aung Aung", "ME", "Fourth Year", "Semester I", "Thermodynamics", "36/40", 90.0, LocalDate.of(2026, 7, 26)),
-            new AttendanceRecord(2, "IV-ME-1", "Aung Aung", "ME", "Fourth Year", "Semester I", "Fluid Mechanics", "35/40", 87.5, LocalDate.of(2026, 8, 12)),
-            new AttendanceRecord(3, "IV-ME-1", "Aung Aung", "ME", "Fourth Year", "Semester II", "Machine Design", "37/40", 92.5, LocalDate.of(2026, 8, 14)),
-
-            new AttendanceRecord(1, "III-EC-4", "Hla Hla", "EC", "Third Year", "Semester II", "Signal Processing", "26/40", 65.0, LocalDate.of(2026, 7, 28)),
-            new AttendanceRecord(2, "III-EC-4", "Hla Hla", "EC", "Third Year", "Semester II", "Digital Communications", "27/40", 67.5, LocalDate.of(2026, 7, 30)),
-            new AttendanceRecord(3, "III-EC-4", "Hla Hla", "EC", "Third Year", "Semester II", "Microprocessors", "30/40", 75.0, LocalDate.of(2026, 8, 2)),
-
-            new AttendanceRecord(1, "I-CE-1", "Kyaw Kyaw", "CE", "First Year", "Semester I", "Engineering Drawing", "35/40", 87.5, LocalDate.of(2026, 8, 2)),
-            new AttendanceRecord(2, "I-CE-1", "Kyaw Kyaw", "CE", "First Year", "Semester I", "Engineering Mechanics", "36/40", 90.0, LocalDate.of(2026, 8, 4)),
-
-            new AttendanceRecord(1, "II-EP-3", "Zin Mar", "EP", "Second Year", "Semester I", "Circuit Theory", "38/42", 90.5, LocalDate.of(2026, 8, 5)),
-            new AttendanceRecord(2, "II-EP-3", "Zin Mar", "EP", "Second Year", "Semester I", "Electromagnetics", "37/40", 92.5, LocalDate.of(2026, 8, 7)),
-
-            new AttendanceRecord(1, "IV-MC-2", "Phone Naing", "MC", "Fourth Year", "Semester II", "Microcontrollers", "27/40", 67.5, LocalDate.of(2026, 8, 10)),
-            new AttendanceRecord(2, "IV-MC-2", "Phone Naing", "MC", "Fourth Year", "Semester II", "Robotics Lab", "28/40", 70.0, LocalDate.of(2026, 8, 12)),
-
-            new AttendanceRecord(1, "V-Arch-1", "Nilar", "Arch", "Fifth Year", "Semester II", "Urban Planning", "38/40", 95.0, LocalDate.of(2026, 8, 15)),
-            new AttendanceRecord(2, "V-Arch-1", "Nilar", "Arch", "Fifth Year", "Semester II", "Architectural Design V", "39/40", 97.5, LocalDate.of(2026, 8, 17)),
-
-            new AttendanceRecord(1, "I-PE-2", "Hein Htet", "PE", "First Year", "Semester II", "Calculus II", "24/40", 60.0, LocalDate.of(2026, 8, 20)),
-            new AttendanceRecord(2, "I-PE-2", "Hein Htet", "PE", "First Year", "Semester II", "Engineering Physics", "25/40", 62.5, LocalDate.of(2026, 8, 22))
-        );
+        individualData = FXCollections.observableArrayList();
+        chronoLogData = FXCollections.observableArrayList();
 
         filteredMatrixData = new FilteredList<>(matrixData, b -> true);
         filteredDailyData = new FilteredList<>(dailyLogData, b -> true);
         filteredIndivData = new FilteredList<>(individualData, b -> true);
+        filteredChronoData = new FilteredList<>(chronoLogData, b -> true);
 
         matrixTable.setItems(filteredMatrixData);
         dailyLogTable.setItems(filteredDailyData);
         individualTable.setItems(filteredIndivData);
+        if (chronologicalLogTable != null) {
+            chronologicalLogTable.setItems(FXCollections.observableArrayList());
+        }
 
         matrixTable.setRowFactory(tv -> {
             TableRow<AttendanceRecord> row = createLowAttendanceRowFactory();
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
-                    AttendanceRecord student = row.getItem();
-                    selectedStudentRollNo = student.getRollNo();
-                    selectedStudentName = student.getStudentName();
-                    isStudentLocked = true;
-                    switchToIndividualView();
+                    loadStudentIntoIndividualDashboard(row.getItem());
                 }
             });
             return row;
         });
 
+        // -------------------------------------------------------------
+        // EDITABLE DAILY LOG STATUS COMBOBOX (CSS SUPPORTED)
+        // -------------------------------------------------------------
+        dailyLogTable.setEditable(true);
+        colStatusLog.setCellValueFactory(cell -> cell.getValue().statusProperty());
+        colStatusLog.setCellFactory(tc -> {
+            ComboBoxTableCell<AttendanceRecord, String> cell = new ComboBoxTableCell<>("Present", "Absent", "Excused") {
+                @Override
+                public void startEdit() {
+                    getTableView().getSelectionModel().clearSelection();
+                    super.startEdit();
+                }
+
+                @Override
+                public void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setGraphic(null);
+                    } else {
+                        if (!isEditing()) {
+                            if (item.equalsIgnoreCase("Present")) {
+                                setText("✔ Present");
+                                setStyle("-fx-text-fill: #15803d; -fx-font-weight: bold;");
+                            } else if (item.equalsIgnoreCase("Absent")) {
+                                setText("✖ Absent");
+                                setStyle("-fx-text-fill: #b91c1c; -fx-font-weight: bold;");
+                            } else {
+                                setText("● " + item);
+                                setStyle("-fx-text-fill: #b45309; -fx-font-weight: bold;");
+                            }
+                        } else {
+                            setStyle("-fx-text-fill: #0f172a;");
+                        }
+                    }
+                }
+            };
+            cell.addEventFilter(javafx.scene.input.MouseEvent.MOUSE_PRESSED, event -> dailyLogTable.getSelectionModel().clearSelection());
+            return cell;
+        });
+
+        colStatusLog.setOnEditCommit(event -> {
+            AttendanceRecord record = event.getRowValue();
+            record.statusProperty().set(event.getNewValue());
+            Platform.runLater(() -> dailyLogTable.getSelectionModel().clearSelection());
+        });
+
         dailyLogTable.setRowFactory(tv -> {
             TableRow<AttendanceRecord> row = new TableRow<AttendanceRecord>() {
+                private final ChangeListener<String> statusListener = (obs, oldVal, newVal) -> applyDailyRowStyle(this, newVal);
+
                 @Override
                 protected void updateItem(AttendanceRecord item, boolean empty) {
+                    if (getItem() != null) getItem().statusProperty().removeListener(statusListener);
                     super.updateItem(item, empty);
                     if (item == null || empty) {
-                        setStyle("");
+                        getStyleClass().removeAll("row-present", "row-absent", "row-excused");
                     } else {
-                        String status = item.getStatus() != null ? item.getStatus().trim() : "";
-                        applyDailyRowStyle(this, status, isSelected());
+                        item.statusProperty().addListener(statusListener);
+                        applyDailyRowStyle(this, item.getStatus() != null ? item.getStatus().trim() : "");
                     }
                 }
             };
 
-            row.selectedProperty().addListener((obs, oldVal, newVal) -> {
-                if (row.getItem() != null && !row.isEmpty()) {
-                    String status = row.getItem().getStatus() != null ? row.getItem().getStatus().trim() : "";
-                    applyDailyRowStyle(row, status, newVal);
-                }
-            });
-
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && !row.isEmpty()) {
-                    AttendanceRecord student = row.getItem();
-                    selectedStudentRollNo = student.getRollNo();
-                    selectedStudentName = student.getStudentName();
-                    isStudentLocked = true;
-                    switchToIndividualView();
+                    loadStudentIntoIndividualDashboard(row.getItem());
                 }
             });
             return row;
@@ -340,15 +427,169 @@ public class AttendanceController {
         applyFilters();
     }
 
-    private void applyDailyRowStyle(TableRow<AttendanceRecord> row, String status, boolean selected) {
-        if (status.equalsIgnoreCase("Present")) {
-            row.setStyle(selected ? "-fx-background-color: #a7f3d0;" : "-fx-background-color: #d1fae5;");
-        } else if (status.equalsIgnoreCase("Absent")) {
-            row.setStyle(selected ? "-fx-background-color: #fca5a5;" : "-fx-background-color: #fee2e2;");
-        } else if (status.equalsIgnoreCase("Excused") || status.equalsIgnoreCase("Excuse")) {
-            row.setStyle(selected ? "-fx-background-color: #fde68a;" : "-fx-background-color: #fef3c7;");
+    private void disableTableSortingAndReordering(TableView<?> table) {
+        for (TableColumn<?, ?> col : table.getColumns()) {
+            col.setSortable(false);
+            col.setReorderable(false);
+        }
+    }
+
+    // Populates the Individual Student View Dashboard when a row is double-clicked
+    private void loadStudentIntoIndividualDashboard(AttendanceRecord tableRecord) {
+        selectedStudentRollNo = tableRecord.getRollNo();
+        selectedStudentName = tableRecord.getStudentName();
+        isStudentLocked = true;
+
+        StudentDAO studentDAO = new StudentDAO();
+        Student dbStudent = studentDAO.getStudentbyId(tableRecord.getNo());
+
+        String studentIdStr = dbStudent != null ? "21-" + dbStudent.getMajor() + "-0" + dbStudent.getNo() : "21-CEIT-01";
+        String programStr = dbStudent != null ? "B.E in " + dbStudent.getMajor() : "B.E in CEIT";
+        String deptStr = dbStudent != null ? "Department of " + dbStudent.getMajor() : "Department of CEIT";
+        String yearSecStr = dbStudent != null ? dbStudent.getRollNo() : selectedStudentRollNo;
+        String emailStr = dbStudent != null && dbStudent.getEmail() != null && !dbStudent.getEmail().isEmpty() 
+                            ? dbStudent.getEmail() 
+                            : selectedStudentName.toLowerCase().replace(" ", ".") + "@student.ytu.edu.mm";
+        String phoneStr = dbStudent != null && dbStudent.getPhoneNo() != null ? dbStudent.getPhoneNo() : "09-111111111";
+        String addressStr = dbStudent != null && dbStudent.getCurrentAddress() != null && !dbStudent.getCurrentAddress().isEmpty() 
+                            ? dbStudent.getCurrentAddress() 
+                            : "Hlaing Township, Yangon";
+
+        if (dbStudent != null && dbStudent.getPhotoPath() != null && !dbStudent.getPhotoPath().trim().isEmpty()) {
+            try {
+                String path = dbStudent.getPhotoPath();
+                Image img = (path.startsWith("file:") || path.startsWith("http:"))
+                        ? new Image(path, 78, 110, false, true)
+                        : new Image(getClass().getResourceAsStream(path));
+                if (img != null && indivProfileImage != null) {
+                    indivProfileImage.setImage(img);
+                }
+            } catch (Exception e) {}
+        }
+
+        studentHeaderLabel.setText("👤  Student Details: " + selectedStudentRollNo + " – " + selectedStudentName);
+        lblIndivName.setText(selectedStudentName);
+        lblIndivStudentId.setText(studentIdStr);
+        lblIndivProgram.setText(programStr);
+        lblIndivDept.setText(deptStr);
+        lblIndivYearSec.setText(yearSecStr);
+        lblIndivEmail.setText(emailStr);
+        lblIndivPhone.setText(phoneStr);
+        lblIndivAddress.setText(addressStr);
+
+        individualData.setAll(
+            new AttendanceRecord(1, selectedStudentRollNo, selectedStudentName, tableRecord.getDepartment(), tableRecord.getYear(), "Semester I", "Advanced Java", "CEIT-311", "38 / 40", 95.0, LocalDate.of(2026, 7, 20), "Excellent"),
+            new AttendanceRecord(2, selectedStudentRollNo, selectedStudentName, tableRecord.getDepartment(), tableRecord.getYear(), "Semester I", "Software Engineering", "CEIT-312", "37 / 40", 92.5, LocalDate.of(2026, 7, 21), "Excellent"),
+            new AttendanceRecord(3, selectedStudentRollNo, selectedStudentName, tableRecord.getDepartment(), tableRecord.getYear(), "Semester II", "Computer Networks", "CEIT-313", "35 / 40", 87.5, LocalDate.of(2026, 7, 22), "Good"),
+            new AttendanceRecord(4, selectedStudentRollNo, selectedStudentName, tableRecord.getDepartment(), tableRecord.getYear(), "Semester II", "Database Systems", "CEIT-314", "28 / 40", 70.0, LocalDate.of(2026, 7, 23), "Warning")
+        );
+
+        // Generate robust sample dataset for dynamic pagination tracking
+        chronoLogData.clear();
+        for (int i = 1; i <= 20; i++) {
+            chronoLogData.add(new AttendanceRecord(i, selectedStudentRollNo, selectedStudentName, tableRecord.getDepartment(), tableRecord.getYear(), "Semester I", LocalDate.of(2025, 3, i), (i % 3) + 1, (i % 2 == 0) ? "Advanced Java" : "Software Engineering", (i % 2 == 0) ? "CEIT-311" : "CEIT-312", (i % 4 == 0) ? "Absent" : "Present", "Prof. D. Balodisi", (i % 4 == 0) ? "Unexcused" : "-"));
+        }
+
+        int totalAttended = 0;
+        int totalClasses = 0;
+        for (AttendanceRecord rec : individualData) {
+            String[] split = rec.getAttendedTotal().split("/");
+            if (split.length == 2) {
+                totalAttended += Integer.parseInt(split[0].trim());
+                totalClasses += Integer.parseInt(split[1].trim());
+            }
+        }
+        
+        lblTotalAttended.setText(String.valueOf(totalAttended));
+        lblTotalClasses.setText(String.valueOf(totalClasses));
+        lblDeptTotalAttended.setText(totalAttended + " / " + totalClasses);
+        
+        double overallRate = totalClasses > 0 ? (double) totalAttended / totalClasses * 100 : 0.0;
+        lblDeptTotalRate.setText(String.format("%.1f%%", overallRate));
+        
+        // Determine text based on total calculated rate
+        String standing = overallRate >= 90 ? "Excellent" : (overallRate >= 75 ? "Good" : "Warning");
+        lblAcademicStanding.setText(standing);
+        lblDeptTotalStanding.setText(standing);
+
+        // --- NEW: DYNAMICALLY UPDATE BADGE COLORS ---
+        String successStyle = "-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-padding: 2 12; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;";
+        String warningStyle = "-fx-background-color: #fee2e2; -fx-text-fill: #b91c1c; -fx-padding: 2 12; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;";
+        
+        if (standing.equals("Excellent") || standing.equals("Good")) {
+            lblAcademicStanding.setStyle(successStyle);
+            lblDeptTotalStanding.setStyle(successStyle);
         } else {
-            row.setStyle("");
+            lblAcademicStanding.setStyle(warningStyle);
+            lblDeptTotalStanding.setStyle(warningStyle);
+        }
+
+        switchToIndividualView();
+    }
+
+    private void setupStandingBadgeCellFactory(TableColumn<AttendanceRecord, String> column) {
+        column.setCellFactory(col -> new TableCell<AttendanceRecord, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null || item.isEmpty()) {
+                    setGraphic(null);
+                    setText(null);
+                } else {
+                    Label badge = new Label(item);
+                    if (item.equalsIgnoreCase("Excellence") || item.equalsIgnoreCase("Excellent") || item.equalsIgnoreCase("Good") || item.equalsIgnoreCase("Good Standing")) {
+                        badge.setStyle("-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-padding: 2 12; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;");
+                    } else {
+                        badge.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #b91c1c; -fx-padding: 2 12; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;");
+                    }
+                    setAlignment(Pos.CENTER);
+                    setGraphic(badge);
+                    setText(null);
+                }
+            }
+        });
+    }
+
+    private void setupChronoStatusCellFactory(TableColumn<AttendanceRecord, String> column) {
+        column.setCellFactory(col -> new TableCell<AttendanceRecord, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null || item.isEmpty()) {
+                    setGraphic(null);
+                    setText(null);
+                } else {
+                    Label statusLbl = new Label();
+                    if (item.equalsIgnoreCase("Present")) {
+                        statusLbl.setText("✔  Present");
+                        statusLbl.setStyle("-fx-text-fill: #15803d; -fx-font-weight: bold;");
+                    } else if (item.equalsIgnoreCase("Absent")) {
+                        statusLbl.setText("✖  Absent");
+                        statusLbl.setStyle("-fx-text-fill: #b91c1c; -fx-font-weight: bold;");
+                    } else {
+                        statusLbl.setText("●  " + item);
+                        statusLbl.setStyle("-fx-text-fill: #b45309; -fx-font-weight: bold;");
+                    }
+                    setAlignment(Pos.CENTER_LEFT);
+                    setGraphic(statusLbl);
+                    setText(null);
+                }
+            }
+        });
+    }
+
+    // -------------------------------------------------------------
+    // CSS-BASED ROW HIGHLIGHTS (Replaces hardcoded inline styles)
+    // -------------------------------------------------------------
+    private void applyDailyRowStyle(TableRow<AttendanceRecord> row, String status) {
+        row.getStyleClass().removeAll("row-present", "row-absent", "row-excused");
+        
+        if (status.equalsIgnoreCase("Present")) {
+            row.getStyleClass().add("row-present");
+        } else if (status.equalsIgnoreCase("Absent")) {
+            row.getStyleClass().add("row-absent");
+        } else if (status.equalsIgnoreCase("Excused") || status.equalsIgnoreCase("Excuse")) {
+            row.getStyleClass().add("row-excused");
         }
     }
 
@@ -357,21 +598,12 @@ public class AttendanceController {
             @Override
             protected void updateItem(AttendanceRecord item, boolean empty) {
                 super.updateItem(item, empty);
-                if (item == null || empty) {
-                    setStyle("");
-                } else if (item.isLowAttendance()) {
-                    setStyle(isSelected() ? "-fx-background-color: #fca5a5;" : "-fx-background-color: #fee2e2;");
-                } else {
-                    setStyle("");
+                getStyleClass().remove("row-low-attendance");
+                if (item != null && !empty && item.isLowAttendance()) {
+                    getStyleClass().add("row-low-attendance");
                 }
             }
         };
-
-        row.selectedProperty().addListener((obs, oldVal, newVal) -> {
-            if (row.getItem() != null && row.getItem().isLowAttendance()) {
-                row.setStyle(newVal ? "-fx-background-color: #fca5a5;" : "-fx-background-color: #fee2e2;");
-            }
-        });
         return row;
     }
 
@@ -390,8 +622,9 @@ public class AttendanceController {
         endDatePicker.setVisible(true);
         endDatePicker.setManaged(true);
 
-        hintBox.setVisible(true);
-        hintBox.setManaged(true);
+        // FIX: Ensure Individual View Hint Box is hidden when returning to Class View
+        hintBoxIndiv.setVisible(false);
+        hintBoxIndiv.setManaged(false);
 
         studentHeaderLabel.setVisible(false);
         studentHeaderLabel.setManaged(false);
@@ -401,29 +634,52 @@ public class AttendanceController {
             matrixFilterBox.setManaged(true);
             dailyFilterBox.setVisible(false);
             dailyFilterBox.setManaged(false);
+            classTablesContainer.setVisible(true);
+            classTablesContainer.setManaged(true);
             matrixTable.setVisible(true);
             matrixTable.setManaged(true);
             dailyLogTable.setVisible(false);
             dailyLogTable.setManaged(false);
 
-            // Show Subject ComboBox, Hide Semester ComboBox in Matrix View
             comboSemester.setVisible(false);
             comboSemester.setManaged(false);
             comboSubject.setVisible(true);
             comboSubject.setManaged(true);
+            
+            hintBoxMatrix.setVisible(true);
+            hintBoxMatrix.setManaged(true);
+            hintBoxDaily.setVisible(false);
+            hintBoxDaily.setManaged(false);
+
+            if (saveChangesBox != null) {
+                saveChangesBox.setVisible(false);
+                saveChangesBox.setManaged(false);
+            }
         } else {
             matrixFilterBox.setVisible(false);
             matrixFilterBox.setManaged(false);
             dailyFilterBox.setVisible(true);
             dailyFilterBox.setManaged(true);
+            classTablesContainer.setVisible(true);
+            classTablesContainer.setManaged(true);
             matrixTable.setVisible(false);
             matrixTable.setManaged(false);
             dailyLogTable.setVisible(true);
             dailyLogTable.setManaged(true);
+            
+            hintBoxMatrix.setVisible(false);
+            hintBoxMatrix.setManaged(false);
+            hintBoxDaily.setVisible(true);
+            hintBoxDaily.setManaged(true);
+
+            if (saveChangesBox != null) {
+                saveChangesBox.setVisible(true);
+                saveChangesBox.setManaged(true);
+            }
         }
         
-        individualTable.setVisible(false);
-        individualTable.setManaged(false);
+        individualDashboardContainer.setVisible(false);
+        individualDashboardContainer.setManaged(false);
         comboDepartment.setVisible(true);
         comboDepartment.setManaged(true);
         
@@ -435,6 +691,7 @@ public class AttendanceController {
         applyFilters();
     }
 
+  
     @FXML
     private void switchToIndividualView() {
         isClassViewActive = false;
@@ -452,18 +709,18 @@ public class AttendanceController {
         endDatePicker.setVisible(false);
         endDatePicker.setManaged(false);
 
-        hintBox.setVisible(false);
-        hintBox.setManaged(false);
-
+        hintBoxMatrix.setVisible(false);
+        hintBoxMatrix.setManaged(false);
+        hintBoxDaily.setVisible(false);
+        hintBoxDaily.setManaged(false);
+        
+        classTablesContainer.setVisible(false);
+        classTablesContainer.setManaged(false);
         matrixTable.setVisible(false);
         matrixTable.setManaged(false);
         dailyLogTable.setVisible(false);
         dailyLogTable.setManaged(false);
-        
-        individualTable.setVisible(true);
-        individualTable.setManaged(true);
 
-        // Show Semester ComboBox, Hide Subject ComboBox in Individual View
         comboSemester.setVisible(true);
         comboSemester.setManaged(true);
         comboSubject.setVisible(false);
@@ -475,13 +732,28 @@ public class AttendanceController {
         btnBackToList.setVisible(isStudentLocked);
         btnBackToList.setManaged(isStudentLocked);
 
+        if (saveChangesBox != null) {
+            saveChangesBox.setVisible(false);
+            saveChangesBox.setManaged(false);
+        }
+
         if (isStudentLocked && selectedStudentRollNo != null) {
-            studentHeaderLabel.setText("👤 Student Details: " + selectedStudentRollNo + " - " + selectedStudentName);
+            studentHeaderLabel.setText("👤  Student Details: " + selectedStudentRollNo + " - " + selectedStudentName);
             studentHeaderLabel.setVisible(true);
             studentHeaderLabel.setManaged(true);
+            hintBoxIndiv.setVisible(false);
+            hintBoxIndiv.setManaged(false);
+            individualDashboardContainer.setVisible(true);
+            individualDashboardContainer.setManaged(true);
         } else {
             studentHeaderLabel.setVisible(false);
             studentHeaderLabel.setManaged(false);
+            hintBoxIndiv.setVisible(true);
+            hintBoxIndiv.setManaged(true);
+            individualDashboardContainer.setVisible(false);
+            individualDashboardContainer.setManaged(false);
+            individualData.clear();
+            chronoLogData.clear();
         }
         
         btnExport.setText("Export Student Audit");
@@ -510,6 +782,9 @@ public class AttendanceController {
         searchField.clear();
         
         applyFilters();
+        
+        // FIX: Ensure this button strictly returns to Class View
+        switchToClassView(); 
     }
 
     @FXML
@@ -520,16 +795,34 @@ public class AttendanceController {
         dailyFilterBox.setVisible(false);
         dailyFilterBox.setManaged(false);
 
+        classTablesContainer.setVisible(true);
+        classTablesContainer.setManaged(true);
         matrixTable.setVisible(true);
         matrixTable.setManaged(true);
         dailyLogTable.setVisible(false);
         dailyLogTable.setManaged(false);
 
-        // Show Subject ComboBox, Hide Semester ComboBox in Matrix View
         comboSemester.setVisible(false);
         comboSemester.setManaged(false);
         comboSubject.setVisible(true);
         comboSubject.setManaged(true);
+        
+        startDatePicker.setVisible(true);
+        startDatePicker.setManaged(true);
+        endDatePicker.setVisible(true);
+        endDatePicker.setManaged(true);
+        
+        hintBoxMatrix.setVisible(true);
+        hintBoxMatrix.setManaged(true);
+        hintBoxDaily.setVisible(false);
+        hintBoxDaily.setManaged(false);
+        hintBoxIndiv.setVisible(false);
+        hintBoxIndiv.setManaged(false);
+
+        if (saveChangesBox != null) {
+            saveChangesBox.setVisible(false);
+            saveChangesBox.setManaged(false);
+        }
 
         updateActiveButtonStyles(btnMatrixSummary, btnDailyLog);
         applyFilters();
@@ -543,10 +836,24 @@ public class AttendanceController {
         dailyFilterBox.setVisible(true);
         dailyFilterBox.setManaged(true);
 
+        classTablesContainer.setVisible(true);
+        classTablesContainer.setManaged(true);
         matrixTable.setVisible(false);
         matrixTable.setManaged(false);
         dailyLogTable.setVisible(true);
         dailyLogTable.setManaged(true);
+        
+        hintBoxMatrix.setVisible(false);
+        hintBoxMatrix.setManaged(false);
+        hintBoxDaily.setVisible(true);
+        hintBoxDaily.setManaged(true);
+        hintBoxIndiv.setVisible(false);
+        hintBoxIndiv.setManaged(false);
+
+        if (saveChangesBox != null) {
+            saveChangesBox.setVisible(true);
+            saveChangesBox.setManaged(true);
+        }
 
         updateActiveButtonStyles(btnDailyLog, btnMatrixSummary);
         applyFilters();
@@ -619,8 +926,10 @@ public class AttendanceController {
                     matchesYearHelper(record, selectedYear);
                 boolean matchesSubject = (selectedSubject == null || selectedSubject.equals("All Subjects") || selectedSubject.trim().isEmpty()) || 
                     record.getSubject().equalsIgnoreCase(selectedSubject.trim());
+                
+                LocalDate recordDate = record.getDateObj();
                 boolean matchesDate = (startDate == null || endDate == null) || 
-                    (record.getDateObj() != null && !record.getDateObj().isBefore(startDate) && !record.getDateObj().isAfter(endDate));
+                    (recordDate != null && !recordDate.isBefore(startDate) && !recordDate.isAfter(endDate));
                 boolean matchesLow = !lowOnly || record.isLowAttendance();
 
                 return matchesSearch && matchesDept && matchesYear && matchesSubject && matchesDate && matchesLow;
@@ -632,6 +941,13 @@ public class AttendanceController {
             String selectedYear = comboYear.getValue();
             String selectedSemester = comboSemester.getValue();
             boolean lowOnly = chkLowAttendance.isSelected();
+
+            Set<String> lowAttendanceCourses = new HashSet<>();
+            for (AttendanceRecord r : individualData) {
+                if (r.isLowAttendance()) {
+                    lowAttendanceCourses.add(r.getSubject().toLowerCase());
+                }
+            }
 
             filteredIndivData.setPredicate(record -> {
                 if (isStudentLocked && selectedStudentRollNo != null) {
@@ -659,7 +975,146 @@ public class AttendanceController {
 
                 return matchesDept && matchesYear && matchesSemester && matchesSearch && matchesLow;
             });
+
+            applyIndivLogFilters();
         }
+    }
+
+    // -------------------------------------------------------------
+    // PAGINATION LOGIC & HANDLERS
+    // -------------------------------------------------------------
+    @FXML
+    private void goToPage1() { changePage(btnPage1); }
+    @FXML
+    private void goToPage2() { changePage(btnPage2); }
+    @FXML
+    private void goToPage3() { changePage(btnPage3); }
+
+    private void changePage(Button btn) {
+        if (btn != null && btn.isVisible()) {
+            currentPage = Integer.parseInt(btn.getText());
+            updateChronoTablePagination();
+        }
+    }
+
+    @FXML
+    private void handlePrevPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            if (currentPage < ((currentPaginationWindow - 1) * 3 + 1)) {
+                currentPaginationWindow--;
+            }
+            updateChronoTablePagination();
+        }
+    }
+
+    @FXML
+    private void handleNextPage() {
+        int totalPages = (int) Math.ceil((double) filteredChronoData.size() / rowsPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            if (currentPage > (currentPaginationWindow * 3)) {
+                currentPaginationWindow++;
+            }
+            updateChronoTablePagination();
+        }
+    }
+
+    @FXML
+    private void applyIndivLogFilters() {
+        if (filteredChronoData == null) return;
+
+        String selectedCourse = comboIndivLogCourse != null ? comboIndivLogCourse.getValue() : "All Courses";
+        String selectedStatus = comboIndivLogStatus != null ? comboIndivLogStatus.getValue() : "All Status";
+        LocalDate fromDate = indivLogStartDate != null ? indivLogStartDate.getValue() : null;
+        LocalDate toDate = indivLogEndDate != null ? indivLogEndDate.getValue() : null;
+
+        filteredChronoData.setPredicate(record -> {
+            boolean matchesStudent = !isStudentLocked || selectedStudentRollNo == null ||
+                record.getRollNo().equalsIgnoreCase(selectedStudentRollNo);
+            boolean matchesCourse = (selectedCourse == null || selectedCourse.equals("All Courses")) ||
+                record.getSubject().equalsIgnoreCase(selectedCourse);
+            boolean matchesStatus = (selectedStatus == null || selectedStatus.equals("All Status")) ||
+                record.getStatus().equalsIgnoreCase(selectedStatus);
+            boolean matchesFrom = (fromDate == null) || (record.getDateObj() != null && !record.getDateObj().isBefore(fromDate));
+            boolean matchesTo = (toDate == null) || (record.getDateObj() != null && !record.getDateObj().isAfter(toDate));
+
+            return matchesStudent && matchesCourse && matchesStatus && matchesFrom && matchesTo;
+        });
+
+        // Reset to page 1 and calculate dynamic UI
+        currentPage = 1;
+        currentPaginationWindow = 1;
+        updateChronoTablePagination();
+    }
+    
+    private void updateChronoTablePagination() {
+        if (chronologicalLogTable == null || filteredChronoData == null) return;
+
+        int totalRecords = filteredChronoData.size();
+        int totalPages = Math.max(1, (int) Math.ceil((double) totalRecords / rowsPerPage));
+        
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        int fromIndex = (currentPage - 1) * rowsPerPage;
+        int toIndex = Math.min(fromIndex + rowsPerPage, totalRecords);
+
+        ObservableList<AttendanceRecord> pageSlice = FXCollections.observableArrayList();
+        if (totalRecords > 0 && fromIndex < totalRecords) {
+            pageSlice.addAll(filteredChronoData.subList(fromIndex, toIndex));
+        }
+
+        chronologicalLogTable.setItems(pageSlice);
+
+        if (lblPaginationInfo != null) {
+            if (totalRecords == 0) {
+                lblPaginationInfo.setText("Showing 0 – 0 of 0 records");
+            } else {
+                lblPaginationInfo.setText(String.format("Showing %d – %d of %d records", (fromIndex + 1), toIndex, totalRecords));
+            }
+        }
+
+        updatePaginationButtonUI(totalPages);
+    }
+
+    private void updatePaginationButtonUI(int totalPages) {
+        int startPage = ((currentPaginationWindow - 1) * 3) + 1;
+        Button[] pageBtns = {btnPage1, btnPage2, btnPage3};
+        
+        for (int i = 0; i < 3; i++) {
+            int pageForBtn = startPage + i;
+            if (pageBtns[i] != null) {
+                if (pageForBtn <= totalPages) {
+                    pageBtns[i].setText(String.valueOf(pageForBtn));
+                    pageBtns[i].setVisible(true);
+                    pageBtns[i].setManaged(true);
+                    pageBtns[i].getStyleClass().remove("search-button");
+                    pageBtns[i].getStyleClass().remove("reset-button");
+                    
+                    if (pageForBtn == currentPage) {
+                        pageBtns[i].getStyleClass().add("search-button"); // Active blue
+                    } else {
+                        pageBtns[i].getStyleClass().add("reset-button"); // Inactive gray
+                    }
+                } else {
+                    pageBtns[i].setVisible(false);
+                    pageBtns[i].setManaged(false);
+                }
+            }
+        }
+        
+        if (btnPrevPage != null) btnPrevPage.setDisable(currentPage == 1);
+        if (btnNextPage != null) btnNextPage.setDisable(currentPage == totalPages || totalPages == 0);
+    }
+
+    @FXML
+    private void resetIndivLogFilters() {
+        if (comboIndivLogCourse != null) comboIndivLogCourse.setValue("All Courses");
+        if (comboIndivLogStatus != null) comboIndivLogStatus.setValue("All Status");
+        if (indivLogStartDate != null) indivLogStartDate.setValue(null);
+        if (indivLogEndDate != null) indivLogEndDate.setValue(null);
+        applyIndivLogFilters();
     }
 
     private boolean matchesYearHelper(AttendanceRecord record, String selectedYear) {
@@ -691,13 +1146,10 @@ public class AttendanceController {
         comboYear.setValue("All Years");
         comboSemester.setValue("All Semesters");
         
-        // --- RESET SUBJECT COMBOBOX COMPLETELY ---
         comboSubject.setValue("All Subjects");
         if (comboSubject.getEditor() != null) {
             comboSubject.getEditor().clear();
         }
-        // If you are using FilteredList named 'filteredSubjects', reset its predicate here:
-        // filteredSubjects.setPredicate(s -> true);
 
         startDatePicker.setValue(null);
         endDatePicker.setValue(null);
@@ -710,11 +1162,27 @@ public class AttendanceController {
         chkAbsent.setSelected(false);
         chkExcuse.setSelected(false);
 
+        resetIndivLogFilters();
         applyFilters();
     }
 
     @FXML
-    private void handleExport() {
-        System.out.println("Exporting report...");
+    private void handleSaveChanges() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Success");
+        alert.setHeaderText("Database Updated");
+        alert.setContentText("Attendance status modifications have been successfully saved.");
+        alert.getDialogPane().setMinWidth(380);
+        alert.showAndWait();
+    }
+
+    @FXML
+    private void handleExportAudit() {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Export Student Audit");
+        alert.setHeaderText(null);
+        alert.setContentText("Exporting attendance audit report for " + selectedStudentName + " (" + selectedStudentRollNo + ")...");
+        alert.getDialogPane().setMinWidth(380);
+        alert.showAndWait();
     }
 }

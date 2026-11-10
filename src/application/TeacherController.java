@@ -101,6 +101,12 @@ public class TeacherController {
                 openTeacherDetail(selected);
             }
         });
+        
+     // Disable sorting and reordering for all columns in the teacher table
+        for (TableColumn<?, ?> col : teacherTable.getColumns()) {
+            col.setSortable(false);
+            col.setReorderable(false); // Prevents dragging columns around
+        }
     }
 
     private void openTeacherDetail(Teacher teacher) {
