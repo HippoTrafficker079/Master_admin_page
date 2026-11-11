@@ -308,3 +308,26 @@
 .date-picker-popup .spinner .button .right-arrow {
     -fx-background-color: #0f172a;
 }
+
+/* --- Dialog Restore Button (matches StudentContent colors) --- */
+.dialog-restore-button {
+    -fx-background-color: #456c99;
+    -fx-text-fill: #FFFFFF;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-border-color: #7DD3FC;
+    -fx-border-width: 1px;
+    -fx-cursor: hand;
+}
+
+.dialog-restore-button:hover {
+    -fx-background-color: #7DD3FC;
+    -fx-text-fill: white;
+}
+
+.dialog-restore-button:pressed {
+    -fx-background-color: #38BDF8;
+    -fx-text-fill: white;
+}

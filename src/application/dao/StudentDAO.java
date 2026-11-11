@@ -13,25 +13,23 @@ import org.mindrot.jbcrypt.BCrypt;
 import application.Student;
 
 public class StudentDAO {
+
     public List<Student> getAllStudent() {
         List<Student> students = new ArrayList<>();
         String sql = """
-                    WITH
-                    RankedStudents AS (
-                        SELECT s.student_id, s.roll_no, s.full_name, d.dept_code, s.current_year, COALESCE(co.term, 'Pending') AS term,
-                            ci.primary_phone_number, ua.status, ROW_NUMBER() OVER (
-                                PARTITION BY
-                                    s.student_id
-                                ORDER BY ce.enrollment_id DESC
-                            ) AS rn
-                        FROM
-                            student s
-                            JOIN user_account ua ON s.user_id = ua.user_id
-                            JOIN department d ON s.dept_id = d.dept_id
-                            JOIN student_contact_information ci ON s.student_id = ci.student_id
-                            LEFT JOIN course_enrollment ce ON s.student_id = ce.student_id
-                            LEFT JOIN course_offering co ON ce.offering_id = co.offering_id)
-
+                WITH RankedStudents AS (
+                    SELECT s.student_id, s.roll_no, s.full_name, d.dept_code, s.current_year, COALESCE(co.term, 'Pending') AS term,
+                           ci.primary_phone_number, ua.status, ROW_NUMBER() OVER (
+                               PARTITION BY s.student_id
+                               ORDER BY ce.enrollment_id DESC
+                           ) AS rn
+                    FROM student s
+                    JOIN user_account ua ON s.user_id = ua.user_id
+                    JOIN department d ON s.dept_id = d.dept_id
+                    JOIN student_contact_information ci ON s.student_id = ci.student_id
+                    LEFT JOIN course_enrollment ce ON s.student_id = ce.student_id
+                    LEFT JOIN course_offering co ON ce.offering_id = co.offering_id
+                )
                 SELECT
                     student_id,
                     roll_no,
@@ -43,7 +41,9 @@ public class StudentDAO {
                 FROM RankedStudents
                 WHERE
                     rn = 1
-                    AND `status` = TRUE;""";
+                    AND `status` = TRUE;
+                """;
+
         try (Connection conn = DatabaseConnector.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);
                 ResultSet rs = pstmt.executeQuery()) {
@@ -57,7 +57,58 @@ public class StudentDAO {
                 String primary_phone_number = rs.getString("primary_phone_number");
 
                 Student student = new Student(id, rollNum, name, dept_code, current_year, term, primary_phone_number);
+                students.add(student);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return students;
+    }
 
+    // --- Fetch Soft-Deleted Students (ua.status = FALSE) ---
+    public List<Student> getDeletedStudents() {
+        List<Student> students = new ArrayList<>();
+        String sql = """
+                WITH RankedStudents AS (
+                    SELECT s.student_id, s.roll_no, s.full_name, d.dept_code, s.current_year, COALESCE(co.term, 'Pending') AS term,
+                           ci.primary_phone_number, ua.status, ROW_NUMBER() OVER (
+                               PARTITION BY s.student_id
+                               ORDER BY ce.enrollment_id DESC
+                           ) AS rn
+                    FROM student s
+                    JOIN user_account ua ON s.user_id = ua.user_id
+                    JOIN department d ON s.dept_id = d.dept_id
+                    JOIN student_contact_information ci ON s.student_id = ci.student_id
+                    LEFT JOIN course_enrollment ce ON s.student_id = ce.student_id
+                    LEFT JOIN course_offering co ON ce.offering_id = co.offering_id
+                )
+                SELECT
+                    student_id,
+                    roll_no,
+                    full_name,
+                    dept_code,
+                    current_year,
+                    term,
+                    primary_phone_number
+                FROM RankedStudents
+                WHERE
+                    rn = 1
+                    AND `status` = FALSE;
+                """;
+
+        try (Connection conn = DatabaseConnector.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()) {
+            while (rs.next()) {
+                int id = rs.getInt("student_id");
+                String rollNum = rs.getString("roll_no");
+                String name = rs.getString("full_name");
+                String dept_code = rs.getString("dept_code");
+                String current_year = rs.getString("current_year");
+                String term = rs.getString("term");
+                String primary_phone_number = rs.getString("primary_phone_number");
+
+                Student student = new Student(id, rollNum, name, dept_code, current_year, term, primary_phone_number);
                 students.add(student);
             }
         } catch (SQLException e) {
@@ -70,34 +121,34 @@ public class StudentDAO {
             String semester) {
         StringBuilder sql = new StringBuilder(
                 """
-                            WITH
-                            RankedStudents AS (
-                                SELECT s.student_id, s.roll_no, s.full_name, d.dept_code, s.current_year, COALESCE(co.term, 'Pending') AS term, ci.primary_phone_number, ua.status, ROW_NUMBER() OVER (
-                                        PARTITION BY
-                                            s.student_id
-                                        ORDER BY ce.enrollment_id DESC
-                                    ) AS rn
-                                FROM
-                                    student s
-                                    JOIN user_account ua ON s.user_id = ua.user_id
-                                    JOIN department d ON s.dept_id = d.dept_id
-                                    JOIN student_contact_information ci ON s.student_id = ci.student_id
-                                    LEFT JOIN course_enrollment ce ON s.student_id = ce.student_id
-                                    LEFT JOIN course_offering co ON ce.offering_id = co.offering_id
-                            )
-                        SELECT
-                            student_id,
-                            roll_no,
-                            full_name,
-                            dept_code,
-                            current_year,
-                            term,
-                            primary_phone_number
-                        FROM RankedStudents
-                        WHERE
-                            rn = 1
-                            AND `status` = TRUE
-                             """);
+                WITH
+                RankedStudents AS (
+                    SELECT s.student_id, s.roll_no, s.full_name, d.dept_code, s.current_year, COALESCE(co.term, 'Pending') AS term, ci.primary_phone_number, ua.status, ROW_NUMBER() OVER (
+                            PARTITION BY
+                                s.student_id
+                            ORDER BY ce.enrollment_id DESC
+                        ) AS rn
+                    FROM
+                        student s
+                        JOIN user_account ua ON s.user_id = ua.user_id
+                        JOIN department d ON s.dept_id = d.dept_id
+                        JOIN student_contact_information ci ON s.student_id = ci.student_id
+                        LEFT JOIN course_enrollment ce ON s.student_id = ce.student_id
+                        LEFT JOIN course_offering co ON ce.offering_id = co.offering_id
+                )
+                SELECT
+                    student_id,
+                    roll_no,
+                    full_name,
+                    dept_code,
+                    current_year,
+                    term,
+                    primary_phone_number
+                FROM RankedStudents
+                WHERE
+                    rn = 1
+                    AND `status` = TRUE
+                """);
         List<Object> parameters = new ArrayList<>();
         if (searchText != null && !searchText.trim().isEmpty()) {
             sql.append("""
@@ -154,49 +205,49 @@ public class StudentDAO {
 
     public Student getStudentbyId(int studentId) {
         String sql = """
-                      WITH
-                    RankedStudent AS (
-                        SELECT
-                            s.student_id,
-                            s.roll_no,
-                            s.full_name,
-                            d.dept_code AS faculty,
-                            s.current_year,
-                            COALESCE(co.term, 'Pending') AS term,
-                            s.date_of_birth,
-                            s.gender,
-                            s.nationality,
-                            s.nrc,
-                            s.profile_image_url,
-                            ci.primary_phone_number,
-                            ci.email_address,
-                            ci.current_address,
-                            ci.permanent_address,
-                            sg.father_full_name AS father_name,
-                            sg.father_occupation AS father_occupation,
-                            sg.father_phone_number AS father_phone,
-                            sg.father_email_address AS father_email,
-                            sg.mother_full_name AS mother_name,
-                            sg.mother_occupation AS mother_occupation,
-                            sg.mother_phone_number AS mother_phone,
-                            sg.mother_email_address AS mother_email,
-                            seb.previous_school,
-                            seb.year_completed,
-                            seb.additional_info,
-                            ROW_NUMBER() OVER (
-                                ORDER BY ce.enrollment_id DESC
-                            ) AS rn
-                        FROM
-                            student s
-                            LEFT JOIN department d ON s.dept_id = d.dept_id
-                            LEFT JOIN student_contact_information ci ON s.student_id = ci.student_id
-                            LEFT JOIN student_guardian sg ON s.student_id = sg.student_id
-                            LEFT JOIN student_education_background seb ON s.student_id = seb.student_id
-                            LEFT JOIN course_enrollment ce ON s.student_id = ce.student_id
-                            LEFT JOIN course_offering co ON ce.offering_id = co.offering_id
-                        WHERE
-                            s.student_id = ?
-                    )
+                WITH
+                RankedStudent AS (
+                    SELECT
+                        s.student_id,
+                        s.roll_no,
+                        s.full_name,
+                        d.dept_code AS faculty,
+                        s.current_year,
+                        COALESCE(co.term, 'Pending') AS term,
+                        s.date_of_birth,
+                        s.gender,
+                        s.nationality,
+                        s.nrc,
+                        s.profile_image_url,
+                        ci.primary_phone_number,
+                        ci.email_address,
+                        ci.current_address,
+                        ci.permanent_address,
+                        sg.father_full_name AS father_name,
+                        sg.father_occupation AS father_occupation,
+                        sg.father_phone_number AS father_phone,
+                        sg.father_email_address AS father_email,
+                        sg.mother_full_name AS mother_name,
+                        sg.mother_occupation AS mother_occupation,
+                        sg.mother_phone_number AS mother_phone,
+                        sg.mother_email_address AS mother_email,
+                        seb.previous_school,
+                        seb.year_completed,
+                        seb.additional_info,
+                        ROW_NUMBER() OVER (
+                            ORDER BY ce.enrollment_id DESC
+                        ) AS rn
+                    FROM
+                        student s
+                        LEFT JOIN department d ON s.dept_id = d.dept_id
+                        LEFT JOIN student_contact_information ci ON s.student_id = ci.student_id
+                        LEFT JOIN student_guardian sg ON s.student_id = sg.student_id
+                        LEFT JOIN student_education_background seb ON s.student_id = seb.student_id
+                        LEFT JOIN course_enrollment ce ON s.student_id = ce.student_id
+                        LEFT JOIN course_offering co ON ce.offering_id = co.offering_id
+                    WHERE
+                        s.student_id = ?
+                )
                 SELECT
                     student_id,
                     roll_no,
@@ -227,7 +278,7 @@ public class StudentDAO {
                 FROM RankedStudent
                 WHERE
                     rn = 1;
-                      """;
+                """;
         try (Connection conn = DatabaseConnector.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, studentId);
@@ -243,26 +294,26 @@ public class StudentDAO {
                             rs.getString("faculty"),
                             rs.getString("current_year"),
                             rs.getString("term"),
-                            rs.getString("primary_phone_number"), // 7: phoneNo
-                            dobString, // 8: dob
-                            rs.getString("gender"), // 9: gender ("Female")
-                            rs.getString("nationality"), // 10: nationality ("Myanmar")
-                            rs.getString("nrc"), // 11: nrc ("12/TaTaNa(N)...")
-                            rs.getString("email_address"), // 12: email
-                            rs.getString("current_address"), // 13: currentAddress
-                            rs.getString("permanent_address"), // 14: permanentAddress
-                            rs.getString("father_name"), // 15: fatherName
-                            rs.getString("father_occupation"), // 16: fatherOccupation
-                            rs.getString("father_phone"), // 17: fatherPhone
-                            rs.getString("father_email"), // 18: fatherEmail
-                            rs.getString("mother_name"), // 19: motherName
-                            rs.getString("mother_occupation"), // 20: motherOccupation
-                            rs.getString("mother_phone"), // 21: motherPhone
-                            rs.getString("mother_email"), // 22: motherEmail
-                            rs.getString("previous_school"), // 23: prevSchool
-                            rs.getString("year_completed"), // 24: yearCompleted
-                            rs.getString("additional_info"), // 25: additionalInfo
-                            rs.getString("profile_image_url") // 26: photoPath
+                            rs.getString("primary_phone_number"),
+                            dobString,
+                            rs.getString("gender"),
+                            rs.getString("nationality"),
+                            rs.getString("nrc"),
+                            rs.getString("email_address"),
+                            rs.getString("current_address"),
+                            rs.getString("permanent_address"),
+                            rs.getString("father_name"),
+                            rs.getString("father_occupation"),
+                            rs.getString("father_phone"),
+                            rs.getString("father_email"),
+                            rs.getString("mother_name"),
+                            rs.getString("mother_occupation"),
+                            rs.getString("mother_phone"),
+                            rs.getString("mother_email"),
+                            rs.getString("previous_school"),
+                            rs.getString("year_completed"),
+                            rs.getString("additional_info"),
+                            rs.getString("profile_image_url")
                     );
                 }
             }
@@ -512,7 +563,7 @@ public class StudentDAO {
                     profile_image_url = ?
                 WHERE
                     student_id = ?
-                    """;
+                """;
         String studentContactSql = """
                 UPDATE student_contact_information
                 SET
@@ -522,7 +573,7 @@ public class StudentDAO {
                     permanent_address = ?
                 WHERE
                     student_id = ?
-                        """;
+                """;
         String studentGuardianSql = """
                 UPDATE student_guardian
                 SET
@@ -536,7 +587,7 @@ public class StudentDAO {
                     mother_email_address = ?
                 WHERE
                     student_id = ?
-                        """;
+                """;
         String studentEducationSql = """
                 UPDATE student_education_background
                 SET
@@ -545,7 +596,7 @@ public class StudentDAO {
                     additional_info = ?
                 WHERE
                     student_id = ?
-                        """;
+                """;
         try {
             conn = DatabaseConnector.getConnection();
             conn.setAutoCommit(false);
@@ -619,7 +670,6 @@ public class StudentDAO {
                 }
             }
         }
-
     }
 
     public boolean removeStudent(int studentId) {
@@ -634,7 +684,7 @@ public class StudentDAO {
                         WHERE
                             student_id = ?
                     );
-                        """;
+                """;
         try (Connection conn = DatabaseConnector.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setInt(1, studentId);
@@ -654,6 +704,56 @@ public class StudentDAO {
         String sql = """
                 UPDATE user_account
                 SET `status` = FALSE
+                WHERE user_id IN (
+                    SELECT user_id
+                    FROM student
+                    WHERE student_id = ?
+                );
+                """;
+
+        Connection conn = null;
+        try {
+            conn = DatabaseConnector.getConnection();
+            conn.setAutoCommit(false);
+
+            try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+                for (Integer id : studentIds) {
+                    pstmt.setInt(1, id);
+                    pstmt.addBatch();
+                }
+                pstmt.executeBatch();
+            }
+
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+            }
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.close();
+                } catch (SQLException closeEx) {
+                    closeEx.printStackTrace();
+                }
+            }
+        }
+    }
+
+    // --- Batch Restore Soft-Deleted Students ---
+    public boolean restoreStudents(List<Integer> studentIds) {
+        if (studentIds == null || studentIds.isEmpty()) return false;
+
+        String sql = """
+                UPDATE user_account
+                SET `status` = TRUE
                 WHERE user_id IN (
                     SELECT user_id
                     FROM student

@@ -53,6 +53,8 @@ public class StudentController {
     private Button add;
     @FXML
     private Button remove;
+    @FXML
+    private Button restore;
 
     @FXML
     private TextField searchField;
@@ -127,11 +129,11 @@ public class StudentController {
             }
         });
         
-     // 1. Lock everything from user sorting, reordering, and resizing
+        // 1. Lock everything from user sorting, reordering, and resizing
         for (TableColumn<?, ?> col : studentTable.getColumns()) {
             col.setSortable(false);
             col.setReorderable(false);
-//            col.setResizable(false);
+//          col.setResizable(false);
         }
 
         studentTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
@@ -174,11 +176,15 @@ public class StudentController {
 
     private void openStudentDetail(Student student) {
         try {
-            int rowIndex = studentTable.getItems().indexOf(student) + 1;
+            // Calculate the 1-based index from the table view
+            int uiRowNumber = studentTable.getItems().indexOf(student) + 1;
+            
             StudentDAO studentDAO = new StudentDAO();
             Student fullStudent = studentDAO.getStudentbyId(student.getNo());
             Student targetStudent = (fullStudent != null) ? fullStudent : student;
-            targetStudent.setDisplayNo(rowIndex > 0 ? rowIndex : student.getNo());
+            
+            // Pass the calculated UI row number using your newly added setter
+            targetStudent.setDisplayNo(uiRowNumber > 0 ? uiRowNumber : student.getNo());
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentDetail.fxml"));
             Parent detailView = loader.load();
@@ -206,19 +212,20 @@ public class StudentController {
         if (selected != null) {
             try {
                 // Calculate the 1-based index from the table view
-                int rowIndex = studentTable.getItems().indexOf(selected) + 1;
+                int uiRowNumber = studentTable.getItems().indexOf(selected) + 1;
                 
                 StudentDAO studentDAO = new StudentDAO();
                 Student fullStudent = studentDAO.getStudentbyId(selected.getNo());
                 Student targetStudent = (fullStudent != null) ? fullStudent : selected;
                 
-                // Pass the calculated UI row number
-                targetStudent.setDisplayNo(rowIndex > 0 ? rowIndex : selected.getNo());
+                // Set the display number directly on the student object before passing it
+                targetStudent.setDisplayNo(uiRowNumber > 0 ? uiRowNumber : selected.getNo());
 
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentModify.fxml"));
                 Parent modifyView = loader.load();
 
                 StudentModifyController controller = loader.getController();
+                // We only need to pass the student object now, as it contains the displayNo
                 controller.initData(targetStudent);
 
                 BorderPane mainLayout = (BorderPane) studentTable.getScene().lookup("#mainBorderPane");
@@ -328,6 +335,35 @@ public class StudentController {
             col.setSortable(false);
             col.setResizable(false);
             col.setReorderable(false); // Disables dragging column headers to reorder
+        }
+    }
+    
+    @FXML
+    public void handleRestore() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentRestore.fxml"));
+            Parent root = loader.load();
+
+            StudentRestoreController controller = loader.getController();
+
+            javafx.stage.Stage stage = new javafx.stage.Stage();
+            stage.setTitle("Restore Deleted Students");
+            stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            if (studentTable != null && studentTable.getScene() != null) {
+                stage.initOwner(studentTable.getScene().getWindow());
+            }
+
+            stage.setScene(new javafx.scene.Scene(root));
+            stage.setResizable(false);
+            stage.showAndWait();
+
+            // When the restore dialog closes, check if any rows were restored and refresh
+            if (controller.isRecordRestored()) {
+                refreshDataFromDatabase();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Error", "Could not open the restore dialog: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 }

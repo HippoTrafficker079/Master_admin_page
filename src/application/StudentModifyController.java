@@ -396,6 +396,7 @@ public class StudentModifyController {
         }
     }
 
+    // UPDATE method signature to accept the row number instead of student ID
     public void initData(Student student) {
         this.currentStudent = student;
         if (student != null) {
@@ -412,8 +413,11 @@ public class StudentModifyController {
                 bannerBox = new HBox();
                 bannerBox.setStyle("-fx-background-color: #dbeafe; -fx-border-color: #2563eb; -fx-border-width: 1.5; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 12 18;");
 
+                // Retrieve the displayNo passed from the Main Controller
+                int displayRowNumber = student.getDisplayNo() > 0 ? student.getDisplayNo() : student.getNo();
+
                 String bannerText = String.format("⭐     %d     |     %s     |     %s     |     %s     |     %s",
-                        student.getNo(), safe(student.getRollNo()), safe(student.getName()), safe(student.getMajor()), safe(student.getYear()));
+                        displayRowNumber, safe(student.getRollNo()), safe(student.getName()), safe(student.getMajor()), safe(student.getYear()));
 
                 Label bannerLabel = new Label(bannerText);
                 bannerLabel.setStyle("-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 15px;");
