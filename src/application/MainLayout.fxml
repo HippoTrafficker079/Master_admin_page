@@ -17,7 +17,7 @@
          <children>
             <ImageView fitHeight="104.0" fitWidth="165.0" pickOnBounds="true" preserveRatio="true">
                <image>
-                  <Image url="@../../../../Downloads/ytulogo1bgremoved.png" />
+                  <Image url="@../../../../Downloads/photo_2026-10-14_21-55-21-removebg-preview.png" />
                </image>
                <VBox.margin>
                   <Insets bottom="10.0" top="25.0" />

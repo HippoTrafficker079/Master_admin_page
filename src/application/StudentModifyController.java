@@ -47,10 +47,8 @@ public class StudentModifyController {
     @FXML private TextField txtPrevSchool, txtYearCompleted, txtAdditionalInfo;
     @FXML private ImageView passportImageView;
     @FXML private VBox contentContainer;
-    
-    
+
     private Student currentStudent;
-    private int displayNo = 0; // Add this field to store the UI row index
     private HBox bannerBox = null;
     private String updatedPhotoPath = null;
     private boolean isUpdating = false;
@@ -399,25 +397,23 @@ public class StudentModifyController {
     }
 
     public void initData(Student student) {
-    	this.currentStudent = student;
+        this.currentStudent = student;
         if (student != null) {
-            this.displayNo = student.getDisplayNo(); // Capture the passed UI row number
-            
-            // Build or update the top banner with displayNo
             if (contentContainer != null) {
                 if (bannerBox != null && contentContainer.getChildren().contains(bannerBox)) {
                     contentContainer.getChildren().remove(bannerBox);
+                } else if (!contentContainer.getChildren().isEmpty()) {
+                    Node firstNode = contentContainer.getChildren().get(0);
+                    if (firstNode instanceof HBox && firstNode.getStyle() != null && firstNode.getStyle().contains("-fx-background-color: #dbeafe;")) {
+                        contentContainer.getChildren().remove(firstNode);
+                    }
                 }
+
                 bannerBox = new HBox();
                 bannerBox.setStyle("-fx-background-color: #dbeafe; -fx-border-color: #2563eb; -fx-border-width: 1.5; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 12 18;");
-                
+
                 String bannerText = String.format("⭐     %d     |     %s     |     %s     |     %s     |     %s",
-                    (displayNo > 0 ? displayNo : student.getNo()), // Use displayNo here!
-                    student.getRollNo(),
-                    student.getName(),
-                    student.getMajor(),
-                    student.getYear()
-                );
+                        student.getNo(), safe(student.getRollNo()), safe(student.getName()), safe(student.getMajor()), safe(student.getYear()));
 
                 Label bannerLabel = new Label(bannerText);
                 bannerLabel.setStyle("-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 15px;");

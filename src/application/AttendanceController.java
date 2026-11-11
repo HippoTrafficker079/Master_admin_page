@@ -431,6 +431,7 @@ public class AttendanceController {
         for (TableColumn<?, ?> col : table.getColumns()) {
             col.setSortable(false);
             col.setReorderable(false);
+//            col.setResizable(false);
         }
     }
 

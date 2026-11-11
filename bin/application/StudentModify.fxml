@@ -33,6 +33,7 @@
             </HBox>
 
             <!-- Main Form Sheet Container -->
+            
             <VBox spacing="14.0" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
                <children>
                   <HBox alignment="CENTER_LEFT" spacing="10.0">
@@ -44,6 +45,7 @@
                            </children>
                         </VBox>
                         <Pane HBox.hgrow="ALWAYS" />
+                        
                         <VBox alignment="CENTER" spacing="4.0">
                            <children>
                               <VBox fx:id="photoContainer" alignment="CENTER" onMouseClicked="#handleUploadPhoto"

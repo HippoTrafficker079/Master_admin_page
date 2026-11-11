@@ -106,6 +106,7 @@ public class TeacherController {
         for (TableColumn<?, ?> col : teacherTable.getColumns()) {
             col.setSortable(false);
             col.setReorderable(false); // Prevents dragging columns around
+//            col.setResizable(false);
         }
     }
 

@@ -84,7 +84,7 @@ public class StudentController {
         colYear.setCellValueFactory(cellData -> cellData.getValue().yearProperty());
         colSemester.setCellValueFactory(cellData -> cellData.getValue().semesterProperty());
         colPhone.setCellValueFactory(cellData -> cellData.getValue().phoneNoProperty());
-
+        
         ObservableList<String> majorOptions = FXCollections.observableArrayList(
                 "All Majors", "Pending", "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex",
                 "FE");
@@ -112,12 +112,10 @@ public class StudentController {
         semesterHeaderCombo.setMaxWidth(Double.MAX_VALUE);
         semesterHeaderCombo.setValue("All Semesters");
         colSemester.setGraphic(semesterHeaderCombo);
-
-        if (masterData == null) {
-            refreshDataFromDatabase();
-        } else {
-            setupTableData();
-        }
+        
+        // ALWAYS fetch fresh data from the database so newly imported 
+        // students get their real auto-incremented database IDs immediately.
+        refreshDataFromDatabase();
 
         majorHeaderCombo.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
         yearHeaderCombo.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
@@ -129,14 +127,18 @@ public class StudentController {
             }
         });
         
-     // Disable sorting and reordering for all columns in the main student table
+     // 1. Lock everything from user sorting, reordering, and resizing
         for (TableColumn<?, ?> col : studentTable.getColumns()) {
             col.setSortable(false);
-            col.setReorderable(false); // Prevents dragging columns around
+            col.setReorderable(false);
+//            col.setResizable(false);
         }
+
+        studentTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        
     }
 
-    private void refreshDataFromDatabase() {
+    public void refreshDataFromDatabase() {
         StudentDAO studentDAO = new StudentDAO();
         List<Student> list = studentDAO.getAllStudent();
         masterData = FXCollections.observableArrayList(list);
@@ -319,5 +321,13 @@ public class StudentController {
             alert.initOwner(studentTable.getScene().getWindow());
         }
         alert.showAndWait();
+    }
+    
+    private void disableTableSortingAndReordering(TableView<?> table) {
+        for (TableColumn<?, ?> col : table.getColumns()) {
+            col.setSortable(false);
+            col.setResizable(false);
+            col.setReorderable(false); // Disables dragging column headers to reorder
+        }
     }
 }
