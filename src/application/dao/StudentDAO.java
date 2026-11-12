@@ -121,34 +121,34 @@ public class StudentDAO {
             String semester) {
         StringBuilder sql = new StringBuilder(
                 """
-                WITH
-                RankedStudents AS (
-                    SELECT s.student_id, s.roll_no, s.full_name, d.dept_code, s.current_year, COALESCE(co.term, 'Pending') AS term, ci.primary_phone_number, ua.status, ROW_NUMBER() OVER (
-                            PARTITION BY
-                                s.student_id
-                            ORDER BY ce.enrollment_id DESC
-                        ) AS rn
-                    FROM
-                        student s
-                        JOIN user_account ua ON s.user_id = ua.user_id
-                        JOIN department d ON s.dept_id = d.dept_id
-                        JOIN student_contact_information ci ON s.student_id = ci.student_id
-                        LEFT JOIN course_enrollment ce ON s.student_id = ce.student_id
-                        LEFT JOIN course_offering co ON ce.offering_id = co.offering_id
-                )
-                SELECT
-                    student_id,
-                    roll_no,
-                    full_name,
-                    dept_code,
-                    current_year,
-                    term,
-                    primary_phone_number
-                FROM RankedStudents
-                WHERE
-                    rn = 1
-                    AND `status` = TRUE
-                """);
+                        WITH
+                        RankedStudents AS (
+                            SELECT s.student_id, s.roll_no, s.full_name, d.dept_code, s.current_year, COALESCE(co.term, 'Pending') AS term, ci.primary_phone_number, ua.status, ROW_NUMBER() OVER (
+                                    PARTITION BY
+                                        s.student_id
+                                    ORDER BY ce.enrollment_id DESC
+                                ) AS rn
+                            FROM
+                                student s
+                                JOIN user_account ua ON s.user_id = ua.user_id
+                                JOIN department d ON s.dept_id = d.dept_id
+                                JOIN student_contact_information ci ON s.student_id = ci.student_id
+                                LEFT JOIN course_enrollment ce ON s.student_id = ce.student_id
+                                LEFT JOIN course_offering co ON ce.offering_id = co.offering_id
+                        )
+                        SELECT
+                            student_id,
+                            roll_no,
+                            full_name,
+                            dept_code,
+                            current_year,
+                            term,
+                            primary_phone_number
+                        FROM RankedStudents
+                        WHERE
+                            rn = 1
+                            AND `status` = TRUE
+                        """);
         List<Object> parameters = new ArrayList<>();
         if (searchText != null && !searchText.trim().isEmpty()) {
             sql.append("""
@@ -313,8 +313,7 @@ public class StudentDAO {
                             rs.getString("previous_school"),
                             rs.getString("year_completed"),
                             rs.getString("additional_info"),
-                            rs.getString("profile_image_url")
-                    );
+                            rs.getString("profile_image_url"));
                 }
             }
         } catch (SQLException e) {
@@ -452,9 +451,7 @@ public class StudentDAO {
                 """;
 
         String username = student.getRollNo();
-        String email = student.getEmail() != null && !student.getEmail().trim().isEmpty()
-                ? student.getEmail().trim()
-                : student.getRollNo().toLowerCase().replace("-", "") + "@ytu.edu.mm";
+        String email = student.getRollNo().toLowerCase().replace("-", "") + "@ytu.edu.mm";
 
         String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt(12));
         int userId = -1;
@@ -699,7 +696,8 @@ public class StudentDAO {
 
     // --- Batch Soft-Delete Students ---
     public boolean removeStudents(List<Integer> studentIds) {
-        if (studentIds == null || studentIds.isEmpty()) return false;
+        if (studentIds == null || studentIds.isEmpty())
+            return false;
 
         String sql = """
                 UPDATE user_account
@@ -749,7 +747,8 @@ public class StudentDAO {
 
     // --- Batch Restore Soft-Deleted Students ---
     public boolean restoreStudents(List<Integer> studentIds) {
-        if (studentIds == null || studentIds.isEmpty()) return false;
+        if (studentIds == null || studentIds.isEmpty())
+            return false;
 
         String sql = """
                 UPDATE user_account

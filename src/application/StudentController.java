@@ -145,6 +145,7 @@ public class StudentController {
         List<Student> list = studentDAO.getAllStudent();
         masterData = FXCollections.observableArrayList(list);
         setupTableData();
+        DashboardController.refreshDashboard();
     }
 
     private void setupTableData() {

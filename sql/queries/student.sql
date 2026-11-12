@@ -4,7 +4,7 @@
 --Manage Student Page
 WITH
     RankedStudents AS (
-        SELECT s.student_id, s.roll_no, s.full_name, d.dept_code, s.current_year, co.term, ci.primary_phone_number, ua.status, ROW_NUMBER() OVER (
+        SELECT s.student_id, s.roll_no, s.full_name, d.dept_code, s.current_year, COALESCE(co.term, 'Pending') AS term, ci.primary_phone_number, ua.status, ROW_NUMBER() OVER (
                 PARTITION BY
                     s.student_id
                 ORDER BY ce.enrollment_id DESC
@@ -14,8 +14,8 @@ WITH
             JOIN user_account ua ON s.user_id = ua.user_id
             JOIN department d ON s.dept_id = d.dept_id
             JOIN student_contact_information ci ON s.student_id = ci.student_id
-            JOIN course_enrollment ce ON s.student_id = ce.student_id
-            JOIN course_offering co ON ce.offering_id = co.offering_id
+            LEFT JOIN course_enrollment ce ON s.student_id = ce.student_id
+            LEFT JOIN course_offering co ON ce.offering_id = co.offering_id
     )
 SELECT
     student_id,
@@ -28,8 +28,7 @@ SELECT
 FROM RankedStudents
 WHERE
     rn = 1
-    AND `status` = TRUE
-    AND 1 = 1
+    AND `status` = TRUE;
 
 --Append dynamically when searchbar is not null
 AND (
@@ -58,7 +57,7 @@ WITH
             s.full_name,
             d.dept_name AS faculty,
             s.current_year,
-            co.term,
+            COALESCE(co.term, 'Pending') AS term,
             s.date_of_birth,
             s.gender,
             s.nationality,
@@ -88,8 +87,8 @@ WITH
             LEFT JOIN student_contact_information ci ON s.student_id = ci.student_id
             LEFT JOIN student_guardian sg ON s.student_id = sg.student_id
             LEFT JOIN student_education_background seb ON s.student_id = seb.student_id
-            JOIN course_enrollment ce ON s.student_id = ce.student_id
-            JOIN course_offering co ON ce.offering_id = co.offering_id
+            LEFT JOIN course_enrollment ce ON s.student_id = ce.student_id
+            LEFT JOIN course_offering co ON ce.offering_id = co.offering_id
         WHERE
             s.student_id = ?
     )
@@ -192,6 +191,15 @@ INSERT INTO
     )
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
+INSERT INTO
+    student_education_background (
+        student_id,
+        previous_school,
+        year_completed,
+        additional_info
+    )
+VALUES (?, ?, ?, ?);
+
 --Modify Student Query
 
 --Main Table SQL
@@ -235,6 +243,14 @@ SET
 WHERE
     student_id = ?
 
+UPDATE student_education_background
+SET
+    previous_school = ?,
+    year_completed = ?,
+    additional_info = ?
+WHERE
+    student_id = ?
+
 --DELETE student query
 UPDATE user_account
 SET
@@ -244,5 +260,17 @@ WHERE
         SELECT user_id
         FROM student
         WHERE
+            student_id = ?
+    );
+
+--Restore student query
+UPDATE user_account
+SET
+    `status` = TRUE
+WHERE
+    user_id = (
+        SELECT user_id
+        FROM student
+        where
             student_id = ?
     );

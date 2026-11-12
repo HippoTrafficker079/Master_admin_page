@@ -3,7 +3,9 @@ package application;
 import java.lang.reflect.Method;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import application.dao.StudentDAO;
@@ -12,6 +14,7 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.chart.AreaChart;
 import javafx.scene.chart.BarChart;
@@ -24,6 +27,14 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 public class DashboardController {
 
@@ -45,6 +56,7 @@ public class DashboardController {
     @FXML private TableColumn<MarkRecord, String> colStatus;
 
     @FXML private PieChart departmentPieChart;
+    @FXML private VBox departmentLegendBox;
     @FXML private BarChart<String, Number> enrollmentBarChart;
     @FXML private CategoryAxis xAxisEnrollment;
     @FXML private NumberAxis yAxisEnrollment;
@@ -53,9 +65,13 @@ public class DashboardController {
     @FXML private AreaChart<String, Number> attendanceAreaChart;
     @FXML private CategoryAxis xAxisAttendance;
     @FXML private NumberAxis yAxisAttendance;
+    
 
+    private static DashboardController instance;
     @FXML
     public void initialize() {
+        instance = this;
+
         if (lblCurrentDate != null) {
             lblCurrentDate.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, dd MMM yyyy")));
         }
@@ -79,13 +95,18 @@ public class DashboardController {
             });
         }
 
-        // Live refresh whenever the dashboard view is hovered or focused
+        // Automatically refresh whenever Dashboard is switched into view
         if (rootScrollPane != null) {
-            rootScrollPane.setOnMouseEntered(event -> updateDashboardMetricsAndCharts());
+            rootScrollPane.parentProperty().addListener((obs, oldParent, newParent) -> {
+                if (newParent != null) {
+                    updateDashboardMetricsAndCharts();
+                }
+            });
         }
 
         // Initial update
         updateDashboardMetricsAndCharts();
+
 
         // Listen for real-time changes in Student master data if loaded
         if (StudentController.masterData != null) {
@@ -189,10 +210,16 @@ public class DashboardController {
     }
 
     private String getStudentDepartmentSafe(Student s) {
-        String dept = getStudentProperty(s, "getDepartment", "getDept", "CEIT");
-        return dept != null ? dept : "CEIT";
+        if (s == null) return "Pending";
+        // Student model uses getMajor()
+        String dept = getStudentProperty(s, "getMajor", "getDepartment", null);
+        if (dept == null || dept.trim().isEmpty() || dept.trim().equals("-")) {
+            return "Pending";
+        }
+        return dept.trim();
     }
-
+    
+    
     private String getStudentProperty(Object obj, String method1, String method2, String fallback) {
         try {
             Method m = obj.getClass().getMethod(method1);
@@ -327,49 +354,99 @@ public class DashboardController {
     private void updateDepartmentPieChart(ObservableList<Student> students, int totalStudents) {
         if (departmentPieChart == null) return;
         departmentPieChart.getData().clear();
-
-        Map<String, Integer> deptCounts = new HashMap<>();
-        String[] standardDepts = {"ARCH", "ChE", "CE", "CEIT", "EP", "EcE", "FE", "ME", "McE", "MmsE", "MnE", "PE", "TE", "TxE"};
-        
-        for (String d : standardDepts) {
-            deptCounts.put(d, 0);
+        if (departmentLegendBox != null) {
+            departmentLegendBox.getChildren().clear();
         }
 
-        for (Student s : students) {
-            String dept = getStudentDepartmentSafe(s).trim().toUpperCase();
-            if (deptCounts.containsKey(dept)) {
-                deptCounts.put(dept, deptCounts.get(dept) + 1);
-            } else {
-                deptCounts.put("CEIT", deptCounts.get("CEIT") + 1);
+        // Ordered list of majors matching ManageStudent (code -> {Full Name, Hex Color})
+        Map<String, String[]> majorMeta = new LinkedHashMap<>();
+        majorMeta.put("Arch",    new String[]{"Architecture",                                  "#0a192f"});
+        majorMeta.put("ChE",     new String[]{"Chemical Engineering",                          "#0f2942"});
+        majorMeta.put("CE",      new String[]{"Civil Engineering",                             "#13385c"});
+        majorMeta.put("CEIT",    new String[]{"Computer Engineering and Information Technology","#1d4ed8"});
+        majorMeta.put("EP",      new String[]{"Electrical Power Engineering",                  "#2563eb"});
+        majorMeta.put("EC",      new String[]{"Electronic Engineering",                        "#3b82f6"});
+        majorMeta.put("FE",      new String[]{"Food Engineering",                              "#60a5fa"});
+        majorMeta.put("ME",      new String[]{"Mechanical Engineering",                        "#1e40af"});
+        majorMeta.put("MC",      new String[]{"Mechatronic Engineering",                       "#0284c7"});
+        majorMeta.put("Met",     new String[]{"Metallurgy Engineering and Material Science",   "#0f766e"});
+        majorMeta.put("MnE",     new String[]{"Mining Engineering",                            "#0d9488"});
+        majorMeta.put("PE",      new String[]{"Petroleum Engineering",                         "#10b981"});
+        majorMeta.put("Tex",     new String[]{"Textile Engineering",                           "#94a3b8"});
+        majorMeta.put("Pending", new String[]{"Pending Assignment",                            "#64748b"});
+
+        // Count students per major from live ManageStudent data
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        for (String code : majorMeta.keySet()) {
+            counts.put(code, 0);
+        }
+
+        int total = 0;
+        if (students != null) {
+            for (Student s : students) {
+                String rawMajor = getStudentDepartmentSafe(s);
+                String matchedKey = "Pending";
+                for (String key : majorMeta.keySet()) {
+                    if (key.equalsIgnoreCase(rawMajor)) {
+                        matchedKey = key;
+                        break;
+                    }
+                }
+                counts.put(matchedKey, counts.get(matchedKey) + 1);
+                total++;
             }
         }
 
-        long activeDeptsCount = deptCounts.values().stream().filter(v -> v > 0).count();
-        int total = totalStudents > 0 ? totalStudents : students.size();
-
-        if (total <= 10 || activeDeptsCount <= 1) {
-            deptCounts.put("ARCH", 200);
-            deptCounts.put("ChE", 90);
-            deptCounts.put("CE", 125);
-            deptCounts.put("CEIT", 180);
-            deptCounts.put("EP", 130);
-            deptCounts.put("EcE", 110);
-            deptCounts.put("FE", 45);
-            deptCounts.put("ME", 100);
-            deptCounts.put("McE", 75);
-            deptCounts.put("MmsE", 50);
-            deptCounts.put("MnE", 40);
-            deptCounts.put("PE", 85);
-            deptCounts.put("TE", 80);
-            deptCounts.put("TxE", 40);
-            total = 1250;
+        // Handle empty database gracefully
+        if (total == 0) {
+            if (departmentLegendBox != null) {
+                Label emptyLbl = new Label("No student records available.");
+                emptyLbl.setTextFill(Color.web("#64748b"));
+                departmentLegendBox.getChildren().add(emptyLbl);
+            }
+            return;
         }
 
+        // Build PieChart slices & matching right-side legend rows for all majors with >= 1 student
         ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
-        for (Map.Entry<String, Integer> entry : deptCounts.entrySet()) {
-            if (entry.getValue() > 0) {
-                double pct = (entry.getValue() * 100.0) / total;
-                pieData.add(new PieChart.Data(String.format("%s (%.1f%%)", entry.getKey(), pct), entry.getValue()));
+        List<String> activeColors = new ArrayList<>();
+
+        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+            int count = entry.getValue();
+            if (count > 0) {
+                String code = entry.getKey();
+                String fullName = majorMeta.get(code)[0];
+                String hexColor = majorMeta.get(code)[1];
+                double pct = (count * 100.0) / total;
+
+                // Slice label on PieChart (e.g. "CEIT (35.0%)")
+                pieData.add(new PieChart.Data(String.format("%s (%.1f%%)", code, pct), count));
+                activeColors.add(hexColor);
+
+                // Matching legend row on the right
+                if (departmentLegendBox != null) {
+                    HBox row = new HBox(10.0);
+                    row.setAlignment(Pos.CENTER_LEFT);
+
+                    Region swatch = new Region();
+                    swatch.setPrefSize(12.0, 12.0);
+                    swatch.setMinSize(12.0, 12.0);
+                    swatch.setStyle("-fx-background-color: " + hexColor + "; -fx-background-radius: 3;");
+
+                    Label nameLbl = new Label(fullName);
+                    nameLbl.setTextFill(Color.web("#334155"));
+                    nameLbl.setFont(Font.font("System", FontWeight.BOLD, 11.5));
+
+                    Pane spacer = new Pane();
+                    HBox.setHgrow(spacer, Priority.ALWAYS);
+
+                    Label statLbl = new Label(String.format("%d (%.1f%%)", count, pct));
+                    statLbl.setTextFill(Color.web("#64748b"));
+                    statLbl.setFont(Font.font("System", 11.5));
+
+                    row.getChildren().addAll(swatch, nameLbl, spacer, statLbl);
+                    departmentLegendBox.getChildren().add(row);
+                }
             }
         }
 
@@ -377,20 +454,18 @@ public class DashboardController {
         departmentPieChart.setLegendVisible(false);
         departmentPieChart.setLabelsVisible(true);
 
-        departmentPieChart.applyCss();
-        String[] sliceColors = {
-            "#0a192f", "#0f2942", "#13385c", "#1d4ed8", "#2563eb", 
-            "#3b82f6", "#60a5fa", "#1e40af", "#0284c7", "#0f766e", 
-            "#0d9488", "#10b981", "#64748b", "#94a3b8"
-        };
-        int idx = 0;
-        for (PieChart.Data data : departmentPieChart.getData()) {
-            Node node = data.getNode();
-            if (node != null && idx < sliceColors.length) {
-                node.setStyle("-fx-pie-color: " + sliceColors[idx] + ";");
+        // Apply matching slice colors immediately and after layout pass
+        Runnable applySliceColors = () -> {
+            departmentPieChart.applyCss();
+            for (int i = 0; i < departmentPieChart.getData().size() && i < activeColors.size(); i++) {
+                Node node = departmentPieChart.getData().get(i).getNode();
+                if (node != null) {
+                    node.setStyle("-fx-pie-color: " + activeColors.get(i) + ";");
+                }
             }
-            idx++;
-        }
+        };
+        applySliceColors.run();
+        Platform.runLater(applySliceColors);
     }
 
     private void updateAttendanceChart() {
@@ -408,5 +483,11 @@ public class DashboardController {
 
         attendanceAreaChart.getData().add(series);
         attendanceAreaChart.setLegendVisible(false);
+    }
+    
+    public static void refreshDashboard() {
+        if (instance != null) {
+            Platform.runLater(() -> instance.updateDashboardMetricsAndCharts());
+        }
     }
 }

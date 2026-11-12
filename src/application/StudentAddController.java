@@ -1117,13 +1117,14 @@ public class StudentAddController {
             showAlert("Database Error", "Insertion Failed. Transaction has rolled back.", Alert.AlertType.ERROR);
             return;
         }
-
+        
         if (StudentController.masterData != null) {
             StudentController.masterData.add(newStudent);
         }
-
+        
         Session.clear();
         handleReturn();
+        DashboardController.refreshDashboard();
     }
 
     @FXML

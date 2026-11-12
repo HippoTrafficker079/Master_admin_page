@@ -211,7 +211,7 @@
                            <children>
                               <PieChart fx:id="departmentPieChart" minHeight="420.0" minWidth="420.0" prefHeight="420.0" prefWidth="420.0" HBox.hgrow="NEVER" />
                               
-                              <VBox spacing="12.0" HBox.hgrow="ALWAYS" style="-fx-padding: 10 0 0 0;">
+                              <VBox fx:id="departmentLegendBox" spacing="12.0" HBox.hgrow="ALWAYS" style="-fx-padding: 10 0 0 0;">
                                  <children>
                                     <HBox alignment="CENTER_LEFT" spacing="10.0">
                                        <children>

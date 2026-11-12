@@ -17,6 +17,7 @@ public class MainController {
     @FXML private Button btnAttendance;
 
     private Parent dashboardView;
+    private DashboardController dashboardController;
     private Parent teacherView;
     private Parent studentView;
     private Parent attendanceView;
@@ -24,7 +25,10 @@ public class MainController {
     @FXML
     public void initialize() {
         try {
-            dashboardView = FXMLLoader.load(getClass().getResource("DashboardContent.fxml")); // Pre-load dashboard view
+            FXMLLoader dashboardLoader = new FXMLLoader(getClass().getResource("DashboardContent.fxml"));
+            dashboardView = dashboardLoader.load();
+            dashboardController = dashboardLoader.getController();
+
             teacherView = FXMLLoader.load(getClass().getResource("TeacherContents.fxml"));
             studentView = FXMLLoader.load(getClass().getResource("StudentContent.fxml"));
             attendanceView = FXMLLoader.load(getClass().getResource("AttendanceContent.fxml"));
@@ -42,6 +46,9 @@ public class MainController {
     public void showDashboardView(ActionEvent event) {
         mainBorderPane.setCenter(dashboardView);
         setActiveButton(btnDashboard);
+        if (dashboardController != null) {
+            DashboardController.refreshDashboard();
+        }
     }
 
     @FXML
