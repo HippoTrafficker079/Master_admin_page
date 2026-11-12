@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
+import application.dao.StudentDAO;
 import application.dao.TeacherDAO;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -25,20 +26,32 @@ import javafx.scene.layout.VBox;
 
 public class TeacherController {
 
-    @FXML private VBox rootPane;
-    @FXML private TableView<Teacher> teacherTable;
-    @FXML private TableColumn<Teacher, Integer> colNo;
-    @FXML private TableColumn<Teacher, String> colTeacherId;
-    @FXML private TableColumn<Teacher, String> colName;
-    @FXML private TableColumn<Teacher, String> colDepartment;
-    @FXML private TableColumn<Teacher, String> colPosition;
-    @FXML private TableColumn<Teacher, String> colPhone;
+    @FXML
+    private VBox rootPane;
+    @FXML
+    private TableView<Teacher> teacherTable;
+    @FXML
+    private TableColumn<Teacher, Integer> colNo;
+    @FXML
+    private TableColumn<Teacher, String> colTeacherId;
+    @FXML
+    private TableColumn<Teacher, String> colName;
+    @FXML
+    private TableColumn<Teacher, String> colDepartment;
+    @FXML
+    private TableColumn<Teacher, String> colPosition;
+    @FXML
+    private TableColumn<Teacher, String> colPhone;
 
-    @FXML private Button modify;
-    @FXML private Button add;
-    @FXML private Button remove;
+    @FXML
+    private Button modify;
+    @FXML
+    private Button add;
+    @FXML
+    private Button remove;
 
-    @FXML private TextField searchField;
+    @FXML
+    private TextField searchField;
 
     public static ObservableList<Teacher> masterData = null;
     private FilteredList<Teacher> filteredData;
@@ -56,7 +69,7 @@ public class TeacherController {
         }
 
         colNo.setCellValueFactory(cellData -> cellData.getValue().teacherIdProperty().asObject());
-        
+
         if (colTeacherId != null) {
             colTeacherId.setCellValueFactory(cellData -> cellData.getValue().teacherCodeProperty());
         }
@@ -67,12 +80,12 @@ public class TeacherController {
         colPhone.setCellValueFactory(cellData -> cellData.getValue().phoneNoProperty());
 
         ObservableList<String> departmentOptions = FXCollections.observableArrayList(
-            "All Departments", "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex", "FE"
-        );
+                "All Departments", "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex",
+                "FE");
 
         ObservableList<String> positionOptions = FXCollections.observableArrayList(
-            "All Positions", "Professor & Head", "Professor", "Associate Professor", "Lecturer", "Assistant Lecturer", "Tutor"
-        );
+                "All Positions", "Professor & Head", "Professor", "Associate Professor", "Lecturer",
+                "Assistant Lecturer", "Tutor");
 
         deptHeaderCombo = new ComboBox<>(departmentOptions);
         deptHeaderCombo.setPromptText("Department");
@@ -97,9 +110,40 @@ public class TeacherController {
 
         teacherTable.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2 && teacherTable.getSelectionModel().getSelectedItem() != null) {
-                openTeacherDetail(teacherTable.getSelectionModel().getSelectedItem(), false);
+                Teacher selected = teacherTable.getSelectionModel().getSelectedItem();
+                openTeacherDetail(selected);
             }
         });
+
+        // Disable sorting and reordering for all columns in the teacher table
+        for (TableColumn<?, ?> col : teacherTable.getColumns()) {
+            col.setSortable(false);
+            col.setReorderable(false); // Prevents dragging columns around
+            // col.setResizable(false);
+        }
+    }
+
+    private void openTeacherDetail(Teacher teacher) {
+        try {
+            int uiRowNumber = teacherTable.getItems().indexOf(teacher) + 1;
+
+            TeacherDAO teacherDAO = new TeacherDAO();
+            Teacher fullTeacher = teacherDAO.getFullTeacher(teacher.getNo());
+            Teacher targetTeacher = (fullTeacher != null) ? fullTeacher : teacher;
+
+            targetTeacher.setDisplayNo(uiRowNumber > 0 ? uiRowNumber : teacher.getNo());
+
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherDetail.fxml"));
+            Parent view = loader.load();
+            TeacherDetailController controller = loader.getController();
+            controller.initData(targetTeacher);
+            BorderPane mainLayout = (BorderPane) teacherTable.getScene().lookup("#mainBorderPane");
+            if (mainLayout != null) {
+                mainLayout.setCenter(view);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void refreshDataFromDatabase() {
@@ -119,18 +163,10 @@ public class TeacherController {
     @FXML
     public void handleAdd() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherCreatePrompt.fxml"));
-            Parent createPromptView = loader.load();
-
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherAdd.fxml"));
+            Parent view = loader.load();
             BorderPane mainLayout = (BorderPane) teacherTable.getScene().lookup("#mainBorderPane");
-            if (mainLayout != null) {
-                mainLayout.setCenter(createPromptView);
-            } else {
-                Parent root = teacherTable.getScene().getRoot();
-                if (root instanceof BorderPane) {
-                    ((BorderPane) root).setCenter(createPromptView);
-                }
-            }
+            mainLayout.setCenter(view);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -140,35 +176,28 @@ public class TeacherController {
     public void handleModify() {
         Teacher selected = teacherTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
-            openTeacherDetail(selected, true);
-        } else {
-            showAlert("No Selection", "Please select a teacher row from the table to modify.", Alert.AlertType.WARNING);
-        }
-    }
+            try {
+                int uiRowNumber = teacherTable.getItems().indexOf(selected) + 1;
 
-    private void openTeacherDetail(Teacher teacher, boolean editMode) {
-        try {
-            TeacherDAO teacherDAO = new TeacherDAO();
-            Teacher fullTeacher = teacherDAO.getFullTeacher(teacher.getTeacherId());
-            Teacher targetTeacher = (fullTeacher != null) ? fullTeacher : teacher;
+                TeacherDAO teacherDAO = new TeacherDAO();
+                Teacher fullTeacher = teacherDAO.getFullTeacher(selected.getNo());
+                Teacher targetTeacher = (fullTeacher != null) ? fullTeacher : selected;
 
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherDetail.fxml"));
-            Parent detailView = loader.load();
+                targetTeacher.setDisplayNo(uiRowNumber > 0 ? uiRowNumber : selected.getNo());
 
-            TeacherDetailController controller = loader.getController();
-            controller.initData(targetTeacher, editMode);
-
-            BorderPane mainLayout = (BorderPane) teacherTable.getScene().lookup("#mainBorderPane");
-            if (mainLayout != null) {
-                mainLayout.setCenter(detailView);
-            } else {
-                Parent root = teacherTable.getScene().getRoot();
-                if (root instanceof BorderPane) {
-                    ((BorderPane) root).setCenter(detailView);
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherModify.fxml"));
+                Parent view = loader.load();
+                TeacherModifyController controller = loader.getController();
+                controller.initData(selected);
+                BorderPane mainLayout = (BorderPane) teacherTable.getScene().lookup("#mainBorderPane");
+                if (mainLayout != null) {
+                    mainLayout.setCenter(view);
                 }
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } else {
+            showAlert("No Selection", "Please select a teacher row to modify.", Alert.AlertType.WARNING);
         }
     }
 

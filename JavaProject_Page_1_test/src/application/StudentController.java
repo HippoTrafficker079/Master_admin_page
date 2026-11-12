@@ -3,6 +3,7 @@ package application;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import application.dao.StudentDAO;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -17,6 +18,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
@@ -51,6 +53,8 @@ public class StudentController {
     private Button add;
     @FXML
     private Button remove;
+    @FXML
+    private Button restore;
 
     @FXML
     private TextField searchField;
@@ -71,6 +75,9 @@ public class StudentController {
             });
         }
 
+        // Enable multiple selection for batch operations directly in the main table
+        studentTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
         colNo.setCellValueFactory(
                 cellData -> new ReadOnlyObjectWrapper<>(studentTable.getItems().indexOf(cellData.getValue()) + 1));
         colRollNo.setCellValueFactory(cellData -> cellData.getValue().rollNoProperty());
@@ -79,8 +86,7 @@ public class StudentController {
         colYear.setCellValueFactory(cellData -> cellData.getValue().yearProperty());
         colSemester.setCellValueFactory(cellData -> cellData.getValue().semesterProperty());
         colPhone.setCellValueFactory(cellData -> cellData.getValue().phoneNoProperty());
-
-        // Added "Pending" to the Major filter dropdown options
+        
         ObservableList<String> majorOptions = FXCollections.observableArrayList(
                 "All Majors", "Pending", "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex",
                 "FE");
@@ -88,7 +94,6 @@ public class StudentController {
         ObservableList<String> yearOptions = FXCollections.observableArrayList(
                 "All Years", "First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year");
 
-        // Added "Pending" to the Semester filter dropdown options
         ObservableList<String> semesterOptions = FXCollections.observableArrayList(
                 "All Semesters", "Pending", "First Semester", "Second Semester");
 
@@ -109,12 +114,10 @@ public class StudentController {
         semesterHeaderCombo.setMaxWidth(Double.MAX_VALUE);
         semesterHeaderCombo.setValue("All Semesters");
         colSemester.setGraphic(semesterHeaderCombo);
-
-        if (masterData == null) {
-            refreshDataFromDatabase();
-        } else {
-            setupTableData();
-        }
+        
+        // ALWAYS fetch fresh data from the database so newly imported 
+        // students get their real auto-incremented database IDs immediately.
+        refreshDataFromDatabase();
 
         majorHeaderCombo.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
         yearHeaderCombo.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
@@ -125,9 +128,19 @@ public class StudentController {
                 openStudentDetail(studentTable.getSelectionModel().getSelectedItem());
             }
         });
+        
+        // 1. Lock everything from user sorting, reordering, and resizing
+        for (TableColumn<?, ?> col : studentTable.getColumns()) {
+            col.setSortable(false);
+            col.setReorderable(false);
+//          col.setResizable(false);
+        }
+
+        studentTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        
     }
 
-    private void refreshDataFromDatabase() {
+    public void refreshDataFromDatabase() {
         StudentDAO studentDAO = new StudentDAO();
         List<Student> list = studentDAO.getAllStudent();
         masterData = FXCollections.observableArrayList(list);
@@ -161,43 +174,17 @@ public class StudentController {
         }
     }
 
-    @FXML
-    public void handleModify() {
-        Student selected = studentTable.getSelectionModel().getSelectedItem();
-        if (selected != null) {
-            try {
-                StudentDAO studentDAO = new StudentDAO();
-                Student fullStudent = studentDAO.getStudentbyId(selected.getNo());
-                Student targetStudent = (fullStudent != null) ? fullStudent : selected;
-
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentModify.fxml"));
-                Parent modifyView = loader.load();
-
-                StudentModifyController controller = loader.getController();
-                controller.initData(targetStudent);
-
-                BorderPane mainLayout = (BorderPane) studentTable.getScene().lookup("#mainBorderPane");
-                if (mainLayout != null) {
-                    mainLayout.setCenter(modifyView);
-                } else {
-                    Parent root = studentTable.getScene().getRoot();
-                    if (root instanceof BorderPane) {
-                        ((BorderPane) root).setCenter(modifyView);
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            showAlert("No Selection", "Please select a student row from the table to modify.", Alert.AlertType.WARNING);
-        }
-    }
-
     private void openStudentDetail(Student student) {
         try {
+            // Calculate the 1-based index from the table view
+            int uiRowNumber = studentTable.getItems().indexOf(student) + 1;
+            
             StudentDAO studentDAO = new StudentDAO();
             Student fullStudent = studentDAO.getStudentbyId(student.getNo());
             Student targetStudent = (fullStudent != null) ? fullStudent : student;
+            
+            // Pass the calculated UI row number using your newly added setter
+            targetStudent.setDisplayNo(uiRowNumber > 0 ? uiRowNumber : student.getNo());
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentDetail.fxml"));
             Parent detailView = loader.load();
@@ -220,32 +207,83 @@ public class StudentController {
     }
 
     @FXML
-    public void handleRemove() {
+    public void handleModify() {
         Student selected = studentTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
+            try {
+                // Calculate the 1-based index from the table view
+                int uiRowNumber = studentTable.getItems().indexOf(selected) + 1;
+                
+                StudentDAO studentDAO = new StudentDAO();
+                Student fullStudent = studentDAO.getStudentbyId(selected.getNo());
+                Student targetStudent = (fullStudent != null) ? fullStudent : selected;
+                
+                // Set the display number directly on the student object before passing it
+                targetStudent.setDisplayNo(uiRowNumber > 0 ? uiRowNumber : selected.getNo());
+
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentModify.fxml"));
+                Parent modifyView = loader.load();
+
+                StudentModifyController controller = loader.getController();
+                // We only need to pass the student object now, as it contains the displayNo
+                controller.initData(targetStudent);
+
+                BorderPane mainLayout = (BorderPane) studentTable.getScene().lookup("#mainBorderPane");
+                if (mainLayout != null) {
+                    mainLayout.setCenter(modifyView);
+                } else {
+                    Parent root = studentTable.getScene().getRoot();
+                    if (root instanceof BorderPane) {
+                        ((BorderPane) root).setCenter(modifyView);
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            showAlert("No Selection", "Please select a student row from the table to modify.", Alert.AlertType.WARNING);
+        }
+    }
+
+    @FXML
+    public void handleRemove() {
+        ObservableList<Student> selectedStudents = studentTable.getSelectionModel().getSelectedItems();
+        if (selectedStudents != null && !selectedStudents.isEmpty()) {
             Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
             confirmAlert.setTitle("Confirm Deletion");
-            confirmAlert.setHeaderText("Are you sure you want to remove this student?");
-            confirmAlert.setContentText("Roll No: " + selected.getRollNo() + "\nName: " + selected.getName());
+            
+            if (selectedStudents.size() == 1) {
+                Student selected = selectedStudents.get(0);
+                confirmAlert.setHeaderText("Are you sure you want to remove this student?");
+                confirmAlert.setContentText("Roll No: " + selected.getRollNo() + "\nName: " + selected.getName());
+            } else {
+                confirmAlert.setHeaderText("Are you sure you want to remove " + selectedStudents.size() + " selected students?");
+                confirmAlert.setContentText("This action will soft-delete all selected student records.");
+            }
+            
             confirmAlert.getDialogPane().setMinWidth(450);
             confirmAlert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
 
             Optional<ButtonType> result = confirmAlert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 StudentDAO studentDAO = new StudentDAO();
-                boolean success = studentDAO.removeStudent(selected.getNo());
+                List<Integer> idsToRemove = selectedStudents.stream()
+                        .map(Student::getNo)
+                        .collect(Collectors.toList());
+
+                boolean success = studentDAO.removeStudents(idsToRemove);
                 if (success) {
-                    masterData.remove(selected);
+                    masterData.removeAll(selectedStudents);
                     List<Student> freshList = studentDAO.getAllStudent();
                     masterData.setAll(freshList);
                     studentTable.getSelectionModel().clearSelection();
                     studentTable.refresh();
                 } else {
-                    showAlert("Database Error", "Failed to remove student from the database.", Alert.AlertType.ERROR);
+                    showAlert("Database Error", "Failed to remove selected student(s) from the database.", Alert.AlertType.ERROR);
                 }
             }
         } else {
-            showAlert("No Selection", "Please select a student row to remove.", Alert.AlertType.WARNING);
+            showAlert("No Selection", "Please select one or more student rows to remove.", Alert.AlertType.WARNING);
         }
     }
 
@@ -290,5 +328,42 @@ public class StudentController {
             alert.initOwner(studentTable.getScene().getWindow());
         }
         alert.showAndWait();
+    }
+    
+    private void disableTableSortingAndReordering(TableView<?> table) {
+        for (TableColumn<?, ?> col : table.getColumns()) {
+            col.setSortable(false);
+            col.setResizable(false);
+            col.setReorderable(false); // Disables dragging column headers to reorder
+        }
+    }
+    
+    @FXML
+    public void handleRestore() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentRestore.fxml"));
+            Parent root = loader.load();
+
+            StudentRestoreController controller = loader.getController();
+
+            javafx.stage.Stage stage = new javafx.stage.Stage();
+            stage.setTitle("Restore Deleted Students");
+            stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+            if (studentTable != null && studentTable.getScene() != null) {
+                stage.initOwner(studentTable.getScene().getWindow());
+            }
+
+            stage.setScene(new javafx.scene.Scene(root));
+            stage.setResizable(false);
+            stage.showAndWait();
+
+            // When the restore dialog closes, check if any rows were restored and refresh
+            if (controller.isRecordRestored()) {
+                refreshDataFromDatabase();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Error", "Could not open the restore dialog: " + e.getMessage(), Alert.AlertType.ERROR);
+        }
     }
 }

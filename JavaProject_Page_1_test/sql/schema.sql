@@ -1,5 +1,7 @@
 SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS class_session;
+
 DROP TABLE IF EXISTS assessment;
 
 DROP TABLE IF EXISTS student_grade;
@@ -199,6 +201,20 @@ CREATE TABLE course_offering (
     FOREIGN KEY (course_id) REFERENCES course (course_id) ON DELETE RESTRICT
 );
 
+CREATE TABLE class_session (
+    session_id INT PRIMARY KEY AUTO_INCREMENT,
+    offering_id INT NOT NULL,
+    session_date DATE NOT NULL,
+    period TINYINT NOT NULL,
+    is_cancelled BOOLEAN DEFAULT FALSE,
+    UNIQUE (
+        offering_id,
+        session_date,
+        period
+    ),
+    FOREIGN KEY (offering_id) REFERENCES course_offering (offering_id) ON DELETE CASCADE
+);
+
 CREATE TABLE course_enrollment (
     enrollment_id INT PRIMARY KEY AUTO_INCREMENT,
     offering_id INT NOT NULL,
@@ -216,11 +232,13 @@ CREATE TABLE course_enrollment (
 
 CREATE TABLE attendance (
     attendance_id INT PRIMARY KEY AUTO_INCREMENT,
+    session_id INT NOT NULL,
     absent_date DATE NOT NULL,
     enrollment_id INT NOT NULL,
     status ENUM('UNEXCUSED', 'EXCUSED') DEFAULT 'UNEXCUSED',
     reason VARCHAR(255) NULL,
-    UNIQUE (enrollment_id, absent_date),
+    UNIQUE (enrollment_id, session_id),
+    FOREIGN KEY (session_id) REFERENCES class_session (session_id) ON DELETE CASCADE,
     FOREIGN KEY (enrollment_id) REFERENCES course_enrollment (enrollment_id) ON DELETE CASCADE
 );
 

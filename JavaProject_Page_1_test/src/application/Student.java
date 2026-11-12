@@ -6,6 +6,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class Student {
+	private int displayNo;
     private final IntegerProperty no;
     private final StringProperty rollNo;
     private final StringProperty name;
@@ -134,7 +135,9 @@ public class Student {
         yearCompleted.set(origYearCompleted);
         additionalInfo.set(origAdditionalInfo);
     }
-
+    public int getDisplayNo() { return displayNo > 0 ? displayNo : no.get(); }
+    public void setDisplayNo(int displayNo) { this.displayNo = displayNo; }
+    
     public int getNo() { return no.get(); }
     public IntegerProperty noProperty() { return no; }
     public void setNo(int no) { this.no.set(no); }

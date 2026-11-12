@@ -112,13 +112,10 @@ public class TeacherCreatePromptController {
         // Store account info temporarily in Session
         Session.setAccountData(username, email);
 
-        // Open TeacherDetail in Add mode
+        // Open TeacherAdd view
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherDetail.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherAdd.fxml"));
             Parent teacherAddView = loader.load();
-
-            TeacherDetailController controller = loader.getController();
-            controller.initAddMode();
 
             BorderPane mainLayout = (BorderPane) rootPane.getScene().lookup("#mainBorderPane");
             if (mainLayout != null) {

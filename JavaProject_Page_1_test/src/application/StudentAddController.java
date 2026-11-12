@@ -17,11 +17,15 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import javafx.application.Platform;
+
 import application.dao.StudentDAO;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
@@ -29,16 +33,17 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.Alert.AlertType;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -47,7 +52,18 @@ import javafx.stage.Stage;
 public class StudentAddController {
 
     @FXML
-    private TextField txtRollNo, txtName, txtNationality, txtNrc;
+    private TextField txtRollNo, txtName, txtNationality;
+    
+    // NRC Component fields (assuming FXML binds or replaces these)
+    @FXML
+    private ComboBox<String> comboNrcState;
+    @FXML
+    private ComboBox<String> comboNrcTownship;
+    @FXML
+    private ComboBox<String> comboNrcType;
+    @FXML
+    private TextField txtNrcNumber;
+
     @FXML
     private DatePicker dpDob;
     @FXML
@@ -78,6 +94,9 @@ public class StudentAddController {
     private final String DEFAULT_IMAGE_PATH = "/freddy.jpg";
     private boolean isUpdating = false;
 
+    private ObservableList<String> currentTownshipOptions;
+    private FilteredList<String> filteredTownships;
+
     private final String[] VALID_MAJORS = { "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met",
             "Tex", "FE" };
     private final String[] VALID_YEARS = { "First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year" };
@@ -94,7 +113,180 @@ public class StudentAddController {
             comboMajor.setValue("CEIT");
         }
 
+        initializeNrcComponent();
         setupBidirectionalSync();
+    }
+
+    private void initializeNrcComponent() {
+        if (comboNrcState != null) {
+            comboNrcState.setItems(NrcData.STATES);
+        }
+        if (comboNrcType != null) {
+            comboNrcType.setItems(NrcData.TYPES);
+            comboNrcType.setValue("(N)");
+        }
+
+        currentTownshipOptions = NrcData.getAllTownships();
+        filteredTownships = new FilteredList<>(currentTownshipOptions, s -> true);
+        if (comboNrcTownship != null) {
+            comboNrcTownship.setItems(filteredTownships);
+            comboNrcTownship.setVisibleRowCount(12);
+        }
+
+        // Track whether a township selection is locked in
+        final boolean[] isTownshipLocked = {false};
+
+        if (comboNrcState != null) {
+            comboNrcState.valueProperty().addListener((obs, oldVal, newVal) -> {
+                if (isUpdating) return;
+                
+                if (newVal != null && !newVal.equals(oldVal)) {
+                    isUpdating = true;
+                    try {
+                        ObservableList<String> stateTownships = NrcData.getTownshipsForState(newVal);
+                        if (currentTownshipOptions != null) {
+                            currentTownshipOptions.setAll(stateTownships);
+                        } else {
+                            currentTownshipOptions = stateTownships;
+                            filteredTownships = new FilteredList<>(currentTownshipOptions, s -> true);
+                            if (comboNrcTownship != null) {
+                                comboNrcTownship.setItems(filteredTownships);
+                            }
+                        }
+                        
+                        isTownshipLocked[0] = false;
+                        filteredTownships.setPredicate(s -> true);
+                        comboNrcTownship.getSelectionModel().clearSelection();
+                        comboNrcTownship.setValue(null);
+                        if (comboNrcTownship.getEditor() != null) {
+                            comboNrcTownship.getEditor().clear();
+                        }
+                        if (comboNrcTownship.isShowing()) {
+                            comboNrcTownship.hide();
+                        }
+                    } finally {
+                        isUpdating = false;
+                    }
+                }
+            });
+        }
+
+        if (comboNrcTownship != null && comboNrcTownship.getEditor() != null) {
+            comboNrcTownship.getEditor().textProperty().addListener((obs, oldValue, newValue) -> {
+                if (isUpdating) return;
+
+                if (comboNrcTownship.getValue() != null && comboNrcTownship.getValue().equals(newValue)) {
+                    return;
+                }
+
+                if (newValue == null || newValue.trim().isEmpty() || newValue.equalsIgnoreCase("Township")) {
+                    isTownshipLocked[0] = false;
+                    Platform.runLater(() -> filteredTownships.setPredicate(s -> true));
+                    return;
+                }
+
+                if (!isTownshipLocked[0]) {
+                    Platform.runLater(() -> {
+                        String query = newValue.toLowerCase().trim();
+                        filteredTownships.setPredicate(item -> item != null && item.toLowerCase().contains(query));
+                        if (!comboNrcTownship.isShowing() && !filteredTownships.isEmpty()) {
+                            comboNrcTownship.show();
+                        }
+                    });
+                }
+            });
+
+            comboNrcTownship.valueProperty().addListener((obs, oldVal, newVal) -> {
+                if (isUpdating) return;
+                
+                if (newVal != null && !newVal.trim().isEmpty()) {
+                    isTownshipLocked[0] = true;
+                    if (comboNrcTownship.getEditor() != null && !comboNrcTownship.getEditor().getText().equals(newVal)) {
+                        isUpdating = true;
+                        comboNrcTownship.getEditor().setText(newVal);
+                        isUpdating = false;
+                    }
+
+                    String matchedState = NrcData.getStateForTownship(newVal);
+                    if (matchedState != null && comboNrcState != null) {
+                        if (!matchedState.equals(comboNrcState.getValue())) {
+                            isUpdating = true;
+                            try {
+                                comboNrcState.setValue(matchedState);
+                                ObservableList<String> stateTownships = NrcData.getTownshipsForState(matchedState);
+                                if (currentTownshipOptions != null) {
+                                    currentTownshipOptions.setAll(stateTownships);
+                                }
+                            } finally {
+                                isUpdating = false;
+                            }
+                        }
+                    }
+
+                    String associatedCode = NrcData.getCodeForTownship(newVal);
+                    if (associatedCode != null && txtNrcNumber != null && (txtNrcNumber.getText() == null || txtNrcNumber.getText().trim().isEmpty())) {
+                        isUpdating = true;
+                        try {
+                            txtNrcNumber.setText(associatedCode);
+                        } finally {
+                            isUpdating = false;
+                        }
+                    }
+                } else {
+                    isTownshipLocked[0] = false;
+                }
+            });
+
+            comboNrcTownship.getEditor().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+                if (isUpdating) return;
+
+                if (isTownshipLocked[0]) {
+                    javafx.scene.input.KeyCode code = event.getCode();
+
+                    if (code == javafx.scene.input.KeyCode.BACK_SPACE || code == javafx.scene.input.KeyCode.DELETE) {
+                        isUpdating = true;
+                        try {
+                            isTownshipLocked[0] = false;
+                            comboNrcTownship.setValue(null);
+                            comboNrcTownship.getEditor().clear();
+                            
+                            if (comboNrcState != null && comboNrcState.getValue() != null) {
+                                ObservableList<String> stateTownships = NrcData.getTownshipsForState(comboNrcState.getValue());
+                                if (currentTownshipOptions != null) {
+                                    currentTownshipOptions.setAll(stateTownships);
+                                }
+                            }
+                            filteredTownships.setPredicate(s -> true);
+                        } finally {
+                            isUpdating = false;
+                        }
+                        event.consume();
+                        return;
+                    }
+
+                    event.consume();
+                    Platform.runLater(() -> {
+                        Alert alert = new Alert(Alert.AlertType.WARNING);
+                        alert.setTitle("Action Restricted");
+                        alert.setHeaderText(null);
+                        alert.setContentText("Please press backspace once to clear first.");
+                        alert.getDialogPane().setMinWidth(380);
+                        alert.showAndWait();
+                    });
+                }
+            });
+        }
+
+        if (txtNrcNumber != null) {
+            txtNrcNumber.textProperty().addListener((obs, oldVal, newVal) -> {
+                if (newVal != null && !newVal.matches("\\d*")) {
+                    txtNrcNumber.setText(newVal.replaceAll("[^\\d]", ""));
+                }
+                if (txtNrcNumber.getText().length() > 6) {
+                    txtNrcNumber.setText(txtNrcNumber.getText().substring(0, 6));
+                }
+            });
+        }
     }
 
     private void setupBidirectionalSync() {
@@ -405,8 +597,27 @@ public class StudentAddController {
                 txtNationality.setText(s.getNationality());
             if (comboYear != null)
                 comboYear.setValue(findValidYear(s.getYear()));
-            if (txtNrc != null)
-                txtNrc.setText(s.getNrc());
+
+            if (s.getNrc() != null && !s.getNrc().isEmpty()) {
+                String fullNrc = s.getNrc();
+                try {
+                    String stateCode = fullNrc.split("/")[0].trim();
+                    String remainder = fullNrc.split("/")[1];
+                    String townshipName = remainder.split("\\(")[0].trim();
+                    String type = remainder.contains("(") ? "(" + remainder.split("\\(")[1].split("\\)")[0] + ")" : "(N)";
+                    String number = remainder.contains(")") ? remainder.split("\\)")[1].trim() : "";
+
+                    if (comboNrcState != null) comboNrcState.setValue(stateCode);
+                    if (comboNrcType != null) comboNrcType.setValue(type);
+                    if (comboNrcTownship != null) {
+                        comboNrcTownship.setValue(townshipName);
+                        if (comboNrcTownship.getEditor() != null) comboNrcTownship.getEditor().setText(townshipName);
+                    }
+                    if (txtNrcNumber != null) txtNrcNumber.setText(number);
+                } catch (Exception ex) {
+                    // Fallback
+                }
+            }
 
             if (txtPhone != null)
                 txtPhone.setText(s.getPhoneNo());
@@ -876,7 +1087,14 @@ public class StudentAddController {
         String nationality = txtNationality != null && !txtNationality.getText().trim().isEmpty()
                 ? txtNationality.getText().trim()
                 : "Myanmar";
-        String nrc = txtNrc != null ? txtNrc.getText().trim() : "";
+                
+        String nrcState = comboNrcState != null && comboNrcState.getValue() != null ? comboNrcState.getValue() : "";
+        String nrcTownship = comboNrcTownship != null && comboNrcTownship.getValue() != null ? comboNrcTownship.getValue() : "";
+        String nrcType = comboNrcType != null && comboNrcType.getValue() != null ? comboNrcType.getValue() : "(N)";
+        String nrcNum = txtNrcNumber != null ? txtNrcNumber.getText().trim() : "";
+        String constructedNrc = (!nrcState.isEmpty() && !nrcTownship.isEmpty()) ? 
+                nrcState + "/" + nrcTownship + nrcType + nrcNum : "";
+
         String currAddr = txtCurrentAddress != null ? txtCurrentAddress.getText().trim() : "";
         String permAddr = txtPermanentAddress != null ? txtPermanentAddress.getText().trim() : "";
         String fName = txtFatherName != null ? txtFatherName.getText().trim() : "";
@@ -889,14 +1107,14 @@ public class StudentAddController {
 
         Student newStudent = new Student(newNo, standardizedRollNo, nameInput, validatedMajor, validatedYear,
                 "Pending", phoneInput,
-                dobInput, genderInput, nationality, nrc, emailInput, currAddr, permAddr,
+                dobInput, genderInput, nationality, constructedNrc, emailInput, currAddr, permAddr,
                 fName, fOcc, fPhoneInput, fEmailInput, mName, mOcc, mPhoneInput, mEmailInput,
                 prevSchool, yearCompInput, addInfo, finalPhotoPath);
 
         StudentDAO studentDAO = new StudentDAO();
         int insertResult = studentDAO.insertStudent(newStudent);
         if (insertResult <= 0) {
-            showAlert("Database Error", "Insertion Failed. Transaction has rolled back.", AlertType.ERROR);
+            showAlert("Database Error", "Insertion Failed. Transaction has rolled back.", Alert.AlertType.ERROR);
             return;
         }
 
@@ -910,59 +1128,52 @@ public class StudentAddController {
 
     @FXML
     public void handleResetData() {
-        if (txtRollNo != null)
-            txtRollNo.clear();
-        if (dpDob != null)
-            dpDob.setValue(null);
-        if (txtName != null)
-            txtName.clear();
-        if (comboGender != null)
-            comboGender.setValue("Male");
-        if (comboMajor != null)
-            comboMajor.setValue("CEIT");
-        if (txtNationality != null)
-            txtNationality.clear();
-        if (comboYear != null)
-            comboYear.setValue("First Year");
-        if (txtNrc != null)
-            txtNrc.clear();
-        if (txtPhone != null)
-            txtPhone.clear();
-        if (txtEmail != null)
-            txtEmail.clear();
-        if (txtCurrentAddress != null)
-            txtCurrentAddress.clear();
-        if (txtPermanentAddress != null)
-            txtPermanentAddress.clear();
-        if (txtFatherName != null)
-            txtFatherName.clear();
-        if (txtFatherOcc != null)
-            txtFatherOcc.clear();
-        if (txtFatherPhone != null)
-            txtFatherPhone.clear();
-        if (txtFatherEmail != null)
-            txtFatherEmail.clear();
-        if (txtMotherName != null)
-            txtMotherName.clear();
-        if (txtMotherOcc != null)
-            txtMotherOcc.clear();
-        if (txtMotherPhone != null)
-            txtMotherPhone.clear();
-        if (txtMotherEmail != null)
-            txtMotherEmail.clear();
-        if (txtPrevSchool != null)
-            txtPrevSchool.clear();
-        if (txtYearCompleted != null)
-            txtYearCompleted.clear();
-        if (txtAdditionalInfo != null)
-            txtAdditionalInfo.clear();
-        if (txtExcelPath != null)
-            txtExcelPath.clear();
-        selectedExcelFile = null;
-        selectedPhotoPath = null;
+        isUpdating = true;
         try {
-            passportImageView.setImage(new Image(getClass().getResourceAsStream(DEFAULT_IMAGE_PATH)));
-        } catch (Exception e) {
+            if (txtRollNo != null) txtRollNo.clear();
+            if (comboNrcState != null) comboNrcState.setValue(null);
+            if (comboNrcTownship != null) {
+                comboNrcTownship.setValue(null);
+                if (comboNrcTownship.getEditor() != null) comboNrcTownship.getEditor().clear();
+                if (currentTownshipOptions != null) {
+                    currentTownshipOptions.setAll(NrcData.getAllTownships());
+                }
+            }
+            if (comboNrcType != null) comboNrcType.setValue("(N)");
+            if (txtNrcNumber != null) txtNrcNumber.clear();
+
+            if (dpDob != null) dpDob.setValue(null);
+            if (txtName != null) txtName.clear();
+            if (comboGender != null) comboGender.setValue("Male");
+            if (comboMajor != null) comboMajor.setValue("CEIT");
+            if (txtNationality != null) txtNationality.clear();
+            if (comboYear != null) comboYear.setValue("First Year");
+            if (txtPhone != null) txtPhone.clear();
+            if (txtEmail != null) txtEmail.clear();
+            if (txtCurrentAddress != null) txtCurrentAddress.clear();
+            if (txtPermanentAddress != null) txtPermanentAddress.clear();
+            if (txtFatherName != null) txtFatherName.clear();
+            if (txtFatherOcc != null) txtFatherOcc.clear();
+            if (txtFatherPhone != null) txtFatherPhone.clear();
+            if (txtFatherEmail != null) txtFatherEmail.clear();
+            if (txtMotherName != null) txtMotherName.clear();
+            if (txtMotherOcc != null) txtMotherOcc.clear();
+            if (txtMotherPhone != null) txtMotherPhone.clear();
+            if (txtMotherEmail != null) txtMotherEmail.clear();
+            if (txtPrevSchool != null) txtPrevSchool.clear();
+            if (txtYearCompleted != null) txtYearCompleted.clear();
+            if (txtAdditionalInfo != null) txtAdditionalInfo.clear();
+            if (txtExcelPath != null) txtExcelPath.clear();
+            
+            selectedExcelFile = null;
+            selectedPhotoPath = null;
+            try {
+                if (passportImageView != null) {
+                    passportImageView.setImage(new Image(getClass().getResourceAsStream(DEFAULT_IMAGE_PATH)));
+                }
+            } catch (Exception e) {}
+        } finally {
+            isUpdating = false;
         }
 
         showAlert("Data Reset", "Form inputs have been cleared.", Alert.AlertType.INFORMATION);
@@ -991,5 +1202,10 @@ public class StudentAddController {
         alert.getDialogPane().setMinWidth(520);
         alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
         alert.showAndWait();
+    }
+    
+    @FXML
+    public void handleNrcHelp() {
+        showAlert("NRC Help", "Please select the State code, Township, Type, and enter the 6-digit NRC number.", Alert.AlertType.INFORMATION);
     }
 }

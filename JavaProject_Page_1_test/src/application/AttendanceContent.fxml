@@ -6,148 +6,414 @@
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.text.Font?>
+<?import java.lang.String?>
 
-<VBox fx:id="rootPane" prefHeight="700.0" prefWidth="760.0" spacing="12.0" style="-fx-background-color: #f4f6f9;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.AttendanceController">
-   <padding>
-      <Insets bottom="20.0" left="20.0" right="20.0" top="15.0" />
-   </padding>
+<VBox fx:id="rootPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="12.0" style="-fx-padding: 20; -fx-background-color: #f1f5f9;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.AttendanceController">
    <children>
-      <!-- Top Mode Switcher -->
-      <HBox alignment="CENTER" spacing="15.0" style="-fx-background-color: white; -fx-padding: 8; -fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;">
+      <!-- Top Navigation Mode Bar (Fixed at top) -->
+      <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 10 15; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
          <children>
-            <Button fx:id="btnClassView" mnemonicParsing="false" onAction="#switchToClassView" prefHeight="32.0" prefWidth="180.0" styleClass="search-button" text="CLASS VIEW" />
-            <Button fx:id="btnIndividualView" mnemonicParsing="false" onAction="#switchToIndividualView" prefHeight="32.0" prefWidth="180.0" styleClass="reset-button" text="INDIVIDUAL STUDENT VIEW" />
+            <Button fx:id="btnClassView" mnemonicParsing="false" onAction="#switchToClassView" prefHeight="35.0" prefWidth="150.0" styleClass="search-button" style="-fx-font-weight: bold; -fx-font-size: 12px;" text="CLASS VIEW" />
+            <Button fx:id="btnIndividualView" mnemonicParsing="false" onAction="#switchToIndividualView" prefHeight="35.0" prefWidth="200.0" styleClass="reset-button" style="-fx-font-weight: bold; -fx-font-size: 12px;" text="INDIVIDUAL STUDENT VIEW" />
+            <HBox HBox.hgrow="ALWAYS" />
+            <!-- Global Export & Back Buttons -->
+            <Button fx:id="btnExport" mnemonicParsing="false" onAction="#handleExportAudit" prefHeight="35.0" prefWidth="175.0" styleClass="search-button" text="Export Matrix Report" />
+            <Button fx:id="btnBackToList" visible="false" managed="false" mnemonicParsing="false" onAction="#handleBackToList" prefHeight="35.0" prefWidth="150.0" styleClass="reset-button" text="🔙 Back to List" />
          </children>
       </HBox>
 
-      <!-- Sub-Mode Switcher -->
-      <HBox fx:id="subModeBar" alignment="CENTER_LEFT" spacing="15.0" style="-fx-background-color: #e2e8f0; -fx-padding: 6 12; -fx-background-radius: 4;">
-         <children>
-            <Label text="Sub-Mode:" textFill="#1e3a8a">
-               <font><Font name="System Bold" size="11.0" /></font>
-            </Label>
-            <Button fx:id="btnMatrixSummary" mnemonicParsing="false" onAction="#switchToMatrixSummary" prefHeight="26.0" prefWidth="140.0" styleClass="search-button" text="• Matrix Summary" />
-            <Button fx:id="btnDailyLog" mnemonicParsing="false" onAction="#switchToDailyLog" prefHeight="26.0" prefWidth="140.0" styleClass="reset-button" text="• Daily Log" />
-         </children>
-      </HBox>
-
-      <!-- Filter Panel 1: Matrix / Individual View Filters -->
-      <VBox fx:id="matrixFilterBox" spacing="8.0" style="-fx-background-color: white; -fx-padding: 12; -fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;">
-         <children>
-            <HBox spacing="8.0">
+      <!-- Master ScrollPane wrapping everything below the Top Nav -->
+      <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" fx:id="individualDashboardScroll" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+         <content>
+            <VBox spacing="12.0" style="-fx-padding: 2 4 10 2;">
                <children>
-                  <ComboBox fx:id="comboDepartment" prefHeight="30.0" prefWidth="130.0" promptText="Department" />
-                  <ComboBox fx:id="comboYear" prefHeight="30.0" prefWidth="105.0" promptText="Year" />
-                  <ComboBox fx:id="comboSemester" prefHeight="30.0" prefWidth="105.0" promptText="Semester" />
-                  <DatePicker fx:id="startDatePicker" prefHeight="30.0" prefWidth="115.0" promptText="Start Date" />
-                  <DatePicker fx:id="endDatePicker" prefHeight="30.0" prefWidth="115.0" promptText="End Date" />
-                  <TextField fx:id="searchField" prefHeight="30.0" prefWidth="130.0" promptText="Search student..." HBox.hgrow="ALWAYS" />
+
+                  <!-- Sub-Mode Switcher (Class View Only) -->
+                  <HBox fx:id="subModeBar" alignment="CENTER_LEFT" spacing="15.0" style="-fx-background-color: #e2e8f0; -fx-padding: 6 12; -fx-background-radius: 4;">
+                     <children>
+                        <Label text="Sub-Mode:" style="-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 12px;" />
+                        <Button fx:id="btnMatrixSummary" mnemonicParsing="false" onAction="#switchToMatrixSummary" prefHeight="26.0" prefWidth="140.0" styleClass="search-button" text="• Matrix Summary" />
+                        <Button fx:id="btnDailyLog" mnemonicParsing="false" onAction="#switchToDailyLog" prefHeight="26.0" prefWidth="140.0" styleClass="reset-button" text="• Daily Log" />
+                     </children>
+                  </HBox>
+
+                  <!-- Filter Panel 1: Matrix / Individual Filters -->
+                  <VBox fx:id="matrixFilterBox" prefHeight="95.0" minHeight="95.0" maxHeight="95.0" spacing="8.0" style="-fx-background-color: white; -fx-padding: 12; -fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;">
+                     <children>
+                        <HBox spacing="8.0">
+                           <children>
+                              <ComboBox fx:id="comboDepartment" prefHeight="30.0" prefWidth="130.0" promptText="Department" />
+                              <ComboBox fx:id="comboYear" prefHeight="30.0" prefWidth="105.0" promptText="Year" />
+                              <ComboBox fx:id="comboSemester" prefHeight="30.0" prefWidth="105.0" promptText="Semester" visible="false" managed="false" />
+                              <ComboBox fx:id="comboSubject" editable="true" prefHeight="30.0" prefWidth="150.0" promptText="Search Subject..." />
+                              <DatePicker fx:id="startDatePicker" prefHeight="30.0" prefWidth="115.0" promptText="Start Date" />
+                              <DatePicker fx:id="endDatePicker" prefHeight="30.0" prefWidth="115.0" promptText="End Date" />
+                              <TextField fx:id="searchField" prefHeight="30.0" prefWidth="130.0" promptText="Search student..." HBox.hgrow="ALWAYS" />
+                           </children>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="15.0">
+                           <children>
+                              <CheckBox fx:id="chkLowAttendance" mnemonicParsing="false" onAction="#applyFilters" text="Only show attendance &lt;75%" style="-fx-text-fill: #b91c1c; -fx-font-weight: bold; -fx-font-size: 12px;" />
+                              <Button mnemonicParsing="false" onAction="#applyFilters" prefHeight="28.0" prefWidth="85.0" styleClass="search-button" text="Filter" />
+                              <Button mnemonicParsing="false" onAction="#handleReset" prefHeight="28.0" prefWidth="85.0" styleClass="reset-button" text="Reset" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+
+                  <!-- Filter Panel 2: Daily Log Filters -->
+                  <VBox fx:id="dailyFilterBox" visible="false" managed="false" prefHeight="95.0" minHeight="95.0" maxHeight="95.0" spacing="8.0" style="-fx-background-color: white; -fx-padding: 12; -fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;">
+                     <children>
+                        <HBox spacing="10.0" alignment="CENTER_LEFT">
+                           <children>
+                              <DatePicker fx:id="dailyDatePicker" prefHeight="30.0" prefWidth="140.0" promptText="Date" />
+                              <ComboBox fx:id="dailyPeriodCombo" prefHeight="30.0" prefWidth="120.0" promptText="Period" />
+                              <TextField fx:id="dailySearchField" prefHeight="30.0" prefWidth="180.0" promptText="Search student/subject..." HBox.hgrow="ALWAYS" />
+                           </children>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="15.0">
+                           <children>
+                              <Label text="Remarks / Status:" style="-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 12px;" />
+                              <CheckBox fx:id="chkPresent" mnemonicParsing="false" onAction="#applyFilters" text="Present" style="-fx-text-fill: #1e293b;" />
+                              <CheckBox fx:id="chkAbsent" mnemonicParsing="false" onAction="#applyFilters" text="Absent" style="-fx-text-fill: #1e293b;" />
+                              <CheckBox fx:id="chkExcuse" mnemonicParsing="false" onAction="#applyFilters" text="Excuse" style="-fx-text-fill: #1e293b;" />
+                              <Button mnemonicParsing="false" onAction="#applyFilters" prefHeight="28.0" prefWidth="85.0" styleClass="search-button" text="Filter" />
+                              <Button mnemonicParsing="false" onAction="#handleReset" prefHeight="28.0" prefWidth="85.0" styleClass="reset-button" text="Reset" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+
+                  <!-- Hint Banners -->
+                  <HBox fx:id="hintBoxMatrix" alignment="CENTER_LEFT" prefHeight="45.0" minHeight="45.0" maxHeight="45.0" styleClass="instruction-banner-box" style="-fx-background-color: #eff6ff; -fx-padding: 10 14; -fx-background-radius: 6; -fx-border-color: #bfdbfe; -fx-border-radius: 6;">
+                     <children>
+                        <Label text="💡  Hint: Double-click any student row in Matrix Summary to view detailed records in Individual Student View." style="-fx-text-fill: #1d4ed8; -fx-font-weight: bold; -fx-font-size: 13px;" />
+                     </children>
+                  </HBox>
+
+                  <HBox fx:id="hintBoxDaily" alignment="CENTER_LEFT" visible="false" managed="false" prefHeight="45.0" minHeight="45.0" maxHeight="45.0" styleClass="instruction-banner-box" style="-fx-background-color: #eff6ff; -fx-padding: 6 14; -fx-background-radius: 6; -fx-border-color: #bfdbfe; -fx-border-radius: 6;">
+                     <children>
+                        <VBox spacing="2.0" alignment="CENTER_LEFT">
+                           <children>
+                              <Label text="💡  Hint: Double-click any student row in Daily Log to view detailed records." style="-fx-text-fill: #1d4ed8; -fx-font-weight: bold; -fx-font-size: 12px;" />
+                              <Label text="🖱️  Hint: Click on the Status column to edit it, then press &quot;Save Changes&quot;." style="-fx-text-fill: #1d4ed8; -fx-font-weight: bold; -fx-font-size: 12px;" />
+                           </children>
+                        </VBox>
+                     </children>
+                  </HBox>
+
+                  <HBox fx:id="hintBoxIndiv" alignment="CENTER_LEFT" visible="false" managed="false" prefHeight="45.0" minHeight="45.0" maxHeight="45.0" styleClass="instruction-banner-box" style="-fx-background-color: #eff6ff; -fx-padding: 10 14; -fx-background-radius: 6; -fx-border-color: #bfdbfe; -fx-border-radius: 6;">
+                     <children>
+                        <Label text="💡  Hint: Double-click any student row in Matrix Summary or Daily Log to view detailed records." style="-fx-text-fill: #1d4ed8; -fx-font-weight: bold; -fx-font-size: 13px;" />
+                     </children>
+                  </HBox>
+
+                  <!-- MATRIX / DAILY TABLES CONTAINER -->
+                  <VBox fx:id="classTablesContainer" spacing="12.0">
+                     <children>
+                        <!-- Matrix Summary Table -->
+                        <TableView fx:id="matrixTable" prefHeight="450.0">
+                          <columns>
+                            <TableColumn fx:id="colNoMatrix" prefWidth="45.0" text="No" />
+                            <TableColumn fx:id="colRollMatrix" prefWidth="105.0" text="Roll No" />
+                            <TableColumn fx:id="colNameMatrix" prefWidth="160.0" text="Student Name" />
+                            <TableColumn fx:id="colDeptMatrix" prefWidth="80.0" text="Dept" />
+                            <TableColumn fx:id="colYearMatrix" prefWidth="100.0" text="Year" />
+                            <TableColumn fx:id="colSubjMatrix" prefWidth="130.0" text="Subject" />
+                            <TableColumn fx:id="colOverallMatrix" prefWidth="100.0" text="Overall %" />
+                          </columns>
+                        </TableView>
+
+                        <!-- Daily Log Table -->
+                        <TableView fx:id="dailyLogTable" visible="false" managed="false" prefHeight="450.0">
+                          <columns>
+                            <TableColumn fx:id="colNoLog" prefWidth="45.0" text="No" />
+                            <TableColumn fx:id="colRollLog" prefWidth="80.0" text="Roll No" />
+                            <TableColumn fx:id="colNameLog" prefWidth="135.0" text="Student Name" />
+                            <TableColumn fx:id="colDateLog" prefWidth="95.0" text="Date" />
+                            <TableColumn fx:id="colPeriodLog" prefWidth="65.0" text="Period" />
+                            <TableColumn fx:id="colSubjLog" prefWidth="110.0" text="Subject" />
+                            <TableColumn fx:id="colStatusLog" prefWidth="100.0" text="Status" />
+                            <TableColumn fx:id="colMarkedByLog" prefWidth="85.0" text="Marked By" />
+                            <TableColumn fx:id="colRemarksLog" prefWidth="90.0" text="Remarks" />
+                          </columns>
+                        </TableView>
+                        
+                        <!-- Embedded Save Changes Container -->
+                        <HBox fx:id="saveChangesBox" alignment="CENTER_RIGHT" visible="false" managed="false">
+                           <children>
+                              <Button fx:id="btnSaveChanges" mnemonicParsing="false" onAction="#handleSaveChanges" prefHeight="35.0" prefWidth="160.0" style="-fx-background-color: #2563eb; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 4; -fx-cursor: hand;" text="💾 Save Changes" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+
+                  <!-- ========================================================================= -->
+                  <!-- INDIVIDUAL STUDENT VIEW FULL DASHBOARD -->
+                  <!-- ========================================================================= -->
+                  <VBox fx:id="individualDashboardContainer" managed="false" visible="false" spacing="14.0">
+                     <children>
+                        <!-- Top Student Details Header Banner -->
+                        <Label fx:id="studentHeaderLabel" text="👤  Student Details: III-CEIT-1 – Mg Mg" style="-fx-text-fill: #1e40af; -fx-font-weight: bold; -fx-font-size: 15px;" />
+
+                        <!-- SECTION 1: UNIVERSITY STUDENT PROFILE & METRICS -->
+                        <VBox spacing="0.0" style="-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
+                           <children>
+                              <!-- Section Header Bar -->
+                              <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #dbeafe; -fx-padding: 8 15; -fx-background-radius: 7 7 0 0; -fx-border-color: #cbd5e1; -fx-border-width: 0 0 1 0;">
+                                 <children>
+                                    <Label text="👤  University Student Profile" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13.5px;" />
+                                 </children>
+                              </HBox>
+
+                              <!-- Profile & Metrics Split Content -->
+                              <HBox spacing="15.0" style="-fx-padding: 14;">
+                                 <children>
+                                    <!-- Left Card: Student Bio & Photo -->
+                                    <HBox spacing="12.0" alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;" prefWidth="340.0">
+                                       <children>
+                                          <VBox alignment="CENTER" prefHeight="118.0" prefWidth="85.0" minWidth="85.0" style="-fx-background-color: #f8fafc; -fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;">
+                                             <children>
+                                                <ImageView fx:id="indivProfileImage" fitHeight="110.0" fitWidth="78.0" pickOnBounds="true" preserveRatio="true">
+                                                   <image>
+                                                      <Image url="@../freddy.jpg" />
+                                                   </image>
+                                                </ImageView>
+                                             </children>
+                                          </VBox>
+                                          <VBox spacing="4.0" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                                             <children>
+                                                <Label fx:id="lblIndivName" text="Mg Mg" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 15px;" />
+                                                
+                                                <GridPane hgap="4.0" vgap="4.0">
+                                                   <columnConstraints>
+                                                      <ColumnConstraints minWidth="75.0" prefWidth="78.0" />
+                                                      <ColumnConstraints minWidth="6.0" prefWidth="8.0" />
+                                                      <ColumnConstraints minWidth="130.0" prefWidth="145.0" />
+                                                   </columnConstraints>
+                                                   <rowConstraints>
+                                                      <RowConstraints minHeight="20.0" prefHeight="20.0" />
+                                                      <RowConstraints minHeight="20.0" prefHeight="20.0" />
+                                                      <RowConstraints minHeight="20.0" prefHeight="20.0" />
+                                                      <RowConstraints minHeight="20.0" prefHeight="20.0" />
+                                                      <RowConstraints minHeight="22.0" prefHeight="22.0" />
+                                                   </rowConstraints>
+                                                   <children>
+                                                      <Label text="Student ID" style="-fx-text-fill: #334155; -fx-font-size: 12px;" />
+                                                      <Label text=":" style="-fx-text-fill: #334155;" GridPane.columnIndex="1" />
+                                                      <Label fx:id="lblIndivStudentId" text="21-CEIT-01" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 12px;" GridPane.columnIndex="2" />
+
+                                                      <Label text="Program" style="-fx-text-fill: #334155; -fx-font-size: 12px;" GridPane.rowIndex="1" />
+                                                      <Label text=":" style="-fx-text-fill: #334155;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                                      <Label fx:id="lblIndivProgram" text="B.E in CEIT" style="-fx-text-fill: #0f172a; -fx-font-size: 12px;" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+
+                                                      <Label text="Department" style="-fx-text-fill: #334155; -fx-font-size: 12px;" GridPane.rowIndex="2" />
+                                                      <Label text=":" style="-fx-text-fill: #334155;" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                                      <Label fx:id="lblIndivDept" text="Department of CEIT" style="-fx-text-fill: #0f172a; -fx-font-size: 12px;" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+
+                                                      <Label text="Year / Section" style="-fx-text-fill: #334155; -fx-font-size: 12px;" GridPane.rowIndex="3" />
+                                                      <Label text=":" style="-fx-text-fill: #334155;" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                                      <Label fx:id="lblIndivYearSec" text="III-CEIT-1" style="-fx-text-fill: #0f172a; -fx-font-size: 12px;" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+
+                                                      <Label text="Status" style="-fx-text-fill: #334155; -fx-font-size: 12px;" GridPane.rowIndex="4" />
+                                                      <Label text=":" style="-fx-text-fill: #334155;" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                                                      <Label fx:id="lblIndivStatusBadge" style="-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-padding: 2 10; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;" text="Active" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+                                                   </children>
+                                                </GridPane>
+                                             </children>
+                                          </VBox>
+                                       </children>
+                                    </HBox>
+
+                                    <!-- Right Card: Overall University Attendance Metrics -->
+                                    <VBox spacing="0.0" style="-fx-background-color: white; -fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;" HBox.hgrow="ALWAYS">
+                                       <children>
+                                          <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #f8fafc; -fx-padding: 6 12; -fx-background-radius: 5 5 0 0; -fx-border-color: #cbd5e1; -fx-border-width: 0 0 1 0;">
+                                             <children>
+                                                <Label text="📊  Overall University Attendance Metrics" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 12.5px;" />
+                                             </children>
+                                          </HBox>
+                                          <HBox spacing="15.0" alignment="CENTER_LEFT" style="-fx-padding: 12 16;" VBox.vgrow="ALWAYS">
+                                             <children>
+                                                <GridPane hgap="8.0" vgap="10.0" alignment="CENTER_LEFT">
+                                                   <columnConstraints>
+                                                      <ColumnConstraints minWidth="125.0" prefWidth="135.0" />
+                                                      <ColumnConstraints minWidth="8.0" prefWidth="10.0" />
+                                                      <ColumnConstraints minWidth="80.0" prefWidth="90.0" />
+                                                   </columnConstraints>
+                                                   <rowConstraints>
+                                                      <RowConstraints minHeight="24.0" prefHeight="24.0" />
+                                                      <RowConstraints minHeight="24.0" prefHeight="24.0" />
+                                                      <RowConstraints minHeight="26.0" prefHeight="26.0" />
+                                                   </rowConstraints>
+                                                   <children>
+                                                      <Label text="☑  Total Attended" style="-fx-text-fill: #334155; -fx-font-size: 12px;" />
+                                                      <Label text=":" style="-fx-text-fill: #334155;" GridPane.columnIndex="1" />
+                                                      <Label fx:id="lblTotalAttended" text="138" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;" GridPane.columnIndex="2" />
+
+                                                      <Label text="📅  Total Classes" style="-fx-text-fill: #334155; -fx-font-size: 12px;" GridPane.rowIndex="1" />
+                                                      <Label text=":" style="-fx-text-fill: #334155;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                                      <Label fx:id="lblTotalClasses" text="160" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+
+                                                      <Label text="🏅  Academic Standing" style="-fx-text-fill: #334155; -fx-font-size: 12px;" GridPane.rowIndex="2" />
+                                                      <Label text=":" style="-fx-text-fill: #334155;" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                                      <Label fx:id="lblAcademicStanding" style="-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-padding: 2 10; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;" text="Good" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                                                   </children>
+                                                </GridPane>
+
+                                                <Separator orientation="VERTICAL" />
+
+                                                <VBox spacing="7.0" alignment="CENTER_LEFT" prefWidth="280.0" HBox.hgrow="ALWAYS">
+                                                   <children>
+                                                      <Label text="📞  Contact Summary" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 12.5px;" />
+                                                      <HBox spacing="8.0" alignment="CENTER_LEFT">
+                                                         <children>
+                                                            <Label text="✉" style="-fx-text-fill: #1e3a8a;" />
+                                                            <Label fx:id="lblIndivEmail" text="mgmg@student.ytu.edu.mm" style="-fx-text-fill: #0f172a; -fx-font-size: 12px;" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox spacing="8.0" alignment="CENTER_LEFT">
+                                                         <children>
+                                                            <Label text="📞" style="-fx-text-fill: #1e3a8a;" />
+                                                            <Label fx:id="lblIndivPhone" text="09-111111111" style="-fx-text-fill: #0f172a; -fx-font-size: 12px;" />
+                                                         </children>
+                                                      </HBox>
+                                                      <HBox spacing="8.0" alignment="CENTER_LEFT">
+                                                         <children>
+                                                            <Label text="📍" style="-fx-text-fill: #1e3a8a;" />
+                                                            <Label fx:id="lblIndivAddress" text="Hlaing Township, Yangon" style="-fx-text-fill: #0f172a; -fx-font-size: 12px;" />
+                                                         </children>
+                                                      </HBox>
+                                                   </children>
+                                                </VBox>
+                                             </children>
+                                          </HBox>
+                                       </children>
+                                    </VBox>
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+
+                        <!-- SECTION 2: DEPARTMENT SUBJECT BREAKDOWN TABLE -->
+                        <VBox spacing="0.0" style="-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
+                           <children>
+                              <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #dbeafe; -fx-padding: 8 15; -fx-background-radius: 7 7 0 0; -fx-border-color: #cbd5e1; -fx-border-width: 0 0 1 0;">
+                                 <children>
+                                    <Label text="📚  Department Subject Breakdown" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13.5px;" />
+                                 </children>
+                              </HBox>
+
+                              <TableView fx:id="individualTable" prefHeight="145.0" minHeight="145.0" maxHeight="165.0" style="-fx-border-width: 0;">
+                                <columns>
+                                  <TableColumn fx:id="colNoIndiv" prefWidth="50.0" maxWidth="65.0" text="No" />
+                                  <TableColumn fx:id="colSubjIndiv" prefWidth="220.0" text="Course" />
+                                  <TableColumn fx:id="colCourseCodeIndiv" prefWidth="130.0" text="Course Code" />
+                                  <TableColumn fx:id="colAttendedIndiv" prefWidth="130.0" text="Attended / Total" />
+                                  <TableColumn fx:id="colPercentageIndiv" prefWidth="130.0" text="Attendance Rate" />
+                                  <TableColumn fx:id="colRemarksIndiv" prefWidth="140.0" text="Remarks" />
+                                </columns>
+                              </TableView>
+
+                              <!-- Department Total Summary Footer Bar -->
+                              <!-- Added -fx-padding: 0 0 0 1; to perfectly sync the 1px TableView inset offset -->
+                              <HBox alignment="CENTER_LEFT" spacing="0.0" style="-fx-background-color: #f8fafc; -fx-background-radius: 0 0 7 7; -fx-border-color: #cbd5e1; -fx-border-width: 1 0 0 0; -fx-padding: 0 0 0 1;">
+                                 <children>
+                                    <Label prefWidth="${colNoIndiv.width}" minWidth="${colNoIndiv.width}" maxWidth="${colNoIndiv.width}" style="-fx-border-color: transparent #cbd5e1 transparent transparent; -fx-border-width: 0 1px 0 0; -fx-padding: 8 10;" />
+                                    
+                                    <Label alignment="CENTER_LEFT" prefWidth="${colSubjIndiv.width}" minWidth="${colSubjIndiv.width}" maxWidth="${colSubjIndiv.width}" text="Department Total" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 12.5px; -fx-padding: 8 10; -fx-border-color: transparent #cbd5e1 transparent transparent; -fx-border-width: 0 1px 0 0;" />
+                                    
+                                    <Label alignment="CENTER" prefWidth="${colCourseCodeIndiv.width}" minWidth="${colCourseCodeIndiv.width}" maxWidth="${colCourseCodeIndiv.width}" text="–" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 12.5px; -fx-padding: 8 10; -fx-border-color: transparent #cbd5e1 transparent transparent; -fx-border-width: 0 1px 0 0;" />
+                                    
+                                    <Label fx:id="lblDeptTotalAttended" alignment="CENTER" prefWidth="${colAttendedIndiv.width}" minWidth="${colAttendedIndiv.width}" maxWidth="${colAttendedIndiv.width}" text="138 / 160" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 12.5px; -fx-padding: 8 10; -fx-border-color: transparent #cbd5e1 transparent transparent; -fx-border-width: 0 1px 0 0;" />
+                                    
+                                    <Label fx:id="lblDeptTotalRate" alignment="CENTER" prefWidth="${colPercentageIndiv.width}" minWidth="${colPercentageIndiv.width}" maxWidth="${colPercentageIndiv.width}" text="86.3%" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 12.5px; -fx-padding: 8 10; -fx-border-color: transparent #cbd5e1 transparent transparent; -fx-border-width: 0 1px 0 0;" />
+                                    
+                                    <HBox alignment="CENTER" prefWidth="${colRemarksIndiv.width}" minWidth="${colRemarksIndiv.width}" maxWidth="${colRemarksIndiv.width}" style="-fx-padding: 8 10;">
+                                       <children>
+                                          <Label fx:id="lblDeptTotalStanding" style="-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-padding: 2 12; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;" text="Good" />
+                                       </children>
+                                    </HBox>
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+
+                        <!-- SECTION 3: DETAILED CHRONOLOGICAL LOG -->
+                        <VBox spacing="0.0" style="-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
+                           <children>
+                              <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #dbeafe; -fx-padding: 8 15; -fx-background-radius: 7 7 0 0; -fx-border-color: #cbd5e1; -fx-border-width: 0 0 1 0;">
+                                 <children>
+                                    <Label text="🗓  Detailed Chronological Log" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13.5px;" />
+                                 </children>
+                              </HBox>
+
+                              <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: #f8fafc; -fx-padding: 10 15; -fx-border-color: #cbd5e1; -fx-border-width: 0 0 1 0;">
+                                 <children>
+                                    <Label text="Filter:" style="-fx-text-fill: #1e293b; -fx-font-weight: bold; -fx-font-size: 12px;" />
+                                    <ComboBox fx:id="comboIndivLogCourse" prefHeight="30.0" prefWidth="155.0" promptText="All Courses" />
+                                    <ComboBox fx:id="comboIndivLogStatus" prefHeight="30.0" prefWidth="125.0" promptText="All Status" />
+                                    <Label text="Date: From" style="-fx-text-fill: #475569;" />
+                                    <DatePicker fx:id="indivLogStartDate" prefHeight="30.0" prefWidth="130.0" promptText="Start Date" />
+                                    <Label text="To" style="-fx-text-fill: #475569;" />
+                                    <DatePicker fx:id="indivLogEndDate" prefHeight="30.0" prefWidth="130.0" promptText="End Date" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button mnemonicParsing="false" onAction="#applyIndivLogFilters" prefHeight="30.0" prefWidth="115.0" styleClass="search-button" text="🔍 Apply Filter" />
+                                    <Button mnemonicParsing="false" onAction="#resetIndivLogFilters" prefHeight="30.0" prefWidth="85.0" styleClass="reset-button" text="↻ Reset" />
+                                 </children>
+                              </HBox>
+
+                              <!-- Detailed Chronological Log Table -->
+                              <TableView fx:id="chronologicalLogTable" prefHeight="232.0" minHeight="232.0" maxHeight="232.0" style="-fx-border-width: 0;">
+                                <columns>
+                                  <TableColumn fx:id="colNoChrono" prefWidth="50.0" maxWidth="65.0" text="No" />
+                                  <TableColumn fx:id="colDateChrono" prefWidth="135.0" text="Date" />
+                                  <TableColumn fx:id="colCourseChrono" prefWidth="200.0" text="Course" />
+                                  <TableColumn fx:id="colCourseCodeChrono" prefWidth="110.0" text="Course Code" />
+                                  <TableColumn fx:id="colStatusChrono" prefWidth="135.0" text="Attendance Status" />
+                                  <TableColumn fx:id="colMarkedByChrono" prefWidth="135.0" text="Marked By" />
+                                  <TableColumn fx:id="colRemarksChrono" prefWidth="150.0" text="Remarks" />
+                                </columns>
+                              </TableView>
+
+                              <!-- Dynamic Pagination & Export Footer Bar -->
+                              <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #f8fafc; -fx-padding: 10 15; -fx-background-radius: 0 0 7 7; -fx-border-color: #cbd5e1; -fx-border-width: 1 0 0 0;">
+                                 <children>
+                                    <Label fx:id="lblPaginationInfo" text="Showing 1 – 6 of 6 records" style="-fx-text-fill: #475569; -fx-font-size: 12px;" />
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    
+                                    <Button fx:id="btnPrevPage" mnemonicParsing="false" onAction="#handlePrevPage" prefHeight="28.0" prefWidth="32.0" styleClass="reset-button" text="&lt;" />
+                                    <Button fx:id="btnPage1" mnemonicParsing="false" onAction="#goToPage1" prefHeight="28.0" prefWidth="32.0" styleClass="search-button" text="1" />
+                                    <Button fx:id="btnPage2" mnemonicParsing="false" onAction="#goToPage2" prefHeight="28.0" prefWidth="32.0" styleClass="reset-button" text="2" />
+                                    <Button fx:id="btnPage3" mnemonicParsing="false" onAction="#goToPage3" prefHeight="28.0" prefWidth="32.0" styleClass="reset-button" text="3" />
+                                    <Button fx:id="btnNextPage" mnemonicParsing="false" onAction="#handleNextPage" prefHeight="28.0" prefWidth="32.0" styleClass="reset-button" text="&gt;" />
+                                    
+                                    <Region HBox.hgrow="ALWAYS" />
+                                    <Button fx:id="btnExportStudentAudit" mnemonicParsing="false" onAction="#handleExportAudit" prefHeight="32.0" prefWidth="110.0" styleClass="search-button" text="⬇ Export" />
+                                 </children>
+                              </HBox>
+                           </children>
+                        </VBox>
+                     </children>
+                  </VBox>
                </children>
-            </HBox>
-            <HBox alignment="CENTER_LEFT" spacing="15.0">
-               <children>
-                  <CheckBox fx:id="chkLowAttendance" mnemonicParsing="false" onAction="#applyFilters" text="Only show attendance &lt;75%" textFill="#b91c1c">
-                     <font><Font name="System Bold" size="11.0" /></font>
-                  </CheckBox>
-                  <Button mnemonicParsing="false" onAction="#applyFilters" prefHeight="28.0" prefWidth="85.0" styleClass="search-button" text="Filter" />
-                  <Button mnemonicParsing="false" onAction="#handleReset" prefHeight="28.0" prefWidth="85.0" styleClass="reset-button" text="Reset" />
-               </children>
-            </HBox>
-         </children>
-      </VBox>
-
-      <!-- Filter Panel 2: Daily Log Filters (Isolated) -->
-      <VBox fx:id="dailyFilterBox" visible="false" managed="false" spacing="8.0" style="-fx-background-color: white; -fx-padding: 12; -fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;">
-         <children>
-            <HBox spacing="10.0" alignment="CENTER_LEFT">
-               <children>
-                  <DatePicker fx:id="dailyDatePicker" prefHeight="30.0" prefWidth="140.0" promptText="Date" />
-                  <ComboBox fx:id="dailyPeriodCombo" prefHeight="30.0" prefWidth="120.0" promptText="Period" />
-                  <TextField fx:id="dailySearchField" prefHeight="30.0" prefWidth="180.0" promptText="Search student/subject..." HBox.hgrow="ALWAYS" />
-               </children>
-            </HBox>
-            <HBox alignment="CENTER_LEFT" spacing="15.0">
-               <children>
-                  <Label text="Remarks / Status:" textFill="#1e3a8a"><font><Font name="System Bold" size="11.0" /></font></Label>
-                  <CheckBox fx:id="chkPresent" mnemonicParsing="false" onAction="#applyFilters" text="Present" />
-                  <CheckBox fx:id="chkAbsent" mnemonicParsing="false" onAction="#applyFilters" text="Absent" />
-                  <CheckBox fx:id="chkExcuse" mnemonicParsing="false" onAction="#applyFilters" text="Excuse" />
-                  <Button mnemonicParsing="false" onAction="#applyFilters" prefHeight="28.0" prefWidth="85.0" styleClass="search-button" text="Filter" />
-                  <Button mnemonicParsing="false" onAction="#handleReset" prefHeight="28.0" prefWidth="85.0" styleClass="reset-button" text="Reset" />
-               </children>
-            </HBox>
-         </children>
-      </VBox>
-
-      <!-- Helpful Hint Banner (Visible only in Class View) -->
-      <HBox fx:id="hintBox" alignment="CENTER_LEFT" style="-fx-background-color: #eff6ff; -fx-padding: 6 10; -fx-background-radius: 4; -fx-border-color: #bfdbfe; -fx-border-radius: 4;">
-         <children>
-            <Label text="💡 Hint: Double-click any student row in Matrix Summary or Daily Log to view detailed records in Individual Student View." textFill="#1e40af">
-               <font>
-                  <Font size="11.0" />
-               </font>
-            </Label>
-         </children>
-      </HBox>
-
-      <!-- Dynamic Student Title Header -->
-      <Label fx:id="studentHeaderLabel" text="" textFill="#1e3a8a" visible="false" managed="false">
-         <font>
-            <Font name="System Bold" size="13.0" />
-         </font>
-      </Label>
-
-      <!-- Matrix Summary Table -->
-      <TableView fx:id="matrixTable" VBox.vgrow="ALWAYS">
-        <columns>
-          <TableColumn fx:id="colNoMatrix" prefWidth="45.0" text="No" />
-          <TableColumn fx:id="colRollMatrix" prefWidth="105.0" text="Roll No" />
-          <TableColumn fx:id="colNameMatrix" prefWidth="160.0" text="Student Name" />
-          <TableColumn fx:id="colDeptMatrix" prefWidth="80.0" text="Dept" />
-          <TableColumn fx:id="colYearMatrix" prefWidth="100.0" text="Year" />
-          <TableColumn fx:id="colSubjMatrix" prefWidth="130.0" text="Subject" />
-          <TableColumn fx:id="colOverallMatrix" prefWidth="100.0" text="Overall %" />
-        </columns>
-      </TableView>
-
-      <!-- Daily Log Table -->
-      <TableView fx:id="dailyLogTable" visible="false" managed="false" VBox.vgrow="ALWAYS">
-        <columns>
-          <TableColumn fx:id="colNoLog" prefWidth="45.0" text="No" />
-          <TableColumn fx:id="colRollLog" prefWidth="95.0" text="Roll No" />
-          <TableColumn fx:id="colNameLog" prefWidth="135.0" text="Student Name" />
-          <TableColumn fx:id="colDateLog" prefWidth="95.0" text="Date" />
-          <TableColumn fx:id="colPeriodLog" prefWidth="65.0" text="Period" />
-          <TableColumn fx:id="colSubjLog" prefWidth="110.0" text="Subject" />
-          <TableColumn fx:id="colStatusLog" prefWidth="85.0" text="Status" />
-          <TableColumn fx:id="colMarkedByLog" prefWidth="85.0" text="Marked By" />
-          <TableColumn fx:id="colRemarksLog" prefWidth="90.0" text="Remarks" />
-        </columns>
-      </TableView>
-
-      <!-- Individual Student Audit Table -->
-      <TableView fx:id="individualTable" visible="false" managed="false" VBox.vgrow="ALWAYS">
-        <columns>
-          <TableColumn fx:id="colNoIndiv" prefWidth="45.0" text="No" />
-          <TableColumn fx:id="colSubjIndiv" prefWidth="180.0" text="Subject / Course" />
-          <TableColumn fx:id="colAttendedIndiv" prefWidth="130.0" text="Attended / Total" />
-          <TableColumn fx:id="colPercentageIndiv" prefWidth="130.0" text="Percentage" />
-          <TableColumn fx:id="colRemarksIndiv" prefWidth="235.0" text="Standing / Remarks" />
-        </columns>
-      </TableView>
-
-      <!-- Bottom Action Bar -->
-      <HBox alignment="CENTER_RIGHT" spacing="12.0">
-         <children>
-            <Button fx:id="btnBackToList" mnemonicParsing="false" onAction="#handleBackToList" prefHeight="32.0" prefWidth="190.0" styleClass="reset-button" text="← Back to Student List" visible="false" managed="false" />
-            <Button fx:id="btnExport" mnemonicParsing="false" onAction="#handleExport" prefHeight="32.0" prefWidth="170.0" styleClass="search-button" text="Export Student Audit" />
-         </children>
-      </HBox>
+            </VBox>
+         </content>
+      </ScrollPane>
    </children>
 </VBox>

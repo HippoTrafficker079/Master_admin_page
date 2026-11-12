@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox fx:id="rootPane" spacing="14.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.StudentController">
+<VBox fx:id="rootPane" spacing="14.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.StudentController">
    <children>
       <!-- Striking Page Title Header -->
       <HBox alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-padding: 14 20; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
@@ -36,28 +36,21 @@
          </children>
       </HBox>
 
-      <!-- Search & Reset Bar (Filters only on Search button click or Enter key) -->
+      <!-- Search & Reset Bar -->
       <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 12 16; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
          <children>
-            <TextField fx:id="searchField" onAction="#handleSearch"
-                       promptText="Search roll no, name, semester, or phone..."
-                       prefHeight="38.0" HBox.hgrow="ALWAYS"
-                       style="-fx-background-color: #ffffff; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 0 12; -fx-font-size: 13px; -fx-text-fill: #1e293b;" />
-            <Button mnemonicParsing="false" onAction="#handleSearch" prefHeight="38.0" prefWidth="95.0"
-                    text="Search"
-                    style="-fx-background-color: #2d567c; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" />
-            <Button mnemonicParsing="false" onAction="#handleReset" prefHeight="38.0" prefWidth="85.0"
-                    text="Reset"
-                    style="-fx-background-color: #e2e8f0; -fx-text-fill: #334155; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" />
+            <TextField fx:id="searchField" onAction="#handleSearch" prefHeight="38.0" promptText="Search roll no, name, or phone..." style="-fx-background-color: #ffffff; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 0 12; -fx-font-size: 13px; -fx-text-fill: #1e293b;" HBox.hgrow="ALWAYS" />
+            <Button mnemonicParsing="false" onAction="#handleSearch" prefHeight="38.0" prefWidth="95.0" style="-fx-background-color: #2d567c; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" text="Search" />
+            <Button mnemonicParsing="false" onAction="#handleReset" prefHeight="38.0" prefWidth="85.0" style="-fx-background-color: #e2e8f0; -fx-text-fill: #334155; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" text="Reset" />
          </children>
       </HBox>
 
-      <!-- Distinct Striking Instruction Notice Banner Box -->
-      <HBox alignment="CENTER_LEFT" styleClass="instruction-banner-box">
+      <!-- Striking Instruction Banner Box matching requested design -->
+      <HBox alignment="CENTER_LEFT" style="-fx-background-color: #eff6ff; -fx-padding: 10 14; -fx-background-radius: 6; -fx-border-color: #bfdbfe; -fx-border-radius: 6;">
          <children>
-            <Label text="💡  Hint: Double-click any student row in the table below to view its Detailed Information." textFill="#1d4ed8">
+            <Label text="💡  Select student row(s) below to remove (Hold Ctrl or Shift for multi-selection):" textFill="#1d4ed8">
                <font>
-                  <Font size="13.0" />
+                  <Font name="System Bold" size="13.0" />
                </font>
             </Label>
          </children>
@@ -66,39 +59,47 @@
          </VBox.margin>
       </HBox>
 
-      <!-- Student Table View -->
-      <TableView fx:id="studentTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="400.0" prefWidth="700.0" style="-fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;" VBox.vgrow="ALWAYS">
+      <!-- Student Table View (Removed inline style to allow CSS to work) -->
+      <TableView fx:id="studentTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="400.0" prefWidth="765.0" VBox.vgrow="ALWAYS">
         <columns>
-          <TableColumn fx:id="colNo" prefWidth="40.0" text="No" />
-          <TableColumn fx:id="colRollNo" prefWidth="100.0" text="Roll No" />
-          <TableColumn fx:id="colName" prefWidth="130.0" text="Name" />
-          <TableColumn fx:id="colMajor" prefWidth="110.0" text="" />
-          <TableColumn fx:id="colYear" prefWidth="110.0" text="" />
-          <TableColumn fx:id="colSemester" prefWidth="110.0" text="" />
+          <TableColumn fx:id="colNo" prefWidth="45.0" text="No" />
+          <TableColumn fx:id="colRollNo" prefWidth="105.0" text="Roll No" />
+          <TableColumn fx:id="colName" prefWidth="155.0" text="Name" />
+          <TableColumn fx:id="colMajor" prefWidth="105.0" text="" />
+          <TableColumn fx:id="colYear" prefWidth="105.0" text="" />
+          <TableColumn fx:id="colSemester" prefWidth="120.0" text="" />
           <TableColumn fx:id="colPhone" prefWidth="130.0" text="Phone-no" />
         </columns>
-         <columnResizePolicy>
+        <columnResizePolicy>
             <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
          </columnResizePolicy>
       </TableView>
       
-      <!-- Bottom Action Buttons -->
-      <HBox alignment="CENTER" prefHeight="60.0" prefWidth="700.0" styleClass="buttoncontainer">
-         <children>
-            <Button fx:id="modify" mnemonicParsing="false" onAction="#handleModify" prefHeight="45.0" prefWidth="135.0" styleClass="rounded-button" text="Modify" />
-            <Region HBox.hgrow="ALWAYS" />
-            <Button fx:id="add" mnemonicParsing="false" onAction="#handleAdd" prefHeight="45.0" prefWidth="200.0" styleClass="rounded-button" text="+ Add Student">
-               <font>
-                  <Font size="14.0" />
-               </font>
-            </Button>
-            <Region HBox.hgrow="ALWAYS" />
-            <Button fx:id="remove" mnemonicParsing="false" onAction="#handleRemove" prefHeight="45.0" prefWidth="135.0" styleClass="rounded-button" text="Remove" />
-         </children>
-         <VBox.margin>
-            <Insets top="10.0" />
-         </VBox.margin>
-      </HBox>
+      <!-- Bottom Action Buttons: Space-Evenly -->
+  <HBox alignment="CENTER" prefHeight="60.0" prefWidth="700.0" styleClass="buttoncontainer">
+     <children>
+        <Region HBox.hgrow="ALWAYS" />
+
+        <Button fx:id="add" mnemonicParsing="false" onAction="#handleAdd" prefHeight="45.0" prefWidth="180.0" styleClass="rounded-button" text="+ Add Student" />
+
+        <Region HBox.hgrow="ALWAYS" />
+
+        <Button fx:id="modify" mnemonicParsing="false" onAction="#handleModify" prefHeight="45.0" prefWidth="140.0" styleClass="rounded-button" text="Modify" />
+
+        <Region HBox.hgrow="ALWAYS" />
+
+        <Button fx:id="remove" mnemonicParsing="false" onAction="#handleRemove" prefHeight="45.0" prefWidth="140.0" styleClass="rounded-button" text="Remove" />
+
+        <Region HBox.hgrow="ALWAYS" />
+
+        <Button fx:id="restore" mnemonicParsing="false" onAction="#handleRestore" prefHeight="45.0" prefWidth="140.0" styleClass="rounded-button" text="Restore" />
+
+        <Region HBox.hgrow="ALWAYS" />
+     </children>
+     <VBox.margin>
+        <Insets top="10.0" />
+     </VBox.margin>
+  </HBox>
    </children>
    <padding>
       <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />

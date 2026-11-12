@@ -50,64 +50,69 @@
                </children>
             </HBox>
 
-            <!-- Top Metric Cards HBox -->
+            <!-- Top Metric Cards HBox (High Contrast Colors) -->
             <HBox spacing="12.0">
                <children>
+                  <!-- 1. Total Students -->
                   <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 14 10; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;" HBox.hgrow="ALWAYS">
                      <children>
-                        <Label alignment="CENTER" minWidth="40.0" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #dbeafe; -fx-background-radius: 8;" text="👥" textFill="#1d4ed8"><font><Font size="16.0" /></font></Label>
+                        <Label alignment="CENTER" minWidth="40.0" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #bfdbfe; -fx-background-radius: 8;" text="👥" textFill="#1d4ed8"><font><Font size="16.0" /></font></Label>
                         <VBox alignment="CENTER_LEFT" spacing="2.0">
                            <children>
-                              <Label text="Total Students" textFill="#64748b"><font><Font size="10.5" /></font></Label>
-                              <Label fx:id="lblTotalStudents" text="1,250" textFill="#1e3a8a"><font><Font name="System Bold" size="17.0" /></font></Label>
+                              <Label text="Total Students" textFill="#334155"><font><Font name="System Bold" size="10.5" /></font></Label>
+                              <Label fx:id="lblTotalStudents" text="1,250" textFill="#0f172a"><font><Font name="System Bold" size="17.0" /></font></Label>
                            </children>
                         </VBox>
                      </children>
                   </HBox>
 
+                  <!-- 2. Active Students -->
                   <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 14 10; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;" HBox.hgrow="ALWAYS">
                      <children>
-                        <Label alignment="CENTER" minWidth="40.0" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #eff6ff; -fx-background-radius: 8;" text="🎓" textFill="#2563eb"><font><Font size="16.0" /></font></Label>
+                        <Label alignment="CENTER" minWidth="40.0" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #a7f3d0; -fx-background-radius: 8;" text="🎓" textFill="#047857"><font><Font size="16.0" /></font></Label>
                         <VBox alignment="CENTER_LEFT" spacing="2.0">
                            <children>
-                              <Label text="Active Students" textFill="#64748b"><font><Font size="10.5" /></font></Label>
-                              <Label fx:id="lblActiveStudents" text="1,200" textFill="#1e3a8a"><font><Font name="System Bold" size="17.0" /></font></Label>
+                              <Label text="Active Students" textFill="#334155"><font><Font name="System Bold" size="10.5" /></font></Label>
+                              <Label fx:id="lblActiveStudents" text="1,200" textFill="#0f172a"><font><Font name="System Bold" size="17.0" /></font></Label>
                            </children>
                         </VBox>
                      </children>
                   </HBox>
 
+                  <!-- 3. Total Teachers -->
                   <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 14 10; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;" HBox.hgrow="ALWAYS">
                      <children>
-                        <Label alignment="CENTER" minWidth="40.0" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #e0f2fe; -fx-background-radius: 8;" text="👨‍🏫" textFill="#0284c7"><font><Font size="16.0" /></font></Label>
+                        <Label alignment="CENTER" minWidth="40.0" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #fecaca; -fx-background-radius: 8;" text="👥" textFill="#b91c1c"><font><Font size="16.0" /></font></Label>
                         <VBox alignment="CENTER_LEFT" spacing="2.0">
                            <children>
-                              <Label text="Total Teachers" textFill="#64748b"><font><Font size="10.5" /></font></Label>
-                              <Label fx:id="lblTotalTeachers" text="84" textFill="#1e3a8a"><font><Font name="System Bold" size="17.0" /></font></Label>
+                              <Label text="Total Teachers" textFill="#334155"><font><Font name="System Bold" size="10.5" /></font></Label>
+                              <Label fx:id="lblTotalTeachers" text="84" textFill="#0f172a"><font><Font name="System Bold" size="17.0" /></font></Label>
                            </children>
                         </VBox>
                      </children>
                   </HBox>
 
+                  <!-- 4. Total Courses -->
                   <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 14 10; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;" HBox.hgrow="ALWAYS">
                      <children>
-                        <Label alignment="CENTER" minWidth="40.0" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #f0fdf4; -fx-background-radius: 8;" text="📚" textFill="#0f766e"><font><Font size="16.0" /></font></Label>
+                        <Label alignment="CENTER" minWidth="40.0" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #ddd6fe; -fx-background-radius: 8;" text="📖" textFill="#6d28d9"><font><Font size="16.0" /></font></Label>
                         <VBox alignment="CENTER_LEFT" spacing="2.0">
                            <children>
-                              <Label text="Total Courses" textFill="#64748b"><font><Font size="10.5" /></font></Label>
-                              <Label fx:id="lblTotalCourses" text="96" textFill="#1e3a8a"><font><Font name="System Bold" size="17.0" /></font></Label>
+                              <Label text="Total Courses" textFill="#334155"><font><Font name="System Bold" size="10.5" /></font></Label>
+                              <Label fx:id="lblTotalCourses" text="96" textFill="#0f172a"><font><Font name="System Bold" size="17.0" /></font></Label>
                            </children>
                         </VBox>
                      </children>
                   </HBox>
 
+                  <!-- 5. Today's Attendance -->
                   <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 14 10; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;" HBox.hgrow="ALWAYS">
                      <children>
-                        <Label alignment="CENTER" minWidth="40.0" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #fef3c7; -fx-background-radius: 8;" text="📅" textFill="#b45309"><font><Font size="16.0" /></font></Label>
+                        <Label alignment="CENTER" minWidth="40.0" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #fde68a; -fx-background-radius: 8;" text="📅" textFill="#b45309"><font><Font size="16.0" /></font></Label>
                         <VBox alignment="CENTER_LEFT" spacing="2.0">
                            <children>
-                              <Label text="Today's Attendance" textFill="#64748b"><font><Font size="10.5" /></font></Label>
-                              <Label fx:id="lblTodaysAttendance" text="92.3%" textFill="#1e3a8a"><font><Font name="System Bold" size="17.0" /></font></Label>
+                              <Label text="Today's Attendance" textFill="#334155"><font><Font name="System Bold" size="10.5" /></font></Label>
+                              <Label fx:id="lblTodaysAttendance" text="92.3%" textFill="#0f172a"><font><Font name="System Bold" size="17.0" /></font></Label>
                            </children>
                         </VBox>
                      </children>
@@ -118,7 +123,7 @@
             <!-- Vertical Stack for Analytics Cards & Tables -->
             <VBox spacing="15.0">
                <children>
-                  <!-- 1. Student Enrollment Trend Card -->
+                  <!-- Student Enrollment Trend Card with Custom Legend -->
                   <VBox spacing="10.0" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
                      <children>
                         <HBox alignment="CENTER_LEFT">
@@ -128,7 +133,7 @@
                               <ComboBox fx:id="comboEnrollmentFilter" prefWidth="130.0" style="-fx-background-color: #f8fafc; -fx-border-color: #cbd5e1; -fx-border-radius: 4; -fx-padding: 2;" value="Last 6 Years" />
                            </children>
                         </HBox>
-                        <BarChart fx:id="enrollmentBarChart" prefHeight="240.0">
+                        <BarChart fx:id="enrollmentBarChart" legendVisible="false" prefHeight="240.0">
                           <xAxis>
                             <CategoryAxis fx:id="xAxisEnrollment" side="BOTTOM" />
                           </xAxis>
@@ -136,10 +141,46 @@
                             <NumberAxis fx:id="yAxisEnrollment" autoRanging="false" lowerBound="0.0" side="LEFT" tickUnit="300.0" upperBound="1200.0" />
                           </yAxis>
                         </BarChart>
+
+                        <!-- Custom Consistent Legend matching the exact bar colors -->
+                        <HBox alignment="CENTER" spacing="20.0" style="-fx-background-color: #f8fafc; -fx-padding: 8; -fx-background-radius: 6; -fx-border-color: #e2e8f0; -fx-border-radius: 6;">
+                           <children>
+                              <HBox alignment="CENTER" spacing="6.0">
+                                 <children>
+                                    <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #1d4ed8; -fx-background-radius: 3;" />
+                                    <Label text="First Year" textFill="#334155"><font><Font size="11.0" /></font></Label>
+                                 </children>
+                              </HBox>
+                              <HBox alignment="CENTER" spacing="6.0">
+                                 <children>
+                                    <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #2563eb; -fx-background-radius: 3;" />
+                                    <Label text="Second Year" textFill="#334155"><font><Font size="11.0" /></font></Label>
+                                 </children>
+                              </HBox>
+                              <HBox alignment="CENTER" spacing="6.0">
+                                 <children>
+                                    <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #3b82f6; -fx-background-radius: 3;" />
+                                    <Label text="Third Year" textFill="#334155"><font><Font size="11.0" /></font></Label>
+                                 </children>
+                              </HBox>
+                              <HBox alignment="CENTER" spacing="6.0">
+                                 <children>
+                                    <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #60a5fa; -fx-background-radius: 3;" />
+                                    <Label text="Fourth Year" textFill="#334155"><font><Font size="11.0" /></font></Label>
+                                 </children>
+                              </HBox>
+                              <HBox alignment="CENTER" spacing="6.0">
+                                 <children>
+                                    <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #93c5fd; -fx-background-radius: 3;" />
+                                    <Label text="Fifth Year" textFill="#334155"><font><Font size="11.0" /></font></Label>
+                                 </children>
+                              </HBox>
+                           </children>
+                        </HBox>
                      </children>
                   </VBox>
 
-                  <!-- 2. Mark Registration Card (Temporarily Hidden) -->
+                  <!-- Mark Registration Card (Temporarily Hidden) -->
                   <VBox visible="false" managed="false" spacing="10.0" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
                      <children>
                         <HBox alignment="CENTER_LEFT">
@@ -161,7 +202,7 @@
                      </children>
                   </VBox>
 
-                  <!-- 3. Students by Department Card (Side-by-side Pie Chart & Legend) -->
+                  <!-- Students by Department Card (Side-by-side Pie Chart & Legend) -->
                   <VBox spacing="15.0" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
                      <children>
                         <Label text="Students by Department" textFill="#1e3a8a"><font><Font name="System Bold" size="14.0" /></font></Label>
@@ -291,7 +332,7 @@
                      </children>
                   </VBox>
 
-                  <!-- 4. Attendance Overview Area Chart Card -->
+                  <!-- Attendance Overview Area Chart Card -->
                   <VBox spacing="10.0" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
                      <children>
                         <Label text="📈 Attendance Overview" textFill="#1e3a8a"><font><Font name="System Bold" size="13.0" /></font></Label>
