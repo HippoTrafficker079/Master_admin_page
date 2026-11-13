@@ -141,24 +141,25 @@
                         <!-- Row 2 -->
                         <Label text="Programme / Major" GridPane.rowIndex="2" /><Label text=":" GridPane.columnIndex="1" GridPane.rowIndex="2" />
                         <ComboBox fx:id="comboMajor" maxWidth="1.7976931348623157E308" promptText="Select Major" GridPane.columnIndex="2" GridPane.rowIndex="2">
-                           <items>
-                              <FXCollections fx:factory="observableArrayList">
-                                 <String fx:value="CE" />
-                                 <String fx:value="ME" />
-                                 <String fx:value="EC" />
-                                 <String fx:value="EP" />
-                                 <String fx:value="CEIT" />
-                                 <String fx:value="MC" />
-                                 <String fx:value="ChE" />
-                                 <String fx:value="Arch" />
-                                 <String fx:value="PE" />
-                                 <String fx:value="MnE" />
-                                 <String fx:value="Met" />
-                                 <String fx:value="Tex" />
-                                 <String fx:value="FE" />
-                              </FXCollections>
-                           </items>
-                        </ComboBox>
+						    <items>
+						        <FXCollections fx:factory="observableArrayList">
+						            <String fx:value="C" />
+						            <String fx:value="Mech" />
+						            <String fx:value="EC" />
+						            <String fx:value="CEIT" />
+						            <String fx:value="EP" />
+						            <String fx:value="McE" />
+						            <String fx:value="ChE" />
+						            <String fx:value="Tex" />
+						            <String fx:value="Mn" />
+						            <String fx:value="PE" />
+						            <String fx:value="Arch" />
+						            <String fx:value="Tele" />
+						            <String fx:value="Met" />
+						            <String fx:value="FE" />
+						        </FXCollections>
+						    </items>
+						</ComboBox>
                         <Label text="Nationality" GridPane.columnIndex="3" GridPane.rowIndex="2" /><Label text=":" GridPane.columnIndex="4" GridPane.rowIndex="2" /><TextField fx:id="txtNationality" promptText="Myanmar" GridPane.columnIndex="5" GridPane.rowIndex="2" />
                         
                         <!-- Row 3 -->

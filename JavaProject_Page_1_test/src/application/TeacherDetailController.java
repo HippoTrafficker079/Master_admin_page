@@ -23,8 +23,10 @@ public class TeacherDetailController {
             if (contentContainer != null) {
                 HBox banner = new HBox();
                 banner.setStyle("-fx-background-color: #dbeafe; -fx-border-color: #2563eb; -fx-border-width: 1.5; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 12 18;");
+                
+                int displayRowNo = teacher.getDisplayNo() > 0 ? teacher.getDisplayNo() : teacher.getTeacherId();
                 Label bannerLabel = new Label(String.format("⭐     %d     |     %s     |     %s     |     %s     |     %s",
-                    teacher.getTeacherId(), teacher.getTeacherCode(), teacher.getName(), teacher.getDepartment(), teacher.getPosition()));
+                		displayRowNo, teacher.getTeacherCode(), teacher.getName(), teacher.getDepartment(), teacher.getPosition()));
                 bannerLabel.setStyle("-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 15px;");
                 banner.getChildren().add(bannerLabel);
                 contentContainer.getChildren().add(0, banner);

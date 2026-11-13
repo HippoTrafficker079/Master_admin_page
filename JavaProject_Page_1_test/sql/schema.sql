@@ -219,7 +219,7 @@ CREATE TABLE course_enrollment (
     enrollment_id INT PRIMARY KEY AUTO_INCREMENT,
     offering_id INT NOT NULL,
     student_id INT NOT NULL,
-    enrollment_date DATE NOT NULL DEFAULT(CURRENT_DATE),
+    enrollment_date DATE NOT NULL DEFAULT(CURRENT_DATE), --let this be semester start date
     status ENUM(
         'ENROLLED',
         'DROPPED',
@@ -233,7 +233,6 @@ CREATE TABLE course_enrollment (
 CREATE TABLE attendance (
     attendance_id INT PRIMARY KEY AUTO_INCREMENT,
     session_id INT NOT NULL,
-    absent_date DATE NOT NULL,
     enrollment_id INT NOT NULL,
     status ENUM('UNEXCUSED', 'EXCUSED') DEFAULT 'UNEXCUSED',
     reason VARCHAR(255) NULL,

@@ -16,8 +16,14 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
 
-<ScrollPane fitToWidth="true" prefHeight="700.0" prefWidth="760.0" style="-fx-background: #f4f6f9; -fx-background-color: #f4f6f9;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.DashboardController">
+<ScrollPane fx:id="rootScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+            style="-fx-background-color: #f1f5f9; -fx-background: #f1f5f9; -fx-border-color: transparent;"
+            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="application.DashboardController">  
    <content>
       <VBox spacing="15.0" style="-fx-background-color: #f4f6f9;">
          <padding>
@@ -25,100 +31,148 @@
          </padding>
          <children>
             <!-- Header Title -->
-            <HBox alignment="CENTER_LEFT">
-               <children>
-                  <VBox spacing="3.0">
-                     <children>
-                        <Label text="Dashboard" textFill="#1e3a8a">
-                           <font>
-                              <Font name="System Bold" size="22.0" />
-                           </font>
-                        </Label>
-                        <Label text="Welcome back, Admin! Here's an overview of the system." textFill="#64748b">
-                           <font>
-                              <Font size="12.0" />
-                           </font>
-                        </Label>
-                     </children>
-                  </VBox>
-                  <Pane HBox.hgrow="ALWAYS" />
-                  <Label fx:id="lblCurrentDate" text="Saturday, 17 Oct 2026" textFill="#64748b">
-                     <font>
-                        <Font size="12.0" />
-                     </font>
-                  </Label>
-               </children>
-            </HBox>
+            <HBox alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-padding: 14 20; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
+	           <children>
+	              <VBox spacing="3.0">
+	                 <children>
+	                    <HBox alignment="CENTER_LEFT" spacing="8.0">
+	                       <children>
+	                          <Label text="🏠" style="-fx-text-fill: #1e3a8a; -fx-font-size: 22px;" />
+	                          <Label text="DASHBOARD" style="-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 20px;" />
+	                       </children>
+	                    </HBox>
+	                    <Label text="Welcome back, Admin! Here's an overview of the system." style="-fx-text-fill: #64748b; -fx-font-size: 12px;" />
+	                 </children>
+	              </VBox>
+	              <Pane HBox.hgrow="ALWAYS" />
+	              <Label fx:id="lblCurrentDate" text="Friday, 13 Nov 2026" style="-fx-text-fill: #475569; -fx-font-weight: bold; -fx-font-size: 12.5px;" />
+	           </children>
+	        </HBox>
 
-            <!-- Top Metric Cards HBox (High Contrast Colors) -->
-            <HBox spacing="12.0">
-               <children>
-                  <!-- 1. Total Students -->
-                  <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 14 10; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;" HBox.hgrow="ALWAYS">
-                     <children>
-                        <Label alignment="CENTER" minWidth="40.0" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #bfdbfe; -fx-background-radius: 8;" text="👥" textFill="#1d4ed8"><font><Font size="16.0" /></font></Label>
-                        <VBox alignment="CENTER_LEFT" spacing="2.0">
-                           <children>
-                              <Label text="Total Students" textFill="#334155"><font><Font name="System Bold" size="10.5" /></font></Label>
-                              <Label fx:id="lblTotalStudents" text="1,250" textFill="#0f172a"><font><Font name="System Bold" size="17.0" /></font></Label>
-                           </children>
-                        </VBox>
-                     </children>
-                  </HBox>
-
-                  <!-- 2. Active Students -->
-                  <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 14 10; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;" HBox.hgrow="ALWAYS">
-                     <children>
-                        <Label alignment="CENTER" minWidth="40.0" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #a7f3d0; -fx-background-radius: 8;" text="🎓" textFill="#047857"><font><Font size="16.0" /></font></Label>
-                        <VBox alignment="CENTER_LEFT" spacing="2.0">
-                           <children>
-                              <Label text="Active Students" textFill="#334155"><font><Font name="System Bold" size="10.5" /></font></Label>
-                              <Label fx:id="lblActiveStudents" text="1,200" textFill="#0f172a"><font><Font name="System Bold" size="17.0" /></font></Label>
-                           </children>
-                        </VBox>
-                     </children>
-                  </HBox>
-
-                  <!-- 3. Total Teachers -->
-                  <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 14 10; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;" HBox.hgrow="ALWAYS">
-                     <children>
-                        <Label alignment="CENTER" minWidth="40.0" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #fecaca; -fx-background-radius: 8;" text="👥" textFill="#b91c1c"><font><Font size="16.0" /></font></Label>
-                        <VBox alignment="CENTER_LEFT" spacing="2.0">
-                           <children>
-                              <Label text="Total Teachers" textFill="#334155"><font><Font name="System Bold" size="10.5" /></font></Label>
-                              <Label fx:id="lblTotalTeachers" text="84" textFill="#0f172a"><font><Font name="System Bold" size="17.0" /></font></Label>
-                           </children>
-                        </VBox>
-                     </children>
-                  </HBox>
-
-                  <!-- 4. Total Courses -->
-                  <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 14 10; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;" HBox.hgrow="ALWAYS">
-                     <children>
-                        <Label alignment="CENTER" minWidth="40.0" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #ddd6fe; -fx-background-radius: 8;" text="📖" textFill="#6d28d9"><font><Font size="16.0" /></font></Label>
-                        <VBox alignment="CENTER_LEFT" spacing="2.0">
-                           <children>
-                              <Label text="Total Courses" textFill="#334155"><font><Font name="System Bold" size="10.5" /></font></Label>
-                              <Label fx:id="lblTotalCourses" text="96" textFill="#0f172a"><font><Font name="System Bold" size="17.0" /></font></Label>
-                           </children>
-                        </VBox>
-                     </children>
-                  </HBox>
-
-                  <!-- 5. Today's Attendance -->
-                  <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 14 10; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;" HBox.hgrow="ALWAYS">
-                     <children>
-                        <Label alignment="CENTER" minWidth="40.0" prefHeight="40.0" prefWidth="40.0" style="-fx-background-color: #fde68a; -fx-background-radius: 8;" text="📅" textFill="#b45309"><font><Font size="16.0" /></font></Label>
-                        <VBox alignment="CENTER_LEFT" spacing="2.0">
-                           <children>
-                              <Label text="Today's Attendance" textFill="#334155"><font><Font name="System Bold" size="10.5" /></font></Label>
-                              <Label fx:id="lblTodaysAttendance" text="92.3%" textFill="#0f172a"><font><Font name="System Bold" size="17.0" /></font></Label>
-                           </children>
-                        </VBox>
-                     </children>
-                  </HBox>
-               </children>
-            </HBox>
+			<!-- Top 5 KPI Summary Cards Row (Fits Windowed & Full-Screen Without Overflow) -->
+			<HBox spacing="10.0">
+			   <children>
+			      <!-- 1. Total Students (Blue Circle) -->
+			      <VBox minWidth="0.0" spacing="6.0" HBox.hgrow="ALWAYS"
+			            style="-fx-background-color: white; -fx-padding: 12 12; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.04), 8, 0, 0, 2);">
+			         <children>
+			            <HBox alignment="CENTER_LEFT" spacing="10.0">
+			               <children>
+			                  <StackPane minHeight="38.0" minWidth="38.0" prefHeight="38.0" prefWidth="38.0" maxHeight="38.0" maxWidth="38.0"
+			                             style="-fx-background-color: #eff6ff; -fx-background-radius: 50em;">
+			                     <children>
+			                        <Label text="👥" style="-fx-text-fill: #2563eb; -fx-font-size: 19px;" />
+			                     </children>
+			                  </StackPane>
+			                  <Label fx:id="lblTotalStudents" text="20" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 21px;" />
+			               </children>
+			            </HBox>
+			            <VBox spacing="1.0">
+			               <children>
+			                  <Label text="Total Students" style="-fx-text-fill: #334155; -fx-font-weight: bold; -fx-font-size: 11.5px;" />
+			                  <Label text="All Departments" style="-fx-text-fill: #94a3b8; -fx-font-size: 10px;" />
+			               </children>
+			            </VBox>
+			         </children>
+			      </VBox>
+			
+			      <!-- 2. Active Students (Emerald Mint Circle) -->
+			      <VBox minWidth="0.0" spacing="6.0" HBox.hgrow="ALWAYS"
+			            style="-fx-background-color: white; -fx-padding: 12 12; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.04), 8, 0, 0, 2);">
+			         <children>
+			            <HBox alignment="CENTER_LEFT" spacing="10.0">
+			               <children>
+			                  <StackPane minHeight="38.0" minWidth="38.0" prefHeight="38.0" prefWidth="38.0" maxHeight="38.0" maxWidth="38.0"
+			                             style="-fx-background-color: #ecfdf5; -fx-background-radius: 50em;">
+			                     <children>
+			                        <Label text="🎓" style="-fx-text-fill: #10b981; -fx-font-size: 19px;" />
+			                     </children>
+			                  </StackPane>
+			                  <Label fx:id="lblActiveStudents" text="19" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 21px;" />
+			               </children>
+			            </HBox>
+			            <VBox spacing="1.0">
+			               <children>
+			                  <Label text="Active Students" style="-fx-text-fill: #334155; -fx-font-weight: bold; -fx-font-size: 11.5px;" />
+			                  <Label text="Currently Enrolled" style="-fx-text-fill: #94a3b8; -fx-font-size: 10px;" />
+			               </children>
+			            </VBox>
+			         </children>
+			      </VBox>
+			
+			      <!-- 3. Total Teachers (Soft Purple Circle) -->
+			      <VBox minWidth="0.0" spacing="6.0" HBox.hgrow="ALWAYS"
+			            style="-fx-background-color: white; -fx-padding: 12 12; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.04), 8, 0, 0, 2);">
+			         <children>
+			            <HBox alignment="CENTER_LEFT" spacing="10.0">
+			               <children>
+			                  <StackPane minHeight="38.0" minWidth="38.0" prefHeight="38.0" prefWidth="38.0" maxHeight="38.0" maxWidth="38.0"
+			                             style="-fx-background-color: #f5f3ff; -fx-background-radius: 50em;">
+			                     <children>
+			                        <Label text="👔" style="-fx-text-fill: #7c3aed; -fx-font-size: 19px;" />
+			                     </children>
+			                  </StackPane>
+			                  <Label fx:id="lblTotalTeachers" text="7" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 21px;" />
+			               </children>
+			            </HBox>
+			            <VBox spacing="1.0">
+			               <children>
+			                  <Label text="Total Teachers" style="-fx-text-fill: #334155; -fx-font-weight: bold; -fx-font-size: 11.5px;" />
+			                  <Label text="Active Faculty" style="-fx-text-fill: #94a3b8; -fx-font-size: 10px;" />
+			               </children>
+			            </VBox>
+			         </children>
+			      </VBox>
+			
+			      <!-- 4. Total Courses (Warm Amber Circle) -->
+			      <VBox minWidth="0.0" spacing="6.0" HBox.hgrow="ALWAYS"
+			            style="-fx-background-color: white; -fx-padding: 12 12; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.04), 8, 0, 0, 2);">
+			         <children>
+			            <HBox alignment="CENTER_LEFT" spacing="10.0">
+			               <children>
+			                  <StackPane minHeight="38.0" minWidth="38.0" prefHeight="38.0" prefWidth="38.0" maxHeight="38.0" maxWidth="38.0"
+			                             style="-fx-background-color: #fffbeb; -fx-background-radius: 50em;">
+			                     <children>
+			                        <Label text="📖" style="-fx-text-fill: #d97706; -fx-font-size: 19px;" />
+			                     </children>
+			                  </StackPane>
+			                  <Label fx:id="lblTotalCourses" text="96" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 21px;" />
+			               </children>
+			            </HBox>
+			            <VBox spacing="1.0">
+			               <children>
+			                  <Label text="Total Courses" style="-fx-text-fill: #334155; -fx-font-weight: bold; -fx-font-size: 11.5px;" />
+			                  <Label text="Course Offerings" style="-fx-text-fill: #94a3b8; -fx-font-size: 10px;" />
+			               </children>
+			            </VBox>
+			         </children>
+			      </VBox>
+			
+			      <!-- 5. Today's Attendance (Coral Rose Circle) -->
+			      <VBox minWidth="0.0" spacing="6.0" HBox.hgrow="ALWAYS"
+			            style="-fx-background-color: white; -fx-padding: 12 12; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.04), 8, 0, 0, 2);">
+			         <children>
+			            <HBox alignment="CENTER_LEFT" spacing="10.0">
+			               <children>
+			                  <StackPane minHeight="38.0" minWidth="38.0" prefHeight="38.0" prefWidth="38.0" maxHeight="38.0" maxWidth="38.0"
+			                             style="-fx-background-color: #fff1f2; -fx-background-radius: 50em;">
+			                     <children>
+			                        <Label text="📅" style="-fx-text-fill: #e11d48; -fx-font-size: 19px;" />
+			                     </children>
+			                  </StackPane>
+			                  <Label fx:id="lblTodaysAttendance" text="94.5%" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 21px;" />
+			               </children>
+			            </HBox>
+			            <VBox spacing="1.0">
+			               <children>
+			                  <Label text="Today's Attendance" style="-fx-text-fill: #334155; -fx-font-weight: bold; -fx-font-size: 11.5px;" />
+			                  <Label text="Across All Classes" style="-fx-text-fill: #94a3b8; -fx-font-size: 10px;" />
+			               </children>
+			            </VBox>
+			         </children>
+			      </VBox>
+			   </children>
+			</HBox>
 
             <!-- Vertical Stack for Analytics Cards & Tables -->
             <VBox spacing="15.0">
@@ -128,7 +182,7 @@
                      <children>
                         <HBox alignment="CENTER_LEFT">
                            <children>
-                              <Label text="📊 Student Enrollment Trend" textFill="#1e3a8a"><font><Font name="System Bold" size="13.0" /></font></Label>
+                              <Label text="📊 Student Enrollment Trend" textFill="#0f172a"><font><Font name="System Bold" size="15.0" /></font></Label>
                               <Pane HBox.hgrow="ALWAYS" />
                               <ComboBox fx:id="comboEnrollmentFilter" prefWidth="130.0" style="-fx-background-color: #f8fafc; -fx-border-color: #cbd5e1; -fx-border-radius: 4; -fx-padding: 2;" value="Last 6 Years" />
                            </children>
@@ -205,13 +259,13 @@
                   <!-- Students by Department Card (Side-by-side Pie Chart & Legend) -->
                   <VBox spacing="15.0" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
                      <children>
-                        <Label text="Students by Department" textFill="#1e3a8a"><font><Font name="System Bold" size="14.0" /></font></Label>
+                        <Label text="Students by Department" textFill="#0f172a"><font><Font name="System Bold" size="15.0" /></font></Label>
                         
                         <HBox alignment="CENTER_LEFT" spacing="30.0">
                            <children>
                               <PieChart fx:id="departmentPieChart" minHeight="420.0" minWidth="420.0" prefHeight="420.0" prefWidth="420.0" HBox.hgrow="NEVER" />
                               
-                              <VBox spacing="12.0" HBox.hgrow="ALWAYS" style="-fx-padding: 10 0 0 0;">
+                              <VBox fx:id="departmentLegendBox" alignment="CENTER_LEFT" spacing="12.0" HBox.hgrow="ALWAYS" style="-fx-padding: 0;">
                                  <children>
                                     <HBox alignment="CENTER_LEFT" spacing="10.0">
                                        <children>
@@ -333,19 +387,75 @@
                   </VBox>
 
                   <!-- Attendance Overview Area Chart Card -->
-                  <VBox spacing="10.0" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
-                     <children>
-                        <Label text="📈 Attendance Overview" textFill="#1e3a8a"><font><Font name="System Bold" size="13.0" /></font></Label>
-                        <AreaChart fx:id="attendanceAreaChart" prefHeight="220.0">
-                          <xAxis>
-                            <CategoryAxis fx:id="xAxisAttendance" side="BOTTOM" />
-                          </xAxis>
-                          <yAxis>
-                            <NumberAxis fx:id="yAxisAttendance" autoRanging="false" lowerBound="80.0" side="LEFT" upperBound="100.0" />
-                          </yAxis>
-                        </AreaChart>
-                     </children>
-                  </VBox>
+              <VBox spacing="12.0" style="-fx-background-color: white; -fx-padding: 18; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
+                 <children>
+                    <!-- Header Row 1: Title + Avg Badge + Daily/Weekly/Monthly Toggle -->
+                    <HBox alignment="CENTER_LEFT" spacing="10.0">
+                       <children>
+                          <Label text="📈 Attendance Overview" textFill="#0f172a">
+                             <font><Font name="System Bold" size="15.0" /></font>
+                          </Label>
+                          <Label fx:id="lblWeeklyAttendanceAvg" text="Weekly Avg: 91.2%" style="-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-padding: 3 10; -fx-background-radius: 12; -fx-font-weight: bold; -fx-font-size: 11.5px;" />
+                          <Pane HBox.hgrow="ALWAYS" />
+                          <!-- Segmented Daily / Weekly / Monthly Buttons -->
+                          <HBox alignment="CENTER" style="-fx-background-color: #f1f5f9; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 2;">
+                             <children>
+                                <Button fx:id="btnAttDaily" mnemonicParsing="false" onAction="#handleAttDaily" prefHeight="26.0" prefWidth="62.0" style="-fx-background-color: transparent; -fx-text-fill: #334155; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-cursor: hand;" text="Daily" />
+                                <Button fx:id="btnAttWeekly" mnemonicParsing="false" onAction="#handleAttWeekly" prefHeight="26.0" prefWidth="68.0" style="-fx-background-color: #2563eb; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-background-radius: 4; -fx-cursor: hand;" text="Weekly" />
+                                <Button fx:id="btnAttMonthly" mnemonicParsing="false" onAction="#handleAttMonthly" prefHeight="26.0" prefWidth="72.0" style="-fx-background-color: transparent; -fx-text-fill: #334155; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-cursor: hand;" text="Monthly" />
+                             </children>
+                          </HBox>
+                       </children>
+                    </HBox>
+
+                    <!-- Header Row 2: Major Dropdown + Date Range Pill -->
+                    <HBox alignment="CENTER_RIGHT" spacing="10.0">
+                       <children>
+                          <Label text="Major:" textFill="#475569">
+                             <font><Font name="System Bold" size="11.5" /></font>
+                          </Label>
+                          <ComboBox fx:id="comboAttendanceMajor" prefHeight="28.0" prefWidth="135.0" style="-fx-background-color: #f8fafc; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-font-size: 11.5px;" />
+                          <Label fx:id="lblAttendanceDateRange" text="📅  Mon 9 – Sat 14 Nov" style="-fx-background-color: #f8fafc; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 5 12; -fx-text-fill: #334155; -fx-font-weight: bold; -fx-font-size: 11.5px;" />
+                       </children>
+                    </HBox>
+
+                    <!-- Area Chart + Interactive Labels & Click Popup Overlay -->
+                    <StackPane fx:id="attendanceChartWrapper" prefHeight="255.0">
+                       <children>
+                          <AreaChart fx:id="attendanceAreaChart"
+                                     animated="false"
+                                     prefHeight="255.0"
+                                     legendVisible="false"
+                                     horizontalGridLinesVisible="true"
+                                     verticalGridLinesVisible="true"
+                                     alternativeRowFillVisible="false"
+                                     alternativeColumnFillVisible="false">
+                            <xAxis>
+                              <CategoryAxis fx:id="xAxisAttendance"
+                                            label="Days of the Week"
+                                            side="BOTTOM"
+                                            tickMarkVisible="true" />
+                            </xAxis>
+                            <yAxis>
+                              <NumberAxis fx:id="yAxisAttendance"
+                                          label="Attendance (%)"
+                                          side="LEFT"
+                                          autoRanging="false"
+                                          lowerBound="80.0"
+                                          upperBound="100.0"
+                                          tickUnit="5.0"
+                                          minorTickCount="5"
+                                          tickMarkVisible="true"
+                                          minorTickVisible="true" />
+                            </yAxis>
+                          </AreaChart>
+
+                          <!-- Transparent Overlay for Percentage Labels & Click Popup -->
+                          <Pane fx:id="attendanceOverlayPane" pickOnBounds="false" />
+                       </children>
+                    </StackPane>
+                 </children>
+              </VBox>
                </children>
             </VBox>
          </children>

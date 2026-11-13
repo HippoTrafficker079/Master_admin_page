@@ -6,7 +6,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class Teacher {
-    private int displayNo;
+    private int displayNo = 0;
     // Primary database ID (formerly 'no')
     private final IntegerProperty teacherId;
 
@@ -32,14 +32,14 @@ public class Teacher {
     private final StringProperty specialization;
     private final StringProperty emergencyContact;
     private final StringProperty photoPath;
-
+    
     // Original backups for reset functionality
     private final int origTeacherId;
     private final String origTeacherCode, origName, origDepartment, origPosition, origPhoneNo;
     private final String origDob, origGender, origNationality, origNrc, origEmail;
     private final String origCurrentAddress, origPermanentAddress;
     private final String origDegree, origUniversity, origYearCompleted, origSpecialization, origEmergencyContact;
-
+    
     // Summary Constructor (used by DAO getAllTeacher / getFilteredTeachers)
     public Teacher(int teacherId, String teacherCode, String name, String department, String position, String phoneNo) {
         this(teacherId, teacherCode, name, department, position, phoneNo,
@@ -73,11 +73,8 @@ public class Teacher {
                 nationality != null && !nationality.isEmpty() ? nationality : "Myanmar");
         this.nrc = new SimpleStringProperty(nrc != null && !nrc.isEmpty() ? nrc : "-");
         this.email = new SimpleStringProperty(email != null && !email.isEmpty() ? email : "-");
-        this.currentAddress = new SimpleStringProperty(
-                currentAddress != null && !currentAddress.isEmpty() ? currentAddress : "-");
-        this.permanentAddress = new SimpleStringProperty(
-                permanentAddress != null && !permanentAddress.isEmpty() ? permanentAddress : "-");
-        this.degree = new SimpleStringProperty(degree != null && !degree.isEmpty() ? degree : "-");
+        this.currentAddress = new SimpleStringProperty(currentAddress != null ? currentAddress : "");
+        this.permanentAddress = new SimpleStringProperty(permanentAddress != null ? permanentAddress : "");this.degree = new SimpleStringProperty(degree != null && !degree.isEmpty() ? degree : "-");
         this.university = new SimpleStringProperty(university != null && !university.isEmpty() ? university : "-");
         this.yearCompleted = new SimpleStringProperty(
                 yearCompleted != null && !yearCompleted.isEmpty() ? yearCompleted : "-");
@@ -129,7 +126,7 @@ public class Teacher {
     }
 
     public int getDisplayNo() {
-        return displayNo > 0 ? displayNo : teacherId.get();
+        return displayNo;
     }
 
     public void setDisplayNo(int displayNo) {

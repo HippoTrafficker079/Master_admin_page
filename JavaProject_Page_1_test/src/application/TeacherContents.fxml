@@ -44,20 +44,20 @@
                        prefHeight="38.0" HBox.hgrow="ALWAYS"
                        style="-fx-background-color: #ffffff; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 0 12; -fx-font-size: 13px; -fx-text-fill: #1e293b;" />
             <Button mnemonicParsing="false" onAction="#handleSearch" prefHeight="38.0" prefWidth="95.0"
-                    text="Search"
-                    style="-fx-background-color: #2d567c; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" />
-            <Button mnemonicParsing="false" onAction="#handleReset" prefHeight="38.0" prefWidth="85.0"
-                    text="Reset"
-                    style="-fx-background-color: #e2e8f0; -fx-text-fill: #334155; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" />
+			        styleClass="search-button" text="Search"
+			        style="-fx-font-size: 13px;" />
+			<Button mnemonicParsing="false" onAction="#handleReset" prefHeight="38.0" prefWidth="85.0"
+			        styleClass="reset-button" text="Reset"
+			        style="-fx-font-size: 13px;" />
          </children>
       </HBox>
 
       <!-- Hint Banner -->
-      <HBox alignment="CENTER_LEFT" styleClass="instruction-banner-box">
+      <HBox alignment="CENTER_LEFT" style="-fx-background-color: #eff6ff; -fx-padding: 10 14; -fx-background-radius: 6; -fx-border-color: #bfdbfe; -fx-border-radius: 6;">
          <children>
-            <Label text="💡  Hint: Double-click any teacher row in the table below to view detailed faculty information." textFill="#1d4ed8">
+            <Label text="💡  Select teacher row(s) below to remove (Hold Ctrl or Shift for multi-selection):" textFill="#1d4ed8">
                <font>
-                  <Font size="13.0" />
+                  <Font name="System Bold" size="13.0" />
                </font>
             </Label>
          </children>
@@ -66,7 +66,7 @@
          </VBox.margin>
       </HBox>
 
-      <!-- Table View with colTeacherId included (Removed inline style to allow CSS to work) -->
+      <!-- Table View with colTeacherId included -->
       <TableView fx:id="teacherTable" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="440.0" prefWidth="700.0" VBox.vgrow="ALWAYS">
         <columns>
           <TableColumn fx:id="colNo" prefWidth="45.0" text="No" />
@@ -81,18 +81,30 @@
          </columnResizePolicy>
       </TableView>
       
-      <!-- Bottom Action Buttons -->
+      <!-- Bottom Action Buttons (Space-Evenly Layout matching StudentContent) -->
       <HBox alignment="CENTER" prefHeight="60.0" prefWidth="700.0" styleClass="buttoncontainer">
          <children>
-            <Button fx:id="modify" mnemonicParsing="false" onAction="#handleModify" prefHeight="45.0" prefWidth="135.0" styleClass="rounded-button" text="Modify" />
             <Region HBox.hgrow="ALWAYS" />
-            <Button fx:id="add" mnemonicParsing="false" onAction="#handleAdd" prefHeight="45.0" prefWidth="200.0" styleClass="rounded-button" text="+ Add Teacher">
+
+            <Button fx:id="add" mnemonicParsing="false" onAction="#handleAdd" prefHeight="45.0" prefWidth="180.0" styleClass="rounded-button" text="+ Add Teacher">
                <font>
                   <Font size="14.0" />
                </font>
             </Button>
+
             <Region HBox.hgrow="ALWAYS" />
-            <Button fx:id="remove" mnemonicParsing="false" onAction="#handleRemove" prefHeight="45.0" prefWidth="135.0" styleClass="rounded-button" text="Remove" />
+
+            <Button fx:id="modify" mnemonicParsing="false" onAction="#handleModify" prefHeight="45.0" prefWidth="140.0" styleClass="rounded-button" text="Modify" />
+
+            <Region HBox.hgrow="ALWAYS" />
+
+            <Button fx:id="remove" mnemonicParsing="false" onAction="#handleRemove" prefHeight="45.0" prefWidth="140.0" styleClass="rounded-button" text="Remove" />
+
+            <Region HBox.hgrow="ALWAYS" />
+
+            <Button fx:id="restore" mnemonicParsing="false" onAction="#handleRestore" prefHeight="45.0" prefWidth="140.0" styleClass="rounded-button" text="Restore" />
+
+            <Region HBox.hgrow="ALWAYS" />
          </children>
          <VBox.margin>
             <Insets top="10.0" />

@@ -2,7 +2,6 @@
 
 --CLASS VIEW
 --Matrix Summary
-
 WITH
     student_attendance_metric AS (
         SELECT
@@ -19,7 +18,17 @@ WITH
                     JOIN course_enrollment ce ON cs.offering_id = ce.offering_id
                 WHERE
                     ce.student_id = s.student_id
-                    AND cs.session_date BETWEEN ? AND ?
+                    AND cs.session_date BETWEEN COALESCE(
+                        ?,
+                        (
+                            SELECT MIN(cs2.session_date)
+                            FROM
+                                class_session cs2
+                                JOIN course_enrollment ce2 ON cs2.offering_id = ce2.offering_id
+                            WHERE
+                                ce2.student_id = s.student_id
+                        )
+                    ) AND COALESCE(?, CURDATE())
                     AND cs.is_cancelled = FALSE
                     AND ce.status = 'ENROLLED'
             ) AS total_sessions,
@@ -28,9 +37,20 @@ WITH
                 FROM
                     attendance a
                     JOIN course_enrollment ce ON a.enrollment_id = ce.enrollment_id
+                    JOIN class_session cs ON a.session_id = cs.session_id
                 WHERE
                     ce.student_id = s.student_id
-                    AND a.absent_date BETWEEN ? AND ?
+                    AND cs.session_date BETWEEN COALESCE(
+                        ?,
+                        (
+                            SELECT MIN(cs2.session_date)
+                            FROM
+                                class_session cs2
+                                JOIN course_enrollment ce2 ON cs2.offering_id = ce2.offering_id
+                            WHERE
+                                ce2.student_id = s.student_id
+                        )
+                    ) AND COALESCE(?, CURDATE())
             ) AS total_absent
         FROM
             student s
@@ -102,7 +122,15 @@ FROM
 WHERE
     ce.status = 'ENROLLED'
     AND cs.is_cancelled = FALSE
-    AND cs.session_date BETWEEN ? AND ?
+    AND cs.session_date BETWEEN COALESCE(
+        ?,
+        SELECT MIN(cs2.session_date)
+        FROM
+            class_session cs2
+            JOIN course_enrollment ce2 ON cs2.offering_id = ce2.offering_id
+        WHERE
+            ce2.student_id = s.student_id
+    ) AND COALESCE(?, CURDATE())
     AND ce.offering_id = ?
 GROUP BY
     s.student_id,
@@ -118,7 +146,15 @@ FROM
     JOIN course_enrollment ce ON cs.offering_id = ce.offering_id
 WHERE
     ce.student_id = s.student_id
-    AND cs.session_date BETWEEN ? AND ?
+    AND cs.session_date BETWEEN COALESCE(
+        ?,
+        SELECT MIN(cs2.session_date)
+        FROM
+            class_session cs2
+            JOIN course_enrollment ce2 ON cs2.offering_id = ce2.offering_id
+        WHERE
+            ce2.student_id = s.student_id
+    ) AND COALESCE(?, CURDATE())
     AND cs.is_cancelled = FALSE
     AND ce.status = 'ENROLLED';
 
@@ -127,9 +163,18 @@ SELECT COUNT(a.attendance_id) AS total_absent
 FROM
     attendance a
     JOIN course_enrollment ce ON a.enrollment_id = ce.enrollment_id
+    JOIN class_session cs ON a.session_id = cs.session_id
 WHERE
     ce.student_id = s.student_id
-    AND a.absent_date BETWEEN ? AND ?;
+    AND cs.session_date BETWEEN COALESCE(
+        ?,
+        SELECT MIN(cs2.session_date)
+        FROM
+            class_session cs2
+            JOIN course_enrollment ce2 ON cs2.offering_id = ce2.offering_id
+        WHERE
+            ce2.student_id = s.student_id
+    ) AND COALESCE(?, CURDATE());
 
 --Daily Log
 SELECT
@@ -219,7 +264,14 @@ WITH
                     JOIN course_enrollment ce ON cs.offering_id = ce.offering_id
                 WHERE
                     ce.student_id = s.student_id
-                    AND cs.session_date BETWEEN ce.enrollment_date AND CURRENT_DATE
+                    AND cs.session_date BETWEEN (
+                        SELECT MIN(cs2.session_date)
+                        FROM
+                            class_session cs2
+                            JOIN course_enrollment ce2 ON cs2.offering_id = ce2.offering_id
+                        WHERE
+                            ce2.student_id = s.student_id
+                    ) AND (CURDATE())
                     AND cs.is_cancelled = FALSE
                     AND ce.status = 'ENROLLED'
             ) AS total_sessions,
@@ -228,9 +280,17 @@ WITH
                 FROM
                     attendance a
                     JOIN course_enrollment ce ON a.enrollment_id = ce.enrollment_id
+                    JOIN class_session cs ON a.session_id = cs.session_id
                 WHERE
                     ce.student_id = s.student_id
-                    AND a.absent_date BETWEEN ce.enrollment_date AND CURRENT_DATE
+                    AND cs.session_date BETWEEN (
+                        SELECT MIN(cs2.session_date)
+                        FROM
+                            class_session cs2
+                            JOIN course_enrollment ce2 ON cs2.offering_id = ce2.offering_id
+                        WHERE
+                            ce2.student_id = s.student_id
+                    ) AND (CURDATE())
             ) AS total_absent,
             ci.primary_phone_number AS contact
         FROM
@@ -296,7 +356,14 @@ WHERE
     ua.status = TRUE
     AND ce.status = 'ENROLLED'
     AND cs.is_cancelled = FALSE
-    AND cs.session_date BETWEEN ce.enrollment_date AND CURRENT_DATE
+    AND cs.session_date BETWEEN (
+        SELECT MIN(cs2.session_date)
+        FROM
+            class_session cs2
+            JOIN course_enrollment ce2 ON cs2.offering_id = ce2.offering_id
+        WHERE
+            ce2.student_id = s.student_id
+    ) AND CURDATE()
     AND cs.is_cancelled = FALSE
     AND s.student_id = ?
 GROUP BY
@@ -327,7 +394,14 @@ WHERE
     ua.status = TRUE
     AND ce.status = 'ENROLLED'
     AND cs.is_cancelled = FALSE
-    AND cs.session_date BETWEEN ce.enrollment_date AND CURRENT_DATE
+    AND cs.session_date BETWEEN (
+        SELECT MIN(cs2.session_date)
+        FROM
+            class_session cs2
+            JOIN course_enrollment ce2 ON cs2.offering_id = ce2.offering_id
+        WHERE
+            ce2.student_id = s.student_id
+    ) AND (CURDATE())
     AND s.student_id = ?
 ORDER BY cs.session_date DESC, cs.period ASC
 LIMIT ?

@@ -55,7 +55,7 @@ public class StudentModifyController {
 
 
 
-    private final String[] VALID_MAJORS = { "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex", "FE" };
+    private final String[] VALID_MAJORS = { "C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE"};
     private final String[] VALID_YEARS = { "First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year" };
 
     @FXML
@@ -642,11 +642,12 @@ public class StudentModifyController {
             }
             StudentDAO studentDAO = new StudentDAO();
             boolean success = studentDAO.modifyStudent(currentStudent);
+            
             if (!success) {
                 showAlert("Database Error", "Failed to save changes to the database", Alert.AlertType.ERROR);
                 return;
             }
-
+            
             if (StudentController.masterData != null) {
                 for (int i = 0; i < StudentController.masterData.size(); i++) {
                     if (StudentController.masterData.get(i).getNo() == currentStudent.getNo()) {
@@ -655,8 +656,11 @@ public class StudentModifyController {
                     }
                 }
             }
+            
         }
+        
         handleReturn();
+        DashboardController.refreshDashboard();
     }
 
     @FXML

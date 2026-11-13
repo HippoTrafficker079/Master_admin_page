@@ -23,16 +23,35 @@
 <?import javafx.scene.text.Font?>
 <?import java.lang.String?>
 
-<VBox fx:id="rootPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="12.0" style="-fx-padding: 20; -fx-background-color: #f1f5f9;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.AttendanceController">
+<VBox fx:id="rootPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="12.0" style="-fx-padding: 20; -fx-background-color: #eef2f7;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.AttendanceController">
    <children>
+   
+   	  <!-- Head Title -->
+   	  <HBox alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-padding: 14 20; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
+         <children>
+            <VBox spacing="3.0">
+               <children>
+                  <HBox alignment="CENTER_LEFT" spacing="8.0">
+                     <children>
+                        <Label text="📅" style="-fx-text-fill: #1e3a8a; -fx-font-size: 22px;" />
+                        <Label text="ATTENDANCE MANAGEMENT" style="-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 20px;" />
+                     </children>
+                  </HBox>
+                  <Label text="Class Attendance Tracking, Daily Logs &amp; Student Audit Records" style="-fx-text-fill: #64748b; -fx-font-size: 12px;" />
+               </children>
+            </VBox>
+         </children>
+      </HBox>
       <!-- Top Navigation Mode Bar (Fixed at top) -->
       <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 10 15; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
          <children>
-            <Button fx:id="btnClassView" mnemonicParsing="false" onAction="#switchToClassView" prefHeight="35.0" prefWidth="150.0" styleClass="search-button" style="-fx-font-weight: bold; -fx-font-size: 12px;" text="CLASS VIEW" />
-            <Button fx:id="btnIndividualView" mnemonicParsing="false" onAction="#switchToIndividualView" prefHeight="35.0" prefWidth="200.0" styleClass="reset-button" style="-fx-font-weight: bold; -fx-font-size: 12px;" text="INDIVIDUAL STUDENT VIEW" />
+            <Button fx:id="btnClassView" mnemonicParsing="false" onAction="#switchToClassView" prefHeight="35.0" prefWidth="150.0" styleClass="search-button" text="CLASS VIEW">
+               <font><Font name="System Bold" size="12.0" /></font>
+            </Button>
+            <Button fx:id="btnIndividualView" mnemonicParsing="false" onAction="#switchToIndividualView" prefHeight="35.0" prefWidth="200.0" styleClass="reset-button" text="INDIVIDUAL STUDENT VIEW">
+               <font><Font name="System Bold" size="12.0" /></font>
+            </Button>
             <HBox HBox.hgrow="ALWAYS" />
-            <!-- Global Export & Back Buttons -->
-            <Button fx:id="btnExport" mnemonicParsing="false" onAction="#handleExportAudit" prefHeight="35.0" prefWidth="175.0" styleClass="search-button" text="Export Matrix Report" />
             <Button fx:id="btnBackToList" visible="false" managed="false" mnemonicParsing="false" onAction="#handleBackToList" prefHeight="35.0" prefWidth="150.0" styleClass="reset-button" text="🔙 Back to List" />
          </children>
       </HBox>
@@ -177,7 +196,7 @@
                               <!-- Section Header Bar -->
                               <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #dbeafe; -fx-padding: 8 15; -fx-background-radius: 7 7 0 0; -fx-border-color: #cbd5e1; -fx-border-width: 0 0 1 0;">
                                  <children>
-                                    <Label text="👤  University Student Profile" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13.5px;" />
+                                    <Label text="👤  University Student Profile" style="-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 13.5px;" />
                                  </children>
                               </HBox>
 
@@ -245,7 +264,7 @@
                                        <children>
                                           <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #f8fafc; -fx-padding: 6 12; -fx-background-radius: 5 5 0 0; -fx-border-color: #cbd5e1; -fx-border-width: 0 0 1 0;">
                                              <children>
-                                                <Label text="📊  Overall University Attendance Metrics" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 12.5px;" />
+                                                <Label text="📊  Overall University Attendance Metrics" style="-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 12.5px;" />
                                              </children>
                                           </HBox>
                                           <HBox spacing="15.0" alignment="CENTER_LEFT" style="-fx-padding: 12 16;" VBox.vgrow="ALWAYS">
@@ -315,7 +334,7 @@
                            <children>
                               <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #dbeafe; -fx-padding: 8 15; -fx-background-radius: 7 7 0 0; -fx-border-color: #cbd5e1; -fx-border-width: 0 0 1 0;">
                                  <children>
-                                    <Label text="📚  Department Subject Breakdown" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13.5px;" />
+                                    <Label text="📚  Department Subject Breakdown" style="-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 13.5px;" />
                                  </children>
                               </HBox>
 
@@ -359,7 +378,7 @@
                            <children>
                               <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #dbeafe; -fx-padding: 8 15; -fx-background-radius: 7 7 0 0; -fx-border-color: #cbd5e1; -fx-border-width: 0 0 1 0;">
                                  <children>
-                                    <Label text="🗓  Detailed Chronological Log" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13.5px;" />
+                                    <Label text="🗓  Detailed Chronological Log" style="-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 13.5px;" />
                                  </children>
                               </HBox>
 
@@ -379,7 +398,7 @@
                               </HBox>
 
                               <!-- Detailed Chronological Log Table -->
-                              <TableView fx:id="chronologicalLogTable" prefHeight="232.0" minHeight="232.0" maxHeight="232.0" style="-fx-border-width: 0;">
+                              <TableView fx:id="chronologicalLogTable" prefHeight="272.0" minHeight="272.0" maxHeight="272.0" style="-fx-border-width: 0;">
                                 <columns>
                                   <TableColumn fx:id="colNoChrono" prefWidth="50.0" maxWidth="65.0" text="No" />
                                   <TableColumn fx:id="colDateChrono" prefWidth="135.0" text="Date" />
@@ -391,22 +410,24 @@
                                 </columns>
                               </TableView>
 
-                              <!-- Dynamic Pagination & Export Footer Bar -->
-                              <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #f8fafc; -fx-padding: 10 15; -fx-background-radius: 0 0 7 7; -fx-border-color: #cbd5e1; -fx-border-width: 1 0 0 0;">
-                                 <children>
-                                    <Label fx:id="lblPaginationInfo" text="Showing 1 – 6 of 6 records" style="-fx-text-fill: #475569; -fx-font-size: 12px;" />
-                                    <Region HBox.hgrow="ALWAYS" />
-                                    
-                                    <Button fx:id="btnPrevPage" mnemonicParsing="false" onAction="#handlePrevPage" prefHeight="28.0" prefWidth="32.0" styleClass="reset-button" text="&lt;" />
-                                    <Button fx:id="btnPage1" mnemonicParsing="false" onAction="#goToPage1" prefHeight="28.0" prefWidth="32.0" styleClass="search-button" text="1" />
-                                    <Button fx:id="btnPage2" mnemonicParsing="false" onAction="#goToPage2" prefHeight="28.0" prefWidth="32.0" styleClass="reset-button" text="2" />
-                                    <Button fx:id="btnPage3" mnemonicParsing="false" onAction="#goToPage3" prefHeight="28.0" prefWidth="32.0" styleClass="reset-button" text="3" />
-                                    <Button fx:id="btnNextPage" mnemonicParsing="false" onAction="#handleNextPage" prefHeight="28.0" prefWidth="32.0" styleClass="reset-button" text="&gt;" />
-                                    
-                                    <Region HBox.hgrow="ALWAYS" />
-                                    <Button fx:id="btnExportStudentAudit" mnemonicParsing="false" onAction="#handleExportAudit" prefHeight="32.0" prefWidth="110.0" styleClass="search-button" text="⬇ Export" />
-                                 </children>
-                              </HBox>
+                              <!-- Dynamic Pagination Footer Bar -->
+								<HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #f8fafc; -fx-padding: 10 15; -fx-background-radius: 0 0 7 7; -fx-border-color: #cbd5e1; -fx-border-width: 1 0 0 0;">
+								   <children>
+								      <Label fx:id="lblPaginationInfo" text="Showing 1 – 6 of 6 records" style="-fx-text-fill: #475569; -fx-font-size: 12px;" />
+								      <Region HBox.hgrow="ALWAYS" />
+								
+								      <!-- Fixed-Position Arrows + Self-Centering Page Number Slot -->
+								      <Button fx:id="btnPrevPage" mnemonicParsing="false" onAction="#handlePrevPage" prefHeight="28.0" prefWidth="32.0" minWidth="32.0" maxWidth="32.0" styleClass="reset-button" text="&lt;" />
+								      <HBox alignment="CENTER" spacing="8.0" prefWidth="112.0" minWidth="112.0" maxWidth="112.0">
+								         <children>
+								            <Button fx:id="btnPage1" mnemonicParsing="false" onAction="#goToPage1" prefHeight="28.0" prefWidth="32.0" minWidth="32.0" maxWidth="32.0" styleClass="search-button" text="1" />
+								            <Button fx:id="btnPage2" mnemonicParsing="false" onAction="#goToPage2" prefHeight="28.0" prefWidth="32.0" minWidth="32.0" maxWidth="32.0" styleClass="reset-button" text="2" />
+								            <Button fx:id="btnPage3" mnemonicParsing="false" onAction="#goToPage3" prefHeight="28.0" prefWidth="32.0" minWidth="32.0" maxWidth="32.0" styleClass="reset-button" text="3" />
+								         </children>
+								      </HBox>
+								      <Button fx:id="btnNextPage" mnemonicParsing="false" onAction="#handleNextPage" prefHeight="28.0" prefWidth="32.0" minWidth="32.0" maxWidth="32.0" styleClass="reset-button" text="&gt;" />
+								   </children>
+								</HBox>
                            </children>
                         </VBox>
                      </children>

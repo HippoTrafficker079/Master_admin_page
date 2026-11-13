@@ -443,11 +443,16 @@ public class TeacherDAO {
                 pstmtContact.executeUpdate();
             }
             try (PreparedStatement pstmtAcademic = conn.prepareStatement(teacherAcademicSql)) {
+                int yearCompInt = 0;
+                if (teacher.getYearCompleted() != null && teacher.getYearCompleted().trim().matches("\\d+")) {
+                    yearCompInt = Integer.parseInt(teacher.getYearCompleted().trim());
+                }
                 pstmtAcademic.setString(1, teacher.getDegree());
                 pstmtAcademic.setString(2, teacher.getUniversity());
-                pstmtAcademic.setString(3, teacher.getYearCompleted());
+                pstmtAcademic.setInt(3, yearCompInt);
                 pstmtAcademic.setString(4, teacher.getSpecialization());
-                pstmtAcademic.setInt(5, teacher.getNo());
+                pstmtAcademic.setString(5, teacher.getEmergencyContact());
+                pstmtAcademic.setInt(6, teacher.getNo());
                 pstmtAcademic.executeUpdate();
             }
             conn.commit();
