@@ -40,12 +40,16 @@
       <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: white; -fx-padding: 12 16; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
          <children>
             <TextField fx:id="searchField" onAction="#handleSearch" prefHeight="38.0" promptText="Search roll no, name, or phone..." style="-fx-background-color: #ffffff; -fx-border-color: #cbd5e1; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 0 12; -fx-font-size: 13px; -fx-text-fill: #1e293b;" HBox.hgrow="ALWAYS" />
-            <Button mnemonicParsing="false" onAction="#handleSearch" prefHeight="38.0" prefWidth="95.0" style="-fx-background-color: #2d567c; -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" text="Search" />
-            <Button mnemonicParsing="false" onAction="#handleReset" prefHeight="38.0" prefWidth="85.0" style="-fx-background-color: #e2e8f0; -fx-text-fill: #334155; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;" text="Reset" />
+            <Button mnemonicParsing="false" onAction="#handleSearch" prefHeight="38.0" prefWidth="95.0"
+			        styleClass="search-button" text="Search"
+			        style="-fx-font-size: 13px;" />
+			<Button mnemonicParsing="false" onAction="#handleReset" prefHeight="38.0" prefWidth="85.0"
+			        styleClass="reset-button" text="Reset"
+			        style="-fx-font-size: 13px;" />
          </children>
       </HBox>
 
-      <!-- Striking Instruction Banner Box matching requested design -->
+      <!-- Hint Banner -->
       <HBox alignment="CENTER_LEFT" style="-fx-background-color: #eff6ff; -fx-padding: 10 14; -fx-background-radius: 6; -fx-border-color: #bfdbfe; -fx-border-radius: 6;">
          <children>
             <Label text="💡  Select student row(s) below to remove (Hold Ctrl or Shift for multi-selection):" textFill="#1d4ed8">

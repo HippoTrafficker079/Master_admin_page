@@ -88,8 +88,7 @@ public class StudentController {
         colPhone.setCellValueFactory(cellData -> cellData.getValue().phoneNoProperty());
         
         ObservableList<String> majorOptions = FXCollections.observableArrayList(
-                "All Majors", "Pending", "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex",
-                "FE");
+                "All Majors", "Pending", "C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE");
 
         ObservableList<String> yearOptions = FXCollections.observableArrayList(
                 "All Years", "First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year");

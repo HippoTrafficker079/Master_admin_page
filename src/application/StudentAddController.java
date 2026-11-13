@@ -97,8 +97,8 @@ public class StudentAddController {
     private ObservableList<String> currentTownshipOptions;
     private FilteredList<String> filteredTownships;
 
-    private final String[] VALID_MAJORS = { "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met",
-            "Tex", "FE" };
+    private final String[] VALID_MAJORS = { "C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE" };
+    
     private final String[] VALID_YEARS = { "First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year" };
 
     @FXML

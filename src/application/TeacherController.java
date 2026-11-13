@@ -79,8 +79,8 @@ public class TeacherController {
         colPhone.setCellValueFactory(cellData -> cellData.getValue().phoneNoProperty());
 
         ObservableList<String> departmentOptions = FXCollections.observableArrayList(
-            "All Departments", "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex", "FE"
-        );
+        	    "All Departments", "C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE"
+        	);
 
         ObservableList<String> positionOptions = FXCollections.observableArrayList(
             "All Positions", "Professor & Head", "Professor", "Associate Professor", "Lecturer", "Assistant Lecturer", "Tutor"

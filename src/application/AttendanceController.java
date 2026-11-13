@@ -24,7 +24,7 @@ public class AttendanceController {
 
     @FXML private VBox rootPane, matrixFilterBox, dailyFilterBox;
     @FXML private Button btnClassView, btnIndividualView, btnMatrixSummary, btnDailyLog, btnSaveChanges, btnExportStudentAudit;
-    @FXML private Button btnExport, btnBackToList;
+    @FXML private Button btnBackToList;
     @FXML private HBox subModeBar, hintBoxMatrix, hintBoxDaily, hintBoxIndiv, saveChangesBox;
     
     @FXML private ScrollPane individualDashboardScroll;
@@ -197,7 +197,7 @@ public class AttendanceController {
 
         // Combo Boxes population
         comboDepartment.setItems(FXCollections.observableArrayList(
-            "All Departments", "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex", "FE"
+        	    "All Departments", "C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE"
         ));
         comboDepartment.setValue("All Departments");
 
@@ -408,6 +408,7 @@ public class AttendanceController {
                     if (getItem() != null) getItem().statusProperty().removeListener(statusListener);
                     super.updateItem(item, empty);
                     if (item == null || empty) {
+                        setStyle("");
                         getStyleClass().removeAll("row-present", "row-absent", "row-excused");
                     } else {
                         item.statusProperty().addListener(statusListener);
@@ -583,8 +584,10 @@ public class AttendanceController {
     // CSS-BASED ROW HIGHLIGHTS (Replaces hardcoded inline styles)
     // -------------------------------------------------------------
     private void applyDailyRowStyle(TableRow<AttendanceRecord> row, String status) {
+        row.setStyle("");
         row.getStyleClass().removeAll("row-present", "row-absent", "row-excused");
-        
+
+        if (status == null) return;
         if (status.equalsIgnoreCase("Present")) {
             row.getStyleClass().add("row-present");
         } else if (status.equalsIgnoreCase("Absent")) {
@@ -595,17 +598,18 @@ public class AttendanceController {
     }
 
     private TableRow<AttendanceRecord> createLowAttendanceRowFactory() {
-        TableRow<AttendanceRecord> row = new TableRow<AttendanceRecord>() {
+        return new TableRow<AttendanceRecord>() {
             @Override
             protected void updateItem(AttendanceRecord item, boolean empty) {
                 super.updateItem(item, empty);
+                setStyle("");
                 getStyleClass().remove("row-low-attendance");
+
                 if (item != null && !empty && item.isLowAttendance()) {
                     getStyleClass().add("row-low-attendance");
                 }
             }
         };
-        return row;
     }
 
     @FXML
@@ -686,7 +690,7 @@ public class AttendanceController {
         
         btnBackToList.setVisible(false);
         btnBackToList.setManaged(false);
-        btnExport.setText("Export Matrix Report");
+//        btnExport.setText("Export Matrix Report");
         
         updateActiveButtonStyles(btnClassView, btnIndividualView);
         applyFilters();
@@ -757,7 +761,7 @@ public class AttendanceController {
             chronoLogData.clear();
         }
         
-        btnExport.setText("Export Student Audit");
+//        btnExport.setText("Export Student Audit");
         updateActiveButtonStyles(btnIndividualView, btnClassView);
 
         applyFilters();
@@ -1177,13 +1181,13 @@ public class AttendanceController {
         alert.showAndWait();
     }
 
-    @FXML
-    private void handleExportAudit() {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Export Student Audit");
-        alert.setHeaderText(null);
-        alert.setContentText("Exporting attendance audit report for " + selectedStudentName + " (" + selectedStudentRollNo + ")...");
-        alert.getDialogPane().setMinWidth(380);
-        alert.showAndWait();
-    }
+//    @FXML
+//    private void handleExportAudit() {
+//        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+//        alert.setTitle("Export Student Audit");
+//        alert.setHeaderText(null);
+//        alert.setContentText("Exporting attendance audit report for " + selectedStudentName + " (" + selectedStudentRollNo + ")...");
+//        alert.getDialogPane().setMinWidth(380);
+//        alert.showAndWait();
+//    }
 }
