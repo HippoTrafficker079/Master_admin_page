@@ -5,6 +5,9 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -70,7 +73,7 @@ public class TeacherAddController {
     private final String DEFAULT_IMAGE_PATH = "/freddy.jpg";
     private boolean isUpdating = false;
 
-    private final String[] VALID_DEPTS = { "C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE" };
+    private final String[] VALID_DEPTS = {"C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE"};
     
     private final String[] VALID_POSITIONS = { "Professor & Head", "Professor", "Associate Professor", "Lecturer", "Assistant Lecturer", "Tutor" };
 
@@ -615,12 +618,14 @@ public class TeacherAddController {
         String dept = getMapOrIndex(map, rawOrder, 2, "department", "dept");
         String pos = getMapOrIndex(map, rawOrder, 3, "position", "title");
         String phone = getMapOrIndex(map, rawOrder, 4, "phone", "phone number");
+        String dob = normalizeDateToYMD(getMapOrIndex(map, rawOrder, 5, "dob", "date of birth"));
+        
         if (code.isEmpty() || name.isEmpty()) return null;
 
         return new Teacher(
                 seqNo, code, name, dept.isEmpty() ? "CEIT" : dept, pos.isEmpty() ? "Tutor" : pos,
                 phone.isEmpty() ? "09-000000000" : phone,
-                getMapOrIndex(map, rawOrder, 5, "dob"), getMapOrIndex(map, rawOrder, 6, "gender"),
+                dob, getMapOrIndex(map, rawOrder, 6, "gender"),
                 getMapOrIndex(map, rawOrder, 7, "nationality"), getMapOrIndex(map, rawOrder, 8, "nrc"),
                 getMapOrIndex(map, rawOrder, 9, "email"), getMapOrIndex(map, rawOrder, 10, "current address"),
                 getMapOrIndex(map, rawOrder, 11, "permanent address"), getMapOrIndex(map, rawOrder, 12, "degree"),
@@ -847,5 +852,47 @@ public class TeacherAddController {
             alert.initOwner(txtTeacherId.getScene().getWindow());
         }
         alert.showAndWait();
+    }
+    
+    private String normalizeDateToYMD(String rawDate) {
+        if (rawDate == null || rawDate.trim().isEmpty()) {
+            return "";
+        }
+        String cleaned = rawDate.trim();
+
+        // 1. Handle Excel numeric serial dates (e.g., 30177 or 30177.0)
+        if (cleaned.matches("^\\d+(\\.0+)?$")) {
+            try {
+                long serialDays = (long) Double.parseDouble(cleaned);
+                // Excel epoch starts 1899-12-30 (accounting for Excel's 1900 leap-year bug)
+                LocalDate date = LocalDate.of(1899, 12, 30).plusDays(serialDays);
+                return date.format(DateTimeFormatter.ISO_LOCAL_DATE); // yyyy-MM-dd
+            } catch (Exception ignored) {
+            }
+        }
+
+        // 2. Try common date patterns (day-month-year & year-month-day with '-', '/', or '.')
+        String[] patterns = {
+            "d-M-yyyy",
+            "dd-MM-yyyy",
+            "d/M/yyyy",
+            "dd/MM/yyyy",
+            "d.M.yyyy",
+            "dd.MM.yyyy",
+            "yyyy-M-d",
+            "yyyy-MM-dd",
+            "yyyy/M/d",
+            "yyyy/MM/dd"
+        };
+
+        for (String pattern : patterns) {
+            try {
+                LocalDate parsed = LocalDate.parse(cleaned, DateTimeFormatter.ofPattern(pattern));
+                return parsed.format(DateTimeFormatter.ISO_LOCAL_DATE); // Always returns yyyy-MM-dd
+            } catch (DateTimeParseException ignored) {
+            }
+        }
+
+        return cleaned;
     }
 }

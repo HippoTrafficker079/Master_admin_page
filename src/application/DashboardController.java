@@ -1,19 +1,25 @@
 package application;
 
 import java.lang.reflect.Method;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import application.dao.StudentDAO;
 import application.dao.TeacherDAO;
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Bounds;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.chart.AreaChart;
@@ -34,41 +40,28 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
-
-import java.time.DayOfWeek;
-import javafx.geometry.Bounds;
-import javafx.geometry.Pos;
-import javafx.scene.control.Button;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polygon;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
-
-import javafx.animation.FadeTransition;
-import javafx.animation.Interpolator;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
 import javafx.util.Duration;
 
 public class DashboardController {
 
-    // --- KPI Top Metric Labels ---
+    // =========================================================================
+    // 1. FXML UI COMPONENTS
+    // =========================================================================
+
+    // Root & KPI Summary Labels
+    @FXML private ScrollPane rootScrollPane;
     @FXML private Label lblTotalStudents;
     @FXML private Label lblActiveStudents;
     @FXML private Label lblTotalTeachers;
     @FXML private Label lblTotalCourses;
     @FXML private Label lblTodaysAttendance;
     @FXML private Label lblCurrentDate;
-    @FXML private ScrollPane rootScrollPane;
 
-    // --- Tables & Charts ---
+    // Recent Mark Registrations Table
     @FXML private TableView<MarkRecord> markTable;
     @FXML private TableColumn<MarkRecord, String> colStudentId;
     @FXML private TableColumn<MarkRecord, String> colStudentName;
@@ -76,18 +69,20 @@ public class DashboardController {
     @FXML private TableColumn<MarkRecord, String> colMarks;
     @FXML private TableColumn<MarkRecord, String> colStatus;
 
+    // Students by Department Pie Chart
     @FXML private PieChart departmentPieChart;
     @FXML private VBox departmentLegendBox;
+
+    // Student Enrollment Trend Bar Chart
     @FXML private BarChart<String, Number> enrollmentBarChart;
     @FXML private CategoryAxis xAxisEnrollment;
     @FXML private NumberAxis yAxisEnrollment;
     @FXML private ComboBox<String> comboEnrollmentFilter;
 
+    // Attendance Overview Area Chart & Interactive Controls
     @FXML private AreaChart<String, Number> attendanceAreaChart;
     @FXML private CategoryAxis xAxisAttendance;
     @FXML private NumberAxis yAxisAttendance;
-    
- // Add these @FXML fields beside attendanceAreaChart in DashboardController.java:
     @FXML private Label lblWeeklyAttendanceAvg;
     @FXML private Label lblAttendanceDateRange;
     @FXML private Button btnAttDaily;
@@ -95,14 +90,24 @@ public class DashboardController {
     @FXML private Button btnAttMonthly;
     @FXML private ComboBox<String> comboAttendanceMajor;
     @FXML private Pane attendanceOverlayPane;
-    
+
+
+    // =========================================================================
+    // 2. CONTROLLER STATE & SINGLETON INSTANCE
+    // =========================================================================
+
+    private static DashboardController instance;
+
     private int cachedTotalStudents = 510;
     private Timeline activeAttendanceAnim;
     private String lastRenderedPeriod = "";
-    
     private String currentAttendancePeriod = "Weekly";
-    
-    private static DashboardController instance;
+
+
+    // =========================================================================
+    // 3. INITIALIZATION & REAL-TIME LISTENERS
+    // =========================================================================
+
     @FXML
     public void initialize() {
         instance = this;
@@ -111,6 +116,15 @@ public class DashboardController {
             lblCurrentDate.setText(LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, dd MMM yyyy")));
         }
 
+        setupMarkTable();
+        setupChartFilters();
+        setupDataRefreshListeners();
+
+        // Initial load
+        updateDashboardMetricsAndCharts();
+    }
+
+    private void setupMarkTable() {
         if (markTable != null) {
             markTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
             colStudentId.setCellValueFactory(cell -> cell.getValue().studentIdProperty());
@@ -119,7 +133,9 @@ public class DashboardController {
             colMarks.setCellValueFactory(cell -> cell.getValue().marksProperty());
             colStatus.setCellValueFactory(cell -> cell.getValue().statusProperty());
         }
+    }
 
+    private void setupChartFilters() {
         if (comboEnrollmentFilter != null) {
             comboEnrollmentFilter.setItems(FXCollections.observableArrayList("Last 6 Years", "Last 4 Years", "Last 2 Years"));
             comboEnrollmentFilter.setValue("Last 6 Years");
@@ -132,7 +148,7 @@ public class DashboardController {
                 }
             });
         }
-        
+
         if (comboAttendanceMajor != null) {
             comboAttendanceMajor.setItems(FXCollections.observableArrayList(
                 "All Majors", "C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE"
@@ -144,7 +160,9 @@ public class DashboardController {
                 }
             });
         }
-        
+    }
+
+    private void setupDataRefreshListeners() {
         // Automatically refresh whenever Dashboard is switched into view
         if (rootScrollPane != null) {
             rootScrollPane.parentProperty().addListener((obs, oldParent, newParent) -> {
@@ -153,10 +171,6 @@ public class DashboardController {
                 }
             });
         }
-
-        // Initial update
-        updateDashboardMetricsAndCharts();
-
 
         // Listen for real-time changes in Student master data if loaded
         if (StudentController.masterData != null) {
@@ -173,15 +187,26 @@ public class DashboardController {
         }
     }
 
+    public static void refreshDashboard() {
+        if (instance != null) {
+            Platform.runLater(() -> instance.updateDashboardMetricsAndCharts());
+        }
+    }
+
+
+    // =========================================================================
+    // 4. KPI METRICS & MARK REGISTRATIONS TABLE REFRESH
+    // =========================================================================
+
     private void updateDashboardMetricsAndCharts() {
-        // 1. --- Fetch Fresh Live Counts Directly From Database DAOs ---
+        // 1. Fetch fresh live counts directly from Database DAOs
         int totalStudents = 0;
         int totalTeachers = 0;
         int totalCourses = 96;
         double todaysAttendance = 94.5;
 
         List<Student> dbStudents = null;
-        
+
         try {
             StudentDAO studentDAO = new StudentDAO();
             dbStudents = studentDAO.getAllStudent();
@@ -209,89 +234,70 @@ public class DashboardController {
 
         int activeStudents = (int) (totalStudents * 0.96);
 
-        // Update KPI UI Labels instantly
+        // Update KPI UI labels
         if (lblTotalStudents != null) lblTotalStudents.setText(String.format("%,d", totalStudents));
         if (lblActiveStudents != null) lblActiveStudents.setText(String.format("%,d", activeStudents));
         if (lblTotalTeachers != null) lblTotalTeachers.setText(String.format("%,d", totalTeachers));
         if (lblTotalCourses != null) lblTotalCourses.setText(String.valueOf(totalCourses));
         if (lblTodaysAttendance != null) lblTodaysAttendance.setText(String.format("%.1f%%", todaysAttendance));
 
-        ObservableList<Student> studentsObservable = dbStudents != null ? FXCollections.observableArrayList(dbStudents) 
+        ObservableList<Student> studentsObservable = dbStudents != null ? FXCollections.observableArrayList(dbStudents)
                 : (StudentController.masterData != null ? StudentController.masterData : FXCollections.observableArrayList());
 
-        // 2. --- Update Student Enrollment Trend Bar Chart ---
+        // 2. Update Student Enrollment Trend Bar Chart
         updateEnrollmentTrend(studentsObservable);
 
-        // 3. --- Update Mark Registrations Table ---
-        if (markTable != null) {
-            ObservableList<MarkRecord> markRecords = FXCollections.observableArrayList();
-            if (!studentsObservable.isEmpty()) {
-                int limit = Math.min(studentsObservable.size(), 10);
-                String[] subjects = {"Data Structures", "Database Systems", "Embedded Systems", "Digital Electronics", "Computer Networks", "Algorithms"};
-                for (int i = studentsObservable.size() - 1; i >= Math.max(0, studentsObservable.size() - limit); i--) {
-                    Student s = studentsObservable.get(i);
-                    String id = getStudentProperty(s, "getStudentId", "getNo", "YTU2026018");
-                    String name = getStudentProperty(s, "getName", "getStudentName", "Student");
-                    String subj = subjects[i % subjects.length];
-                    String score = String.valueOf(75 + (i * 3) % 25);
-                    
-                    markRecords.add(new MarkRecord(
-                        id.startsWith("YTU") ? id : "YTU20260" + id,
-                        name,
-                        subj,
-                        score,
-                        "● Passed"
-                    ));
-                }
-            } else {
-                markRecords.addAll(
-                    new MarkRecord("YTU2026018", "Aye Chan", "Embedded Systems", "88", "● Passed"),
-                    new MarkRecord("YTU2026017", "Htet Htet", "Database Systems", "92", "● Passed")
-                );
-            }
-            markTable.setItems(markRecords);
-        }
+        // 3. Update Mark Registrations Table
+        updateMarkRegistrationsTable(studentsObservable);
 
-        // 4. --- Update Students by Department Pie Chart ---
+        // 4. Update Students by Department Pie Chart
         updateDepartmentPieChart(studentsObservable, totalStudents);
 
-        // 5. --- Update Attendance Overview Area Chart ---
+        // 5. Update Attendance Overview Area Chart
         updateAttendanceChart();
     }
 
-    private String getStudentDepartmentSafe(Student s) {
-        if (s == null) return "Pending";
-        // Student model uses getMajor()
-        String dept = getStudentProperty(s, "getMajor", "getDepartment", null);
-        if (dept == null || dept.trim().isEmpty() || dept.trim().equals("-")) {
-            return "Pending";
-        }
-        return dept.trim();
-    }
-    
-    
-    private String getStudentProperty(Object obj, String method1, String method2, String fallback) {
-        try {
-            Method m = obj.getClass().getMethod(method1);
-            Object val = m.invoke(obj);
-            if (val != null) return val.toString();
-        } catch (Exception e1) {
-            try {
-                Method m = obj.getClass().getMethod(method2);
-                Object val = m.invoke(obj);
-                if (val != null) return val.toString();
-            } catch (Exception e2) {
-                // Ignore
+    private void updateMarkRegistrationsTable(ObservableList<Student> studentsObservable) {
+        if (markTable == null) return;
+
+        ObservableList<MarkRecord> markRecords = FXCollections.observableArrayList();
+        if (!studentsObservable.isEmpty()) {
+            int limit = Math.min(studentsObservable.size(), 10);
+            String[] subjects = {"Data Structures", "Database Systems", "Embedded Systems", "Digital Electronics", "Computer Networks", "Algorithms"};
+            for (int i = studentsObservable.size() - 1; i >= Math.max(0, studentsObservable.size() - limit); i--) {
+                Student s = studentsObservable.get(i);
+                String id = getStudentProperty(s, "getStudentId", "getNo", "YTU2026018");
+                String name = getStudentProperty(s, "getName", "getStudentName", "Student");
+                String subj = subjects[i % subjects.length];
+                String score = String.valueOf(75 + (i * 3) % 25);
+
+                markRecords.add(new MarkRecord(
+                    id.startsWith("YTU") ? id : "YTU20260" + id,
+                    name,
+                    subj,
+                    score,
+                    "● Passed"
+                ));
             }
+        } else {
+            markRecords.addAll(
+                new MarkRecord("YTU2026018", "Aye Chan", "Embedded Systems", "88", "● Passed"),
+                new MarkRecord("YTU2026017", "Htet Htet", "Database Systems", "92", "● Passed")
+            );
         }
-        return fallback;
+        markTable.setItems(markRecords);
     }
+
+
+    // =========================================================================
+    // 5. STUDENT ENROLLMENT TREND BAR CHART
+    // =========================================================================
 
     private void updateEnrollmentTrend(ObservableList<Student> students) {
         if (enrollmentBarChart == null) return;
 
-        String filter = comboEnrollmentFilter != null && comboEnrollmentFilter.getValue() != null 
-                ? comboEnrollmentFilter.getValue() 
+        String filter = comboEnrollmentFilter != null && comboEnrollmentFilter.getValue() != null
+                ? comboEnrollmentFilter.getValue()
                 : "Last 6 Years";
 
         int currentYear = LocalDate.now().getYear(); // 2026
@@ -401,13 +407,22 @@ public class DashboardController {
         });
     }
 
+
+    // =========================================================================
+    // 6. STUDENTS BY DEPARTMENT PIE CHART
+    // =========================================================================
+
     private void updateDepartmentPieChart(ObservableList<Student> students, int totalStudents) {
         if (departmentPieChart == null) return;
         departmentPieChart.getData().clear();
         if (departmentLegendBox != null) {
             departmentLegendBox.getChildren().clear();
         }
-
+        if (departmentLegendBox != null) {
+            departmentLegendBox.getChildren().clear();
+            departmentLegendBox.setAlignment(Pos.CENTER_LEFT);
+        }
+        
         // Ordered list of majors matching ManageStudent (code -> {Full Name, Hex Color})
         Map<String, String[]> majorMeta = new LinkedHashMap<>();
         majorMeta.put("Arch",    new String[]{"Architecture",                                  "#0a192f"});
@@ -425,6 +440,7 @@ public class DashboardController {
         majorMeta.put("Tele",    new String[]{"Telecommunication Engineering",                 "#64748b"});
         majorMeta.put("Tex",     new String[]{"Textile Engineering",                           "#94a3b8"});
         majorMeta.put("Pending", new String[]{"Pending Assignment",                            "#cbd5e1"});
+
         // Count students per major from live ManageStudent data
         Map<String, Integer> counts = new LinkedHashMap<>();
         for (String code : majorMeta.keySet()) {
@@ -517,6 +533,11 @@ public class DashboardController {
         applySliceColors.run();
         Platform.runLater(applySliceColors);
     }
+
+
+    // =========================================================================
+    // 7. ATTENDANCE OVERVIEW AREA CHART & INTERACTIVE OVERLAY
+    // =========================================================================
 
     @FXML
     private void handleAttDaily() {
@@ -822,10 +843,35 @@ public class DashboardController {
         lbl.setStyle("-fx-text-fill: #f8fafc; -fx-font-size: 12px; -fx-font-weight: bold;");
         return lbl;
     }
-    
-    public static void refreshDashboard() {
-        if (instance != null) {
-            Platform.runLater(() -> instance.updateDashboardMetricsAndCharts());
+
+
+    // =========================================================================
+    // 8. HELPER UTILITIES
+    // =========================================================================
+
+    private String getStudentDepartmentSafe(Student s) {
+        if (s == null) return "Pending";
+        String dept = getStudentProperty(s, "getMajor", "getDepartment", null);
+        if (dept == null || dept.trim().isEmpty() || dept.trim().equals("-")) {
+            return "Pending";
         }
+        return dept.trim();
+    }
+
+    private String getStudentProperty(Object obj, String method1, String method2, String fallback) {
+        try {
+            Method m = obj.getClass().getMethod(method1);
+            Object val = m.invoke(obj);
+            if (val != null) return val.toString();
+        } catch (Exception e1) {
+            try {
+                Method m = obj.getClass().getMethod(method2);
+                Object val = m.invoke(obj);
+                if (val != null) return val.toString();
+            } catch (Exception e2) {
+                // Ignore
+            }
+        }
+        return fallback;
     }
 }

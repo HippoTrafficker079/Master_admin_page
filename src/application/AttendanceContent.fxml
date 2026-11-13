@@ -398,7 +398,7 @@
                               </HBox>
 
                               <!-- Detailed Chronological Log Table -->
-                              <TableView fx:id="chronologicalLogTable" prefHeight="232.0" minHeight="232.0" maxHeight="232.0" style="-fx-border-width: 0;">
+                              <TableView fx:id="chronologicalLogTable" prefHeight="272.0" minHeight="272.0" maxHeight="272.0" style="-fx-border-width: 0;">
                                 <columns>
                                   <TableColumn fx:id="colNoChrono" prefWidth="50.0" maxWidth="65.0" text="No" />
                                   <TableColumn fx:id="colDateChrono" prefWidth="135.0" text="Date" />
@@ -416,12 +416,16 @@
 								      <Label fx:id="lblPaginationInfo" text="Showing 1 – 6 of 6 records" style="-fx-text-fill: #475569; -fx-font-size: 12px;" />
 								      <Region HBox.hgrow="ALWAYS" />
 								
-								      <!-- Dynamic Pagination Buttons -->
-								      <Button fx:id="btnPrevPage" mnemonicParsing="false" onAction="#handlePrevPage" prefHeight="28.0" prefWidth="32.0" styleClass="reset-button" text="&lt;" />
-								      <Button fx:id="btnPage1" mnemonicParsing="false" onAction="#goToPage1" prefHeight="28.0" prefWidth="32.0" styleClass="search-button" text="1" />
-								      <Button fx:id="btnPage2" mnemonicParsing="false" onAction="#goToPage2" prefHeight="28.0" prefWidth="32.0" styleClass="reset-button" text="2" />
-								      <Button fx:id="btnPage3" mnemonicParsing="false" onAction="#goToPage3" prefHeight="28.0" prefWidth="32.0" styleClass="reset-button" text="3" />
-								      <Button fx:id="btnNextPage" mnemonicParsing="false" onAction="#handleNextPage" prefHeight="28.0" prefWidth="32.0" styleClass="reset-button" text="&gt;" />
+								      <!-- Fixed-Position Arrows + Self-Centering Page Number Slot -->
+								      <Button fx:id="btnPrevPage" mnemonicParsing="false" onAction="#handlePrevPage" prefHeight="28.0" prefWidth="32.0" minWidth="32.0" maxWidth="32.0" styleClass="reset-button" text="&lt;" />
+								      <HBox alignment="CENTER" spacing="8.0" prefWidth="112.0" minWidth="112.0" maxWidth="112.0">
+								         <children>
+								            <Button fx:id="btnPage1" mnemonicParsing="false" onAction="#goToPage1" prefHeight="28.0" prefWidth="32.0" minWidth="32.0" maxWidth="32.0" styleClass="search-button" text="1" />
+								            <Button fx:id="btnPage2" mnemonicParsing="false" onAction="#goToPage2" prefHeight="28.0" prefWidth="32.0" minWidth="32.0" maxWidth="32.0" styleClass="reset-button" text="2" />
+								            <Button fx:id="btnPage3" mnemonicParsing="false" onAction="#goToPage3" prefHeight="28.0" prefWidth="32.0" minWidth="32.0" maxWidth="32.0" styleClass="reset-button" text="3" />
+								         </children>
+								      </HBox>
+								      <Button fx:id="btnNextPage" mnemonicParsing="false" onAction="#handleNextPage" prefHeight="28.0" prefWidth="32.0" minWidth="32.0" maxWidth="32.0" styleClass="reset-button" text="&gt;" />
 								   </children>
 								</HBox>
                            </children>

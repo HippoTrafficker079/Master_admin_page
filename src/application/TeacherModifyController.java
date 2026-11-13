@@ -70,7 +70,7 @@ public class TeacherModifyController {
     private HBox bannerBox = null;
     private final String DEFAULT_IMAGE_PATH = "/freddy.jpg";
 
-    private final String[] VALID_DEPTS = { "C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE" };
+    private final String[] VALID_DEPTS = {"C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE"};
     
     private final String[] VALID_POSITIONS = {"Professor & Head", "Professor", "Associate Professor", "Lecturer", "Assistant Lecturer", "Tutor"};
 

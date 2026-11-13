@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -97,7 +98,7 @@ public class StudentAddController {
     private ObservableList<String> currentTownshipOptions;
     private FilteredList<String> filteredTownships;
 
-    private final String[] VALID_MAJORS = { "C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE" };
+    private final String[] VALID_MAJORS = {"C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE"};
     
     private final String[] VALID_YEARS = { "First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year" };
 
@@ -748,6 +749,8 @@ public class StudentAddController {
         String rollNo = getMapOrIndex(map, rawOrder, 0, "roll no", "rollno", "roll_no", "id", "studentid");
         String name = getMapOrIndex(map, rawOrder, 1, "name", "full name", "fullname", "student name");
         String major = findValidMajor(getMapOrIndex(map, rawOrder, 2, "major", "programme", "department"));
+        
+        
         if (major == null)
             major = "CEIT";
 
@@ -759,7 +762,8 @@ public class StudentAddController {
         if (phone.isEmpty())
             phone = "09-000000000";
 
-        String dob = getMapOrIndex(map, rawOrder, 6, "dob", "date of birth", "birthdate");
+        String rawDob = getMapOrIndex(map, rawOrder, 6, "date of birth", "dob", "birth date");
+        String dob = normalizeDateToYMD(rawDob);
         String gender = getMapOrIndex(map, rawOrder, 7, "gender", "sex");
         if (!gender.equalsIgnoreCase("Female") && !gender.equalsIgnoreCase("Male"))
             gender = "Male";
@@ -1208,5 +1212,47 @@ public class StudentAddController {
     @FXML
     public void handleNrcHelp() {
         showAlert("NRC Help", "Please select the State code, Township, Type, and enter the 6-digit NRC number.", Alert.AlertType.INFORMATION);
+    }
+    
+    private String normalizeDateToYMD(String rawDate) {
+        if (rawDate == null || rawDate.trim().isEmpty()) {
+            return "";
+        }
+        String cleaned = rawDate.trim();
+
+        // 1. Handle Excel numeric serial dates (e.g., 30177 or 30177.0)
+        if (cleaned.matches("^\\d+(\\.0+)?$")) {
+            try {
+                long serialDays = (long) Double.parseDouble(cleaned);
+                // Excel epoch starts 1899-12-30 (accounting for Excel's 1900 leap-year bug)
+                LocalDate date = LocalDate.of(1899, 12, 30).plusDays(serialDays);
+                return date.format(DateTimeFormatter.ISO_LOCAL_DATE); // yyyy-MM-dd
+            } catch (Exception ignored) {
+            }
+        }
+
+        // 2. Try common date patterns (day-month-year & year-month-day with '-', '/', or '.')
+        String[] patterns = {
+            "d-M-yyyy",
+            "dd-MM-yyyy",
+            "d/M/yyyy",
+            "dd/MM/yyyy",
+            "d.M.yyyy",
+            "dd.MM.yyyy",
+            "yyyy-M-d",
+            "yyyy-MM-dd",
+            "yyyy/M/d",
+            "yyyy/MM/dd"
+        };
+
+        for (String pattern : patterns) {
+            try {
+                LocalDate parsed = LocalDate.parse(cleaned, DateTimeFormatter.ofPattern(pattern));
+                return parsed.format(DateTimeFormatter.ISO_LOCAL_DATE); // Always returns yyyy-MM-dd
+            } catch (DateTimeParseException ignored) {
+            }
+        }
+
+        return cleaned;
     }
 }

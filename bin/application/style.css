@@ -511,3 +511,17 @@
     -fx-font-size: 12.5px;
     -fx-padding: 0 6 0 0;
 }
+
+/* Hide vertical scrollbar on Detailed Chronological Log (all 6 rows are visible via pagination) */
+#chronologicalLogTable .scroll-bar:vertical,
+#chronologicalLogTable .scroll-bar:vertical .track,
+#chronologicalLogTable .scroll-bar:vertical .track-background,
+#chronologicalLogTable .scroll-bar:vertical .thumb,
+#chronologicalLogTable .scroll-bar:vertical .increment-button,
+#chronologicalLogTable .scroll-bar:vertical .decrement-button {
+    -fx-pref-width: 0px;
+    -fx-min-width: 0px;
+    -fx-max-width: 0px;
+    -fx-opacity: 0;
+    -fx-padding: 0;
+}
