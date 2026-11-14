@@ -335,31 +335,8 @@ public class AttendanceController {
                 null, false);
         matrixData = FXCollections.observableArrayList(matrixDbRecords);
 
-        dailyLogData = FXCollections.observableArrayList(
-                new AttendanceRecord(1, "III-CEIT-1", "Mg Mg", "CEIT", "Third Year", "Semester I",
-                        LocalDate.of(2026, 7, 20), 1, "Advanced Java", "Present", "U Ba", "On time"),
-                new AttendanceRecord(2, "III-CEIT-1", "Mg Mg", "CEIT", "Third Year", "Semester I",
-                        LocalDate.of(2026, 7, 20), 2, "Data Structures", "Present", "U Ba", "On time"),
-                new AttendanceRecord(3, "III-CEIT-2", "Aye Aye", "CEIT", "Third Year", "Semester I",
-                        LocalDate.of(2026, 7, 20), 3, "Algorithms", "Present", "U Myint", "On time"),
-                new AttendanceRecord(4, "V-ChE-2", "Su Su", "ChE", "Fifth Year", "Semester II",
-                        LocalDate.of(2026, 7, 26), 1, "Chemical Kinetics", "Absent", "Daw Mya", "Unexcused"),
-                new AttendanceRecord(5, "IV-ME-1", "Aung Aung", "ME", "Fourth Year", "Semester I",
-                        LocalDate.of(2026, 7, 26), 4, "Thermodynamics", "Excused", "U Tun", "Medical Leave"),
-                new AttendanceRecord(6, "III-EC-4", "Hla Hla", "EC", "Third Year", "Semester II",
-                        LocalDate.of(2026, 7, 28), 5, "Signal Processing", "Absent", "U Hla", "Unexcused"),
-                new AttendanceRecord(7, "I-CE-1", "Kyaw Kyaw", "CE", "First Year", "Semester I",
-                        LocalDate.of(2026, 8, 2), 2, "Engineering Drawing", "Present", "Daw Hlaing", "On time"),
-                new AttendanceRecord(8, "II-EP-3", "Zin Mar", "EP", "Second Year", "Semester I",
-                        LocalDate.of(2026, 8, 5), 6, "Circuit Theory", "Present", "U Soe", "On time"),
-                new AttendanceRecord(9, "IV-MC-2", "Phone Naing", "MC", "Fourth Year", "Semester II",
-                        LocalDate.of(2026, 8, 10), 7, "Microcontrollers", "Absent", "U Kyaw", "Unexcused"),
-                new AttendanceRecord(10, "V-Arch-1", "Nilar", "Arch", "Fifth Year", "Semester II",
-                        LocalDate.of(2026, 8, 15), 3, "Urban Planning", "Present", "Daw Khin", "On time"),
-                new AttendanceRecord(11, "I-PE-2", "Hein Htet", "PE", "First Year", "Semester II",
-                        LocalDate.of(2026, 8, 20), 8, "Calculus II", "Absent", "U Ba", "Unexcused"),
-                new AttendanceRecord(12, "III-CEIT-1", "Mg Mg", "CEIT", "Third Year", "Semester II",
-                        LocalDate.of(2026, 8, 21), 9, "Computer Networks", "Excused", "Daw Mya", "Family Emergency"));
+        List<AttendanceRecord> dailyLogRecords = attendanceDAO.dailyLog(null, "All Periods", null, false, false, false);
+        dailyLogData = FXCollections.observableArrayList(dailyLogRecords);
 
         individualData = FXCollections.observableArrayList();
         chronoLogData = FXCollections.observableArrayList();
@@ -1018,34 +995,11 @@ public class AttendanceController {
             boolean pChecked = chkPresent.isSelected();
             boolean aChecked = chkAbsent.isSelected();
             boolean eChecked = chkExcuse.isSelected();
-            boolean anyRemarkChecked = pChecked || aChecked || eChecked;
 
-            filteredDailyData.setPredicate(record -> {
-                boolean matchesDate = (selectedDate == null)
-                        || (record.getDateObj() != null && record.getDateObj().equals(selectedDate));
-                boolean matchesPeriod = (selectedPeriod == null || selectedPeriod.equals("All Periods")) ||
-                        String.valueOf(record.getPeriod()).equals(selectedPeriod);
-                boolean matchesSearch = searchText.isEmpty() ||
-                        record.getStudentName().toLowerCase().contains(searchText) ||
-                        record.getRollNo().toLowerCase().contains(searchText) ||
-                        record.getSubject().toLowerCase().contains(searchText);
-
-                boolean matchesRemark = true;
-                if (anyRemarkChecked) {
-                    String rem = record.getRemarks() != null ? record.getRemarks().toLowerCase() : "";
-                    String stat = record.getStatus() != null ? record.getStatus().toLowerCase() : "";
-
-                    boolean isPresentMatch = pChecked && (rem.contains("on time") || stat.contains("present"));
-                    boolean isAbsentMatch = aChecked && (rem.contains("unexcused") || stat.contains("absent"));
-                    boolean isExcuseMatch = eChecked
-                            && (rem.contains("medical") || rem.contains("family") || stat.contains("excused"));
-
-                    matchesRemark = isPresentMatch || isAbsentMatch || isExcuseMatch;
-                }
-
-                return matchesDate && matchesPeriod && matchesSearch && matchesRemark;
-            });
-
+            AttendanceDAO attendanceDAO = new AttendanceDAO();
+            List<AttendanceRecord> dbRecords = attendanceDAO.dailyLog(selectedDate, selectedPeriod, searchText,
+                    pChecked, aChecked, eChecked);
+            dailyLogData.setAll(dbRecords);
         } else if (isClassViewActive && isMatrixMode) {
             // Matrix Summary Filters
             String searchText = searchField.getText() == null ? "" : searchField.getText().trim();
@@ -1056,7 +1010,10 @@ public class AttendanceController {
             LocalDate endDate = endDatePicker.getValue();
             boolean lowOnly = chkLowAttendance.isSelected();
 
-            String courseParam = (selectedSubject == null || selectedSubject.trim().isEmpty()) ? null : selectedSubject;
+            String courseParam = (selectedSubject == null ||
+                    selectedSubject.trim().isEmpty() ||
+                    selectedSubject.equals("All Subjects")) ? null : selectedSubject;
+
             String deptParam = (selectedDept == null || selectedDept.equals("All Departments")) ? null : selectedDept;
             String yearParam = (selectedYear == null || selectedYear.equals("All Years")) ? null : selectedYear;
 

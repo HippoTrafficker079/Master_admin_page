@@ -119,7 +119,7 @@ FROM
     JOIN class_session cs ON ce.offering_id = cs.offering_id
     JOIN course_offering co ON ce.offering_id = co.offering_id
     JOIN course c ON co.course_id = c.course_id
-    LEFT JOIN attendance a ON ce.offering_id = a.offering_id
+    LEFT JOIN attendance a ON ce.enrollment_id = a.enrollment_id
     AND cs.session_id = a.session_id
 WHERE
     ce.status = 'ENROLLED'
@@ -189,7 +189,12 @@ SELECT
     cs.session_date,
     cs.period,
     c.course_name,
-    COALESCE(a.status, 'Present') AS attendance_status,
+    CASE
+        WHEN a.attendance_id IS NULL THEN 'Present'
+        WHEN LOWER(a.remarks) LIKE '%medical%'
+        OR LOWER(a.remarks) LIKE '%family%' THEN 'Excused'
+        ELSE 'Absent'
+    END AS computed_status,
     t.full_name AS teacher_name,
     COALESCE(a.reason, 'On Time')
 FROM
@@ -204,11 +209,11 @@ FROM
     AND ce.enrollment_id = a.enrollment_id
 WHERE
     ua.status = TRUE
-    AND cs.session_date = ?
+    AND cs.session_date = COALESCE(?, CURDATE())
     AND 1 = 1
 ORDER BY cs.period ASC;
---Append dynamically when subject is filtered
-AND c.course_id = ?
+--Append dynamically when searched by searchBar
+AND ( s.full_name LIKE ? OR c.course_name LIKE OR s.roll_no LIKE ? )
 
 --Append dynamically when attendance status is checkbox
 AND COALESCE(a.status, 'Present') = ?

@@ -15,7 +15,7 @@ public class AttendanceDAO {
             String selectedYear,
             String SelectedSubject, LocalDate startDate, LocalDate endDate, boolean lowOnly) {
         StringBuilder sql = new StringBuilder("""
-                                                            WITH
+                                                                            WITH
                     student_attendance_metric AS (
                         SELECT
                             s.user_id,
@@ -34,12 +34,13 @@ public class AttendanceDAO {
                                     AND cs.session_date BETWEEN COALESCE(
                                         ?,
                                         (
-                                            SELECT MIN(cs2.session_date)
-                                            FROM
-                                                class_session cs2
+                                            SELECT MIN(sub.session_date)
+                                            FROM (
+                                                SELECT cs2.session_date
+                                                FROM class_session cs2
                                                 JOIN course_enrollment ce2 ON cs2.offering_id = ce2.offering_id
-                                            WHERE
-                                                ce2.student_id = s.student_id
+                                                WHERE ce2.student_id = s.student_id
+                                            ) AS sub
                                         )
                                     ) AND COALESCE(?, CURDATE())
                                     AND cs.is_cancelled = FALSE
@@ -56,12 +57,13 @@ public class AttendanceDAO {
                                     AND cs.session_date BETWEEN COALESCE(
                                         ?,
                                         (
-                                            SELECT MIN(cs2.session_date)
-                                            FROM
-                                                class_session cs2
+                                            SELECT MIN(sub.session_date)
+                                            FROM (
+                                                SELECT cs2.session_date
+                                                FROM class_session cs2
                                                 JOIN course_enrollment ce2 ON cs2.offering_id = ce2.offering_id
-                                            WHERE
-                                                ce2.student_id = s.student_id
+                                                WHERE ce2.student_id = s.student_id
+                                            ) AS sub
                                         )
                                     ) AND COALESCE(?, CURDATE())
                             ) AS total_absent
@@ -97,7 +99,7 @@ public class AttendanceDAO {
                 FROM student_attendance_metric
                 WHERE
                     1 = 1
-                        """);
+                                        """);
         List<Object> parameters = new ArrayList<>();
 
         parameters.add(startDate != null ? startDate.toString() : null);
@@ -134,12 +136,12 @@ public class AttendanceDAO {
             String selectedYear,
             String SelectedSubject, LocalDate startDate, LocalDate endDate, boolean lowOnly, String selectedCourse) {
         StringBuilder sql = new StringBuilder("""
-                    SELECT
+                        SELECT
                     s.user_id,
                     s.student_id,
                     s.roll_no,
                     s.full_name,
-                    d.dept_code,
+                    d.dept_code AS dept_code,
                     s.current_year,
                     COUNT(cs.session_id) AS total_sessions,
                     COUNT(a.attendance_id) AS total_absent,
@@ -157,7 +159,7 @@ public class AttendanceDAO {
                     JOIN class_session cs ON ce.offering_id = cs.offering_id
                     JOIN course_offering co ON ce.offering_id = co.offering_id
                     JOIN course c ON co.course_id = c.course_id
-                    LEFT JOIN attendance a ON ce.offering_id = a.offering_id
+                    LEFT JOIN attendance a ON ce.enrollment_id = a.enrollment_id
                     AND cs.session_id = a.session_id
                 WHERE
                     ce.status = 'ENROLLED'
@@ -165,24 +167,26 @@ public class AttendanceDAO {
                     AND cs.is_cancelled = FALSE
                     AND cs.session_date BETWEEN COALESCE(
                         ?,
-                        SELECT MIN(cs2.session_date)
-                        FROM
-                            class_session cs2
-                            JOIN course_enrollment ce2 ON cs2.offering_id = ce2.offering_id
-                        WHERE
-                            ce2.student_id = s.student_id
+                        (
+                            SELECT MIN(sub.session_date)
+                            FROM (
+                                SELECT cs2.session_date
+                                FROM class_session cs2
+                                JOIN course_enrollment ce2 ON cs2.offering_id = ce2.offering_id
+                                WHERE ce2.student_id = s.student_id
+                            ) AS sub
+                        )
                     ) AND COALESCE(?, CURDATE())
                     AND (
                         c.course_name LIKE ?
                     )
                 GROUP BY
-                    s.user_id,
                     s.student_id,
                     s.roll_no,
                     s.full_name,
                     d.dept_code,
                     s.current_year;
-                """);
+                    """);
         List<Object> parameters = new ArrayList<>();
         parameters.add(startDate != null ? startDate.toString() : null);
         parameters.add(endDate != null ? endDate.toString() : null);
@@ -243,5 +247,139 @@ public class AttendanceDAO {
         }
 
         return studentList;
+    }
+
+    public List<AttendanceRecord> dailyLog(LocalDate selectedDate, String selectedPeriod, String searchText,
+            boolean pChecked, boolean aChecked, boolean eChecked) {
+        List<AttendanceRecord> dailyLogs = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("""
+                                            SELECT
+                    s.student_id,
+                    s.roll_no,
+                    s.full_name,
+                    d.dept_code,
+                    s.current_year,
+                    cs.session_date,
+                    cs.period,
+                    c.course_name,
+                    CASE
+                        WHEN a.attendance_id IS NULL THEN 'Present'
+                        WHEN LOWER(a.reason) LIKE '%medical%'
+                        OR LOWER(a.reason) LIKE '%family%' THEN 'Excused'
+                        ELSE 'Absent'
+                    END AS computed_status,
+                    t.full_name AS teacher_name,
+                    COALESCE(a.reason, 'On Time') AS reason
+                FROM
+                    student s
+                    JOIN user_account ua ON s.user_id = ua.user_id
+                    JOIN course_enrollment ce ON s.student_id = ce.student_id
+                    JOIN department d ON s.dept_id = d.dept_id
+                    JOIN course_offering co ON ce.offering_id = co.offering_id
+                    JOIN class_session cs ON co.offering_id = cs.offering_id
+                    JOIN course c ON co.course_id = c.course_id
+                    JOIN teacher t ON co.teacher_id = t.teacher_id
+                    LEFT JOIN attendance a ON cs.session_id = a.session_id
+                    AND ce.enrollment_id = a.enrollment_id
+                WHERE
+                    ua.status = TRUE
+                    AND cs.session_date = COALESCE(?, CURDATE())
+                    AND 1 = 1
+                                        """);
+        List<Object> parameters = new ArrayList<>();
+        parameters.add(selectedDate != null ? selectedDate.toString() : null);
+
+        // 2. Period Filter
+        if (selectedPeriod != null && !selectedPeriod.equals("All Periods")) {
+            sql.append(" AND cs.period = ? ");
+            parameters.add(selectedPeriod);
+        }
+
+        // 3. Search Text Filter (Student Name, Roll No, or Course Name)
+        if (searchText != null && !searchText.trim().isEmpty()) {
+            sql.append(" AND (s.full_name LIKE ? OR s.roll_no LIKE ? OR c.course_name LIKE ?) ");
+            String searchPattern = "%" + searchText.toLowerCase().trim() + "%";
+            parameters.add(searchPattern);
+            parameters.add(searchPattern);
+            parameters.add(searchPattern);
+        }
+
+        // 4. Status / Remark Checkbox Filters (Present, Absent, Excuse)
+        List<String> statusFilters = new ArrayList<>();
+        if (pChecked)
+            statusFilters.add("Present");
+        if (aChecked)
+            statusFilters.add("Absent");
+        if (eChecked)
+            statusFilters.add("Excused");
+
+        if (!statusFilters.isEmpty()) {
+            sql.append(" AND (");
+            for (int i = 0; i < statusFilters.size(); i++) {
+                if (i > 0)
+                    sql.append(" OR ");
+                sql.append(
+                        """
+                                    CASE
+                                        WHEN a.attendance_id IS NULL THEN 'Present'
+                                        WHEN LOWER(a.reason) LIKE '%medical%' OR LOWER(a.reason) LIKE '%family%' THEN 'Excused'
+                                        ELSE 'Absent'
+                                    END = ?
+                                """);
+                parameters.add(statusFilters.get(i));
+            }
+            sql.append(") ");
+        }
+
+        sql.append(" ORDER BY cs.session_date DESC, cs.period ASC, s.roll_no ASC");
+        try (Connection conn = DatabaseConnector.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < parameters.size(); i++) {
+                pstmt.setObject(i + 1, parameters.get(i));
+            }
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    while (rs.next()) {
+                        int studentId = rs.getInt("student_id");
+                        String rollNo = rs.getString("roll_no");
+                        String studentName = rs.getString("full_name");
+
+                        String department = rs.getString("dept_code");
+                        String year = rs.getString("current_year");
+
+                        // Fallback semester string if your query doesn't select it directly
+                        String semester = "First Semester";
+
+                        LocalDate dateObj = rs.getDate("session_date") != null
+                                ? rs.getDate("session_date").toLocalDate()
+                                : null;
+                        int period = rs.getInt("period");
+                        String subject = rs.getString("course_name");
+                        String status = rs.getString("computed_status");
+                        String markedBy = rs.getString("teacher_name");
+                        String remarks = rs.getString("reason");
+
+                        AttendanceRecord record = new AttendanceRecord(
+                                studentId,
+                                rollNo,
+                                studentName,
+                                department != null ? department : "",
+                                year != null ? year : "",
+                                semester,
+                                dateObj,
+                                period,
+                                subject,
+                                status,
+                                markedBy != null ? markedBy : "Unmarked",
+                                remarks != null ? remarks : "On Time");
+
+                        dailyLogs.add(record);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return dailyLogs;
     }
 }

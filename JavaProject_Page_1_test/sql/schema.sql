@@ -219,7 +219,7 @@ CREATE TABLE course_enrollment (
     enrollment_id INT PRIMARY KEY AUTO_INCREMENT,
     offering_id INT NOT NULL,
     student_id INT NOT NULL,
-    enrollment_date DATE NOT NULL DEFAULT(CURRENT_DATE), --let this be semester start date
+    enrollment_date DATE NOT NULL DEFAULT(CURRENT_DATE),
     status ENUM(
         'ENROLLED',
         'DROPPED',

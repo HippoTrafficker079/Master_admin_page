@@ -777,8 +777,7 @@ VALUES (
     );
 -- Thermodynamics (Taught by Tae Takemi)
 
--- ==========================================
--- 8. CLASS SESSIONS (Expanded for rich chronological logging)
+-- 8. CLASS SESSIONS (Updated with Today's Date: 2026-11-15)
 -- ==========================================
 INSERT INTO
     class_session (
@@ -803,7 +802,13 @@ VALUES
     (10, 2, '2026-06-16', 2, FALSE),
     -- Thermodynamics Sessions (Offering 3)
     (11, 3, '2026-06-01', 3, FALSE),
-    (12, 3, '2026-06-05', 3, FALSE);
+    (12, 3, '2026-06-05', 3, FALSE),
+
+-- TODAY'S SESSIONS (2026-11-15) for Testing Daily Logs
+(13, 1, '2026-11-15', 1, FALSE), -- Advanced DB (Period 1)
+(14, 2, '2026-11-15', 2, FALSE), -- Java OOP (Period 2)
+(15, 3, '2026-11-15', 3, FALSE);
+-- Thermodynamics (Period 3)
 
 -- ==========================================
 -- 9. COURSE ENROLLMENTS
@@ -915,7 +920,17 @@ VALUES
 ),
 
 -- Ren's absence in Java OOP (Enrollment 2)
-( 6, 7, 2, 'EXCUSED', 'Mementos Mission' );
+( 6, 7, 2, 'EXCUSED', 'Mementos Mission' ),
+
+-- TODAY'S TEST ATTENDANCE RECORDS (2026-11-15)
+-- Session 13 (Advanced DB): Ryuji (Enrollment 3) is absent (Unexcused)
+( 7, 13, 3, 'UNEXCUSED', 'Overslept' ),
+
+-- Session 14 (Java OOP): Ren (Enrollment 2) is excused with a medical reason
+( 8, 14, 2, 'EXCUSED', 'Medical Checkup - Fever' ),
+
+-- Session 15 (Thermodynamics): Makoto (Enrollment 7) is absent (Unexcused)
+( 9, 15, 7, 'UNEXCUSED', 'Student Council Meeting' );
 
 -- ==========================================
 -- 11. ASSESSMENTS & STUDENT GRADES
