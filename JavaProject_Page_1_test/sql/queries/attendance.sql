@@ -117,6 +117,8 @@ FROM
     JOIN department d ON s.dept_id = d.dept_id
     JOIN course_enrollment ce ON s.student_id = ce.student_id
     JOIN class_session cs ON ce.offering_id = cs.offering_id
+    JOIN course_offering co ON ce.offering_id = co.offering_id
+    JOIN course c ON co.course_id = c.course_id
     LEFT JOIN attendance a ON ce.offering_id = a.offering_id
     AND cs.session_id = a.session_id
 WHERE
@@ -131,7 +133,10 @@ WHERE
         WHERE
             ce2.student_id = s.student_id
     ) AND COALESCE(?, CURDATE())
-    AND ce.offering_id = ?
+    AND (
+        c.course_name = ?
+        OR ? IS NULL
+    )
 GROUP BY
     s.student_id,
     s.roll_no,

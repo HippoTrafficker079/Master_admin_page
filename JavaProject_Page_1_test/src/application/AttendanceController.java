@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import application.dao.AttendanceDAO;
+import application.dao.CourseDAO;
 import application.dao.StudentDAO;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -377,10 +378,9 @@ public class AttendanceController {
     }
 
     private void setupSubjectSearchComboBox() {
-        ObservableList<String> subjectOptions = FXCollections.observableArrayList(
-                "All Subjects", "Advanced Java", "Data Structures", "Chemical Kinetics",
-                "Thermodynamics", "Signal Processing", "Engineering Drawing", "Circuit Theory",
-                "Microcontrollers", "Urban Planning", "Calculus II");
+        CourseDAO courseDAO = new CourseDAO();
+        List<String> dbRecord = courseDAO.getAllActiveCourseName();
+        ObservableList<String> subjectOptions = FXCollections.observableArrayList(dbRecord);
 
         FilteredList<String> filteredSubjects = new FilteredList<>(subjectOptions, s -> true);
         comboSubject.setItems(filteredSubjects);
@@ -511,6 +511,7 @@ public class AttendanceController {
         // Daily Log Row Factory (CSS-based status highlights & double-click)
         dailyLogTable.setRowFactory(tv -> {
             TableRow<AttendanceRecord> row = new TableRow<AttendanceRecord>() {
+
                 private final ChangeListener<String> statusListener = (obs, oldVal, newVal) -> applyDailyRowStyle(this,
                         newVal);
 
@@ -527,6 +528,7 @@ public class AttendanceController {
                         applyDailyRowStyle(this, item.getStatus() != null ? item.getStatus().trim() : "");
                     }
                 }
+
             };
 
             row.setOnMouseClicked(event -> {
@@ -1046,33 +1048,30 @@ public class AttendanceController {
 
         } else if (isClassViewActive && isMatrixMode) {
             // Matrix Summary Filters
-            String searchText = searchField.getText() == null ? "" : searchField.getText().toLowerCase().trim();
+            String searchText = searchField.getText() == null ? "" : searchField.getText().trim();
             String selectedDept = comboDepartment.getValue();
             String selectedYear = comboYear.getValue();
-            String selectedSubject = comboSubject.getValue();
+            String selectedSubject = comboSubject.getValue(); // acts as your selectedCourse
             LocalDate startDate = startDatePicker.getValue();
             LocalDate endDate = endDatePicker.getValue();
             boolean lowOnly = chkLowAttendance.isSelected();
 
-            filteredMatrixData.setPredicate(record -> {
-                boolean matchesSearch = searchText.isEmpty() ||
-                        record.getStudentName().toLowerCase().contains(searchText) ||
-                        record.getRollNo().toLowerCase().contains(searchText);
-                boolean matchesDept = (selectedDept == null || selectedDept.equals("All Departments")) ||
-                        record.getDepartment().equalsIgnoreCase(selectedDept);
-                boolean matchesYear = (selectedYear == null || selectedYear.equals("All Years")) ||
-                        matchesYearHelper(record, selectedYear);
-                boolean matchesSubject = (selectedSubject == null || selectedSubject.equals("All Subjects")
-                        || selectedSubject.trim().isEmpty()) ||
-                        record.getSubject().equalsIgnoreCase(selectedSubject.trim());
+            String courseParam = (selectedSubject == null || selectedSubject.trim().isEmpty()) ? null : selectedSubject;
+            String deptParam = (selectedDept == null || selectedDept.equals("All Departments")) ? null : selectedDept;
+            String yearParam = (selectedYear == null || selectedYear.equals("All Years")) ? null : selectedYear;
 
-                LocalDate recordDate = record.getDateObj();
-                boolean matchesDate = (startDate == null || endDate == null) ||
-                        (recordDate != null && !recordDate.isBefore(startDate) && !recordDate.isAfter(endDate));
-                boolean matchesLow = !lowOnly || record.isLowAttendance();
+            AttendanceDAO attendanceDAO = new AttendanceDAO();
+            List<AttendanceRecord> freshData;
 
-                return matchesSearch && matchesDept && matchesYear && matchesSubject && matchesDate && matchesLow;
-            });
+            if (courseParam != null) {
+                freshData = attendanceDAO.SubjectFilterMatrixSummary(
+                        searchText, deptParam, yearParam, courseParam, startDate, endDate, lowOnly, courseParam);
+            } else {
+                freshData = attendanceDAO.AtteandanceMatrixSummary(
+                        searchText, deptParam, yearParam, courseParam, startDate, endDate, lowOnly);
+            }
+
+            matrixData.setAll(freshData);
 
         } else {
             // Individual Student Subject Breakdown Filters
