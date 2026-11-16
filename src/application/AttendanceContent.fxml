@@ -57,7 +57,7 @@
       </HBox>
 
       <!-- Master ScrollPane wrapping everything below the Top Nav -->
-      <ScrollPane VBox.vgrow="ALWAYS" fitToWidth="true" fx:id="individualDashboardScroll" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+      <ScrollPane fx:id="individualDashboardScroll" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="ALWAYS" style="-fx-background-color: transparent;">
          <content>
             <VBox spacing="12.0" style="-fx-padding: 2 4 10 2;">
                <children>
@@ -76,18 +76,17 @@
                      <children>
                         <HBox spacing="8.0">
                            <children>
-                              <ComboBox fx:id="comboDepartment" prefHeight="30.0" prefWidth="130.0" promptText="Department" />
-                              <ComboBox fx:id="comboYear" prefHeight="30.0" prefWidth="105.0" promptText="Year" />
-                              <ComboBox fx:id="comboSemester" prefHeight="30.0" prefWidth="105.0" promptText="Semester" visible="false" managed="false" />
-                              <ComboBox fx:id="comboSubject" editable="true" prefHeight="30.0" prefWidth="150.0" promptText="Search Subject..." />
-                              <DatePicker fx:id="startDatePicker" prefHeight="30.0" prefWidth="115.0" promptText="Start Date" />
-                              <DatePicker fx:id="endDatePicker" prefHeight="30.0" prefWidth="115.0" promptText="End Date" />
-                              <TextField fx:id="searchField" prefHeight="30.0" prefWidth="130.0" promptText="Search student..." HBox.hgrow="ALWAYS" />
+                              <ComboBox fx:id="comboDepartment" minWidth="0.0" prefHeight="30.0" prefWidth="130.0" promptText="Department" />
+<ComboBox fx:id="comboYear" minWidth="0.0" prefHeight="30.0" prefWidth="105.0" promptText="Year" />
+<ComboBox fx:id="comboSubject" editable="true" minWidth="0.0" prefHeight="30.0" prefWidth="150.0" promptText="Search Subject..." />
+<DatePicker fx:id="startDatePicker" minWidth="0.0" prefHeight="30.0" prefWidth="115.0" promptText="Start Date" />
+<DatePicker fx:id="endDatePicker" minWidth="0.0" prefHeight="30.0" prefWidth="115.0" promptText="End Date" />
+<TextField fx:id="searchField" minWidth="0.0" prefHeight="30.0" prefWidth="130.0" promptText="Search student..." HBox.hgrow="ALWAYS" />
                            </children>
                         </HBox>
                         <HBox alignment="CENTER_LEFT" spacing="15.0">
                            <children>
-                              <CheckBox fx:id="chkLowAttendance" mnemonicParsing="false" onAction="#applyFilters" text="Only show attendance &lt;75%" style="-fx-text-fill: #b91c1c; -fx-font-weight: bold; -fx-font-size: 12px;" />
+                              <CheckBox fx:id="chkLowAttendance" mnemonicParsing="false"  text="Only show attendance &lt;75%" style="-fx-text-fill: #b91c1c; -fx-font-weight: bold; -fx-font-size: 12px;" />
                               <Button mnemonicParsing="false" onAction="#applyFilters" prefHeight="28.0" prefWidth="85.0" styleClass="search-button" text="Filter" />
                               <Button mnemonicParsing="false" onAction="#handleReset" prefHeight="28.0" prefWidth="85.0" styleClass="reset-button" text="Reset" />
                            </children>
@@ -108,9 +107,9 @@
                         <HBox alignment="CENTER_LEFT" spacing="15.0">
                            <children>
                               <Label text="Remarks / Status:" style="-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 12px;" />
-                              <CheckBox fx:id="chkPresent" mnemonicParsing="false" onAction="#applyFilters" text="Present" style="-fx-text-fill: #1e293b;" />
-                              <CheckBox fx:id="chkAbsent" mnemonicParsing="false" onAction="#applyFilters" text="Absent" style="-fx-text-fill: #1e293b;" />
-                              <CheckBox fx:id="chkExcuse" mnemonicParsing="false" onAction="#applyFilters" text="Excuse" style="-fx-text-fill: #1e293b;" />
+                              <CheckBox fx:id="chkPresent" mnemonicParsing="false"  text="Present" style="-fx-text-fill: #1e293b;" />
+                              <CheckBox fx:id="chkAbsent" mnemonicParsing="false"  text="Absent" style="-fx-text-fill: #1e293b;" />
+                              <CheckBox fx:id="chkExcuse" mnemonicParsing="false"  text="Excuse" style="-fx-text-fill: #1e293b;" />
                               <Button mnemonicParsing="false" onAction="#applyFilters" prefHeight="28.0" prefWidth="85.0" styleClass="search-button" text="Filter" />
                               <Button mnemonicParsing="false" onAction="#handleReset" prefHeight="28.0" prefWidth="85.0" styleClass="reset-button" text="Reset" />
                            </children>
@@ -146,17 +145,16 @@
                   <VBox fx:id="classTablesContainer" spacing="12.0">
                      <children>
                         <!-- Matrix Summary Table -->
-                        <TableView fx:id="matrixTable" prefHeight="450.0">
-                          <columns>
-                            <TableColumn fx:id="colNoMatrix" prefWidth="45.0" text="No" />
-                            <TableColumn fx:id="colRollMatrix" prefWidth="105.0" text="Roll No" />
-                            <TableColumn fx:id="colNameMatrix" prefWidth="160.0" text="Student Name" />
-                            <TableColumn fx:id="colDeptMatrix" prefWidth="80.0" text="Dept" />
-                            <TableColumn fx:id="colYearMatrix" prefWidth="100.0" text="Year" />
-                            <TableColumn fx:id="colSubjMatrix" prefWidth="130.0" text="Subject" />
-                            <TableColumn fx:id="colOverallMatrix" prefWidth="100.0" text="Overall %" />
-                          </columns>
-                        </TableView>
+                        <TableView fx:id="matrixTable" VBox.vgrow="ALWAYS">
+						  <columns>
+						    <TableColumn fx:id="colNoMatrix" prefWidth="55.0" text="No" />
+						    <TableColumn fx:id="colRollMatrix" prefWidth="135.0" text="Roll No" />
+						    <TableColumn fx:id="colNameMatrix" prefWidth="240.0" text="Student Name" />
+						    <TableColumn fx:id="colDeptMatrix" prefWidth="110.0" text="Dept" />
+						    <TableColumn fx:id="colYearMatrix" prefWidth="140.0" text="Year" />
+						    <TableColumn fx:id="colOverallMatrix" prefWidth="120.0" text="Overall %" />
+						  </columns>
+						</TableView>
 
                         <!-- Daily Log Table -->
                         <TableView fx:id="dailyLogTable" visible="false" managed="false" prefHeight="450.0">
@@ -173,12 +171,13 @@
                           </columns>
                         </TableView>
                         
-                        <!-- Embedded Save Changes Container -->
-                        <HBox fx:id="saveChangesBox" alignment="CENTER_RIGHT" visible="false" managed="false">
-                           <children>
-                              <Button fx:id="btnSaveChanges" mnemonicParsing="false" onAction="#handleSaveChanges" prefHeight="35.0" prefWidth="160.0" style="-fx-background-color: #2563eb; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 4; -fx-cursor: hand;" text="💾 Save Changes" />
-                           </children>
-                        </HBox>
+                        <!-- Bottom Action Bar (Daily Log Only) -->
+					      <HBox fx:id="saveChangesBox" alignment="CENTER_RIGHT" managed="false" spacing="12.0" style="-fx-padding: 10 0 0 0;" visible="false">
+					         <children>
+					            <Button fx:id="btnMarkAllPresent" mnemonicParsing="false" onAction="#handleMarkAllPresent" prefHeight="35.0" prefWidth="170.0" style="-fx-background-color: #16a34a; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 4; -fx-cursor: hand;" text="✔ Mark All Present" />
+					            <Button fx:id="btnSaveChanges" mnemonicParsing="false" onAction="#handleSaveChanges" prefHeight="35.0" prefWidth="160.0" style="-fx-background-color: #2563eb; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 4; -fx-cursor: hand;" text="💾 Save Changes" />
+					         </children>
+					      </HBox>
                      </children>
                   </VBox>
 

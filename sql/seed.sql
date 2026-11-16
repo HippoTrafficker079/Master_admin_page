@@ -1,42 +1,45 @@
--- Disable foreign key checks temporarily for clean insertion order
+-- Disable foreign key checks temporarily for clean insertion
 SET FOREIGN_KEY_CHECKS = 0;
 
-TRUNCATE TABLE student_grade;
+-- Clear existing data if re-running
+DELETE FROM student_grade;
 
-TRUNCATE TABLE assessment;
+DELETE FROM assessment;
 
-TRUNCATE TABLE attendance;
+DELETE FROM attendance;
 
-TRUNCATE TABLE course_enrollment;
+DELETE FROM course_enrollment;
 
-TRUNCATE TABLE course_offering;
+DELETE FROM class_session;
 
-TRUNCATE TABLE student_education_background;
+DELETE FROM course_offering;
 
-TRUNCATE TABLE student_guardian;
+DELETE FROM student_education_background;
 
-TRUNCATE TABLE student_contact_information;
+DELETE FROM student_guardian;
 
-TRUNCATE TABLE student;
+DELETE FROM student_contact_information;
 
-TRUNCATE TABLE teacher_academic_background;
+DELETE FROM student;
 
-TRUNCATE TABLE teacher_contact_information;
+DELETE FROM teacher_academic_background;
 
-TRUNCATE TABLE teacher;
+DELETE FROM teacher_contact_information;
 
-TRUNCATE TABLE prerequisite_course;
+DELETE FROM teacher;
 
-TRUNCATE TABLE course;
+DELETE FROM prerequisite_course;
 
-TRUNCATE TABLE department;
+DELETE FROM course;
 
-TRUNCATE TABLE user_account;
+DELETE FROM department;
 
-TRUNCATE TABLE master_admin;
+DELETE FROM user_account;
+
+DELETE FROM master_admin;
 
 -- ==========================================
--- 1. MASTER ADMIN & USER ACCOUNTS
+-- 1. MASTER ADMIN
 -- ==========================================
 INSERT INTO
     master_admin (
@@ -47,18 +50,14 @@ INSERT INTO
     )
 VALUES (
         1,
-        'superadmin@ytu.edu.mm',
-        '$2a$10$X7e...hash1',
+        'admin.master@ytu.edu.mm',
+        '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
         TRUE
-    ),
-    (
-        2,
-        'inactive.admin@ytu.edu.mm',
-        '$2a$10$X7e...hash2',
-        FALSE
     );
--- Edge Case: Disabled admin account
 
+-- ==========================================
+-- 2. USER ACCOUNTS (Teachers & Students)
+-- ==========================================
 INSERT INTO
     user_account (
         user_id,
@@ -68,204 +67,85 @@ INSERT INTO
         user_role,
         status
     )
-VALUES (
+VALUES
+    -- Teachers User Accounts (Username = Full Name)
+    (
         1,
-        'mg_mg',
-        'mgmg@student.ytu.edu.mm',
-        '$2a$10$hash_s1',
-        'STUDENT',
+        'Sadayo Kawakami',
+        't001@ytu.edu.mm',
+        '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
+        'TEACHER',
         TRUE
     ),
     (
         2,
-        'su_su',
-        'susu@student.ytu.edu.mm',
-        '$2a$10$hash_s2',
-        'STUDENT',
+        'Sojiro Sakura',
+        't002@ytu.edu.mm',
+        '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
+        'TEACHER',
         TRUE
     ),
     (
         3,
-        'aung_aung',
-        'aungaung@student.ytu.edu.mm',
-        '$2a$10$hash_s3',
-        'STUDENT',
+        'Tae Takemi',
+        't003@ytu.edu.mm',
+        '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
+        'TEACHER',
         TRUE
     ),
     (
         4,
-        'hla_hla',
-        'hlahla@student.ytu.edu.mm',
-        '$2a$10$hash_s4',
-        'STUDENT',
-        TRUE
-    ),
-    -- Aligning teacher user_ids to match the teacher table IDs (1-15)
-    (
-        101,
-        'dr_aung',
-        'aung.kyaw.thu@ytu.edu.mm',
-        '$2a$10$hash_t1',
+        'Ichiko Ohya',
+        't004@ytu.edu.mm',
+        '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
         'TEACHER',
         TRUE
     ),
-    (
-        102,
-        'dr_myint',
-        'thin.thin.hlaing@ytu.edu.mm',
-        '$2a$10$hash_t2',
-        'TEACHER',
-        TRUE
-    ),
-    (
-        103,
-        'min_khant',
-        'min.khant@ytu.edu.mm',
-        '$2a$10$hash_t3',
-        'TEACHER',
-        TRUE
-    ),
-    (
-        104,
-        'su_myat',
-        'su.myat@ytu.edu.mm',
-        '$2a$10$hash_t4',
-        'TEACHER',
-        TRUE
-    ),
-    (
-        105,
-        'htet_naing',
-        'htet.naing.win@ytu.edu.mm',
-        '$2a$10$hash_t5',
-        'TEACHER',
-        TRUE
-    ),
-    (
-        106,
-        'ei_mon',
-        'ei.mon.phyo@ytu.edu.mm',
-        '$2a$10$hash_t6',
-        'TEACHER',
-        TRUE
-    ),
-    -- Department Head User Accounts
-    (
-        10,
-        'dr_chemical',
-        'che.head@ytu.edu.mm',
-        '$2a$10$hash_che',
-        'TEACHER',
-        TRUE
-    ),
-    (
-        11,
-        'dr_petroleum',
-        'pe.head@ytu.edu.mm',
-        '$2a$10$hash_pe',
-        'TEACHER',
-        TRUE
-    ),
-    (
-        12,
-        'dr_civil',
-        'ce.head@ytu.edu.mm',
-        '$2a$10$hash_ce',
-        'TEACHER',
-        TRUE
-    ),
-    (
-        13,
-        'dr_power',
-        'ep.head@ytu.edu.mm',
-        '$2a$10$hash_ep',
-        'TEACHER',
-        TRUE
-    ),
-    (
-        14,
-        'dr_food',
-        'fe.head@ytu.edu.mm',
-        '$2a$10$hash_fe',
-        'TEACHER',
-        TRUE
-    ),
-    (
-        15,
-        'dr_arch',
-        'arch.head@ytu.edu.mm',
-        '$2a$10$hash_arch',
-        'TEACHER',
-        TRUE
-    ),
-    (
-        16,
-        'dr_ece',
-        'ece.head@ytu.edu.mm',
-        '$2a$10$hash_ece',
-        'TEACHER',
-        TRUE
-    ),
-    (
-        17,
-        'dr_mce',
-        'mce.head@ytu.edu.mm',
-        '$2a$10$hash_mce',
-        'TEACHER',
-        TRUE
-    ),
-    (
-        18,
-        'dr_mmse',
-        'mmse.head@ytu.edu.mm',
-        '$2a$10$hash_mmse',
-        'TEACHER',
-        TRUE
-    ),
-    (
-        19,
-        'dr_mne',
-        'mne.head@ytu.edu.mm',
-        '$2a$10$hash_mne',
-        'TEACHER',
-        TRUE
-    ),
-    (
-        20,
-        'dr_te',
-        'te.head@ytu.edu.mm',
-        '$2a$10$hash_te',
-        'TEACHER',
-        TRUE
-    ),
-    (
-        21,
-        'dr_txe',
-        'txe.head@ytu.edu.mm',
-        '$2a$10$hash_txe',
-        'TEACHER',
-        TRUE
-    ),
-    (
-        8,
-        'sys_admin',
-        'admin@ytu.edu.mm',
-        '$2a$10$hash_admin',
-        'ADMIN',
-        TRUE
-    ),
-    (
-        9,
-        'ghost_user',
-        'orphan.user@ytu.edu.mm',
-        '$2a$10$hash_ghost',
-        'STUDENT',
-        FALSE
-    );
--- Edge Case: User account with NO matching student profile row
+
+-- Students User Accounts (Username = Full Name, Email = formatted roll_no placeholder)
+(
+    5,
+    'Ren Amamiya',
+    'iiiceit1@ytu.edu.mm',
+    '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
+    'STUDENT',
+    TRUE
+),
+(
+    6,
+    'Ryuji Sakamoto',
+    'iiiceit2@ytu.edu.mm',
+    '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
+    'STUDENT',
+    TRUE
+),
+(
+    7,
+    'Ann Takamaki',
+    'iiiceit3@ytu.edu.mm',
+    '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
+    'STUDENT',
+    TRUE
+),
+(
+    8,
+    'Yusuke Kitagawa',
+    'iiimech1@ytu.edu.mm',
+    '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
+    'STUDENT',
+    TRUE
+),
+(
+    9,
+    'Makoto Niijima',
+    'iiimech2@ytu.edu.mm',
+    '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
+    'STUDENT',
+    TRUE
+);
 
 -- ==========================================
--- 2. DEPARTMENTS (All 15 Departments with Head IDs assigned)
+-- 3. DEPARTMENTS
 -- ==========================================
 INSERT INTO
     department (
@@ -278,127 +158,286 @@ INSERT INTO
     )
 VALUES (
         1,
-        1,
+        NULL,
         'CEIT',
         'Computer Engineering and Information Technology',
-        '1998-05-12',
+        '1998-09-01',
         'Main Campus - Building A'
     ),
     (
         2,
-        2,
-        'ME',
+        NULL,
+        'Mech',
         'Mechanical Engineering',
-        '1955-09-01',
+        '1955-06-15',
         'Main Campus - Building B'
     ),
     (
         3,
-        3,
-        'EC',
-        'Electronic Engineering',
-        '1970-03-15',
+        NULL,
+        'Arch',
+        'Architecture',
+        '1960-06-15',
         'Main Campus - Building C'
     ),
     (
         4,
-        12,
-        'Arch',
-        'Architecture',
-        '2005-11-20',
-        'West Wing - Building D'
+        NULL,
+        'EC',
+        'Electronic Engineering',
+        '1980-01-10',
+        'Main Campus - Building D'
     ),
     (
         5,
-        7,
-        'ChE',
-        'Chemical Engineering',
-        '1995-04-10',
+        NULL,
+        'EP',
+        'Electrical Power Engineering',
+        '1955-06-15',
         'Main Campus - Building E'
     ),
     (
         6,
-        8,
-        'PE',
-        'Petroleum Engineering',
-        '1996-08-15',
+        NULL,
+        'ChE',
+        'Chemical Engineering',
+        '1975-04-20',
         'Main Campus - Building F'
     ),
     (
         7,
-        9,
-        'CE',
-        'Civil Engineering',
-        '1950-01-01',
+        NULL,
+        'PE',
+        'Petroleum Engineering',
+        '2012-08-10',
         'Main Campus - Building G'
     ),
     (
         8,
-        10,
-        'EP',
-        'Electrical Power Engineering',
-        '1960-06-10',
+        NULL,
+        'C',
+        'Civil Engineering',
+        '1915-01-01',
         'Main Campus - Building H'
     ),
     (
         9,
-        13,
-        'EcE',
-        'Electronic Engineering',
-        '1970-03-15',
-        'Main Campus - Building C'
-    ),
-    (
-        10,
-        11,
+        NULL,
         'FE',
         'Food Engineering',
-        '2010-09-01',
-        'West Wing - Building E'
-    ),
-    (
-        11,
-        14,
-        'McE',
-        'Mechatronic Engineering',
-        '2008-02-20',
+        '2015-09-01',
         'Main Campus - Building I'
     ),
     (
-        12,
-        15,
-        'MmsE',
-        'Metallurgy Engineering and Material Science',
-        '2002-11-11',
+        10,
+        NULL,
+        'McE',
+        'Mechatronic Engineering',
+        '2008-03-12',
         'Main Campus - Building J'
     ),
     (
-        13,
-        16,
-        'MnE',
+        11,
+        NULL,
+        'Mn',
         'Mining Engineering',
-        '1958-07-05',
+        '1955-06-15',
         'Main Campus - Building K'
     ),
     (
-        14,
-        17,
-        'TE',
+        12,
+        NULL,
+        'Tele',
         'Telecommunication Engineering',
-        '2004-10-12',
+        '2001-11-05',
         'Main Campus - Building L'
     ),
     (
-        15,
-        18,
-        'TxE',
+        13,
+        NULL,
+        'Tex',
         'Textile Engineering',
-        '2001-05-18',
-        'West Wing - Building F'
+        '1995-07-20',
+        'Main Campus - Building M'
+    ),
+    (
+        14,
+        NULL,
+        'Met',
+        'Metallurgy Engineering and Material Science',
+        '1990-05-14',
+        'Main Campus - Building N'
+    ),
+    (
+        15,
+        NULL,
+        'Math',
+        'Department of Engineering Mathematics',
+        '1955-06-15',
+        'Science Building - Floor 1'
+    ),
+    (
+        16,
+        NULL,
+        'Eng',
+        'Department of Engineering English',
+        '1955-06-15',
+        'Science Building - Floor 2'
     );
 
 -- ==========================================
--- 3. COURSES & PREREQUISITES
+-- 4. TEACHERS & RELATED TABLES
+-- ==========================================
+INSERT INTO
+    teacher (
+        teacher_id,
+        user_id,
+        full_name,
+        dept_id,
+        position,
+        date_of_birth,
+        gender,
+        nationality,
+        nrc,
+        profile_image_url
+    )
+VALUES (
+        1,
+        1,
+        'Sadayo Kawakami',
+        1,
+        'Professor & Head',
+        '1984-01-12',
+        'Female',
+        'Japanese',
+        '12/MaGaTa(N)123456',
+        NULL
+    ),
+    (
+        2,
+        2,
+        'Sojiro Sakura',
+        1,
+        'Lecturer',
+        '1965-03-25',
+        'Male',
+        'Japanese',
+        '12/DaGaNa(N)654321',
+        NULL
+    ),
+    (
+        3,
+        3,
+        'Tae Takemi',
+        2,
+        'Professor',
+        '1983-04-18',
+        'Female',
+        'Japanese',
+        '9/MaHaMa(N)112233',
+        NULL
+    ),
+    (
+        4,
+        4,
+        'Ichiko Ohya',
+        15,
+        'Tutor',
+        '1988-09-09',
+        'Female',
+        'Japanese',
+        '5/LaGaNa(N)998877',
+        NULL
+    );
+
+-- Update Department Heads
+UPDATE department SET dept_head_id = 1 WHERE dept_id = 1;
+
+UPDATE department SET dept_head_id = 3 WHERE dept_id = 2;
+
+-- Teacher Contact Info
+INSERT INTO
+    teacher_contact_information (
+        teacher_id,
+        primary_phone_number,
+        email_address,
+        current_address,
+        permanent_address
+    )
+VALUES (
+        1,
+        '+959971234567',
+        't001@ytu.edu.mm',
+        'Yongen, Tokyo',
+        'Tokyo'
+    ),
+    (
+        2,
+        '+959421987654',
+        't002@ytu.edu.mm',
+        'Leblanc, Tokyo',
+        'Tokyo'
+    ),
+    (
+        3,
+        '+959798887766',
+        't003@ytu.edu.mm',
+        'Takemi Clinic, Tokyo',
+        'Tokyo'
+    ),
+    (
+        4,
+        '+959250112233',
+        't004@ytu.edu.mm',
+        'Shinjuku, Tokyo',
+        'Tokyo'
+    );
+
+-- Teacher Academic Background
+INSERT INTO
+    teacher_academic_background (
+        teacher_id,
+        highest_degree,
+        university,
+        year_completed,
+        specialization,
+        emergency_contact
+    )
+VALUES (
+        1,
+        'Ph.D. in Computer Science',
+        'University of Tokyo',
+        2010,
+        'Distributed Systems',
+        'Sojiro Sakura - +959971111111'
+    ),
+    (
+        2,
+        'M.E. in Information Technology',
+        'Kyoto University',
+        1995,
+        'Software Engineering',
+        'Futaba Sakura - +959422222222'
+    ),
+    (
+        3,
+        'Ph.D. in Mechanical Engineering',
+        'Tokyo Institute of Technology',
+        2008,
+        'Thermal Dynamics',
+        'Tae Takemi Clinic - +959793333333'
+    ),
+    (
+        4,
+        'B.E. (Hons) in Engineering Mathematics',
+        'Waseda University',
+        2015,
+        'Applied Mathematics',
+        'Mishima - +95925444444'
+    );
+
+-- ==========================================
+-- 5. COURSES & PREREQUISITES
 -- ==========================================
 INSERT INTO
     course (
@@ -422,7 +461,7 @@ VALUES (
     (
         2,
         'CEIT-3102',
-        'Data Structures & Algorithms',
+        'Object-Oriented Programming with Java',
         1,
         'Bachelor',
         3.0,
@@ -431,31 +470,12 @@ VALUES (
     (
         3,
         'ME-3101',
-        'Thermodynamics II',
+        'Advanced Thermodynamics',
         2,
         'Bachelor',
         3.0,
         TRUE
-    ),
-    (
-        4,
-        'EC-3101',
-        'Digital Signal Processing',
-        3,
-        'Bachelor',
-        3.0,
-        TRUE
-    ),
-    (
-        5,
-        'CEIT-OLD-99',
-        'Legacy Fortran Programming',
-        1,
-        'Bachelor',
-        2.0,
-        FALSE
     );
--- Edge Case: Inactive course that should be filtered out of active course selectors
 
 INSERT INTO
     prerequisite_course (
@@ -463,534 +483,10 @@ INSERT INTO
         prerequisite_course_id
     )
 VALUES (1, 2);
--- Advanced Database requires Data Structures
 
 -- ==========================================
--- 4. TEACHERS & CONTACT/ACADEMIC BACKGROUND
--- ==========================================
-INSERT INTO
-    teacher (
-        teacher_id,
-        user_id,
-        full_name,
-        dept_id,
-        position,
-        date_of_birth,
-        gender,
-        nationality,
-        nrc,
-        profile_image_url
-    )
-VALUES (
-        1,
-        101,
-        'Dr. Aung Kyaw Thu',
-        1,
-        'Professor & Head',
-        '1975-04-12',
-        'Male',
-        'Myanmar',
-        '12/BaHNa(N)123456',
-        NULL
-    ),
-    (
-        2,
-        102,
-        'Dr. Thin Thin Hlaing',
-        2,
-        'Professor',
-        '1980-09-25',
-        'Female',
-        'Myanmar',
-        '12/LaMaTa(N)654321',
-        NULL
-    ),
-    (
-        3,
-        103,
-        'U Min Khant',
-        3,
-        'Associate Professor',
-        '1985-03-15',
-        'Male',
-        'Myanmar',
-        '12/KaMaYa(N)112233',
-        NULL
-    ),
-    (
-        4,
-        104,
-        'Daw Su Myat',
-        4,
-        'Lecturer',
-        '1990-11-08',
-        'Female',
-        'Myanmar',
-        '12/SaGaNa(N)445566',
-        NULL
-    ),
-    (
-        5,
-        105,
-        'U Htet Naing Win',
-        1,
-        'Assistant Lecturer',
-        '1993-07-20',
-        'Male',
-        'Myanmar',
-        '12/DaGaNa(N)789012',
-        NULL
-    ),
-    (
-        6,
-        106,
-        'Daw Ei Mon Phyo',
-        1,
-        'Tutor',
-        '1998-12-03',
-        'Female',
-        'Myanmar',
-        '12/AhBeNa(N)345678',
-        NULL
-    ),
-    -- Department Head Teachers
-    (
-        7,
-        10,
-        'Dr. Kyaw Min',
-        5,
-        'Professor & Head',
-        '1972-05-14',
-        'Male',
-        'Myanmar',
-        '12/BaHNa(N)111222',
-        NULL
-    ),
-    (
-        8,
-        11,
-        'Dr. San Yu',
-        6,
-        'Professor & Head',
-        '1976-08-22',
-        'Female',
-        'Myanmar',
-        '12/LaMaTa(N)333444',
-        NULL
-    ),
-    (
-        9,
-        12,
-        'Dr. Zaw Win',
-        7,
-        'Professor & Head',
-        '1970-11-05',
-        'Male',
-        'Myanmar',
-        '12/KaMaYa(N)555666',
-        NULL
-    ),
-    (
-        10,
-        13,
-        'Dr. Myint Myint',
-        8,
-        'Professor & Head',
-        '1981-03-19',
-        'Female',
-        'Myanmar',
-        '12/SaGaNa(N)777888',
-        NULL
-    ),
-    (
-        11,
-        14,
-        'Dr. Than Tun',
-        10,
-        'Professor & Head',
-        '1979-12-30',
-        'Male',
-        'Myanmar',
-        '12/DaGaNa(N)999000',
-        NULL
-    ),
-    (
-        12,
-        15,
-        'Dr. Win Mar',
-        4,
-        'Professor & Head',
-        '1974-06-12',
-        'Female',
-        'Myanmar',
-        '12/BaHNa(N)222333',
-        NULL
-    ),
-    (
-        13,
-        16,
-        'Dr. Soe Win',
-        9,
-        'Professor & Head',
-        '1971-09-18',
-        'Male',
-        'Myanmar',
-        '12/LaMaTa(N)444555',
-        NULL
-    ),
-    (
-        14,
-        17,
-        'Dr. Tin Maung',
-        11,
-        'Professor & Head',
-        '1978-01-25',
-        'Male',
-        'Myanmar',
-        '12/KaMaYa(N)666777',
-        NULL
-    ),
-    (
-        15,
-        18,
-        'Dr. Nilar Win',
-        12,
-        'Professor & Head',
-        '1980-04-14',
-        'Female',
-        'Myanmar',
-        '12/SaGaNa(N)888999',
-        NULL
-    ),
-    (
-        16,
-        19,
-        'Dr. Aung Ko',
-        13,
-        'Professor & Head',
-        '1973-10-05',
-        'Male',
-        'Myanmar',
-        '12/DaGaNa(N)121212',
-        NULL
-    ),
-    (
-        17,
-        20,
-        'Dr. Khin Myo',
-        14,
-        'Professor & Head',
-        '1977-11-20',
-        'Female',
-        'Myanmar',
-        '12/BaBaNa(N)343434',
-        NULL
-    ),
-    (
-        18,
-        21,
-        'Dr. Aye Aye',
-        15,
-        'Professor & Head',
-        '1982-07-08',
-        'Female',
-        'Myanmar',
-        '12/TaTaNa(N)565656',
-        NULL
-    );
-
-INSERT INTO
-    teacher_contact_information (
-        teacher_id,
-        primary_phone_number,
-        email_address,
-        current_address,
-        permanent_address
-    )
-VALUES (
-        1,
-        '09-400000001',
-        'aung.kyaw.thu@ytu.edu.mm',
-        'Insein Township, Yangon',
-        'Insein Township, Yangon'
-    ),
-    (
-        2,
-        '09-400000002',
-        'thin.thin.hlaing@ytu.edu.mm',
-        'Kamayut Township, Yangon',
-        'Mandalay'
-    ),
-    (
-        3,
-        '09-400000003',
-        'min.khant@ytu.edu.mm',
-        'Hlaing Township, Yangon',
-        'Hlaing Township, Yangon'
-    ),
-    (
-        4,
-        '09-400000004',
-        'su.myat@ytu.edu.mm',
-        'Bahan Township, Yangon',
-        'Bahan Township, Yangon'
-    ),
-    (
-        5,
-        '09-400000005',
-        'htet.naing.win@ytu.edu.mm',
-        'Mayangone Township, Yangon',
-        'Pegu'
-    ),
-    (
-        6,
-        '09-400000006',
-        'ei.mon.phyo@ytu.edu.mm',
-        'Sanchaung Township, Yangon',
-        'Sanchaung Township, Yangon'
-    ),
-    (
-        7,
-        '09-400000007',
-        'che.head@ytu.edu.mm',
-        'Main Campus',
-        'Main Campus'
-    ),
-    (
-        8,
-        '09-400000008',
-        'pe.head@ytu.edu.mm',
-        'Main Campus',
-        'Main Campus'
-    ),
-    (
-        9,
-        '09-400000009',
-        'ce.head@ytu.edu.mm',
-        'Main Campus',
-        'Main Campus'
-    ),
-    (
-        10,
-        '09-400000010',
-        'ep.head@ytu.edu.mm',
-        'Main Campus',
-        'Main Campus'
-    ),
-    (
-        11,
-        '09-400000011',
-        'fe.head@ytu.edu.mm',
-        'Main Campus',
-        'Main Campus'
-    ),
-    (
-        12,
-        '09-400000012',
-        'arch.head@ytu.edu.mm',
-        'Main Campus',
-        'Main Campus'
-    ),
-    (
-        13,
-        '09-400000013',
-        'ece.head@ytu.edu.mm',
-        'Main Campus',
-        'Main Campus'
-    ),
-    (
-        14,
-        '09-400000014',
-        'mce.head@ytu.edu.mm',
-        'Main Campus',
-        'Main Campus'
-    ),
-    (
-        15,
-        '09-400000015',
-        'mmse.head@ytu.edu.mm',
-        'Main Campus',
-        'Main Campus'
-    ),
-    (
-        16,
-        '09-400000016',
-        'mne.head@ytu.edu.mm',
-        'Main Campus',
-        'Main Campus'
-    ),
-    (
-        17,
-        '09-400000017',
-        'te.head@ytu.edu.mm',
-        'Main Campus',
-        'Main Campus'
-    ),
-    (
-        18,
-        '09-400000018',
-        'txe.head@ytu.edu.mm',
-        'Main Campus',
-        'Main Campus'
-    );
-
--- 2. Teacher Academic Background Seed Data
-INSERT INTO
-    teacher_academic_background (
-        teacher_id,
-        highest_degree,
-        university,
-        year_completed,
-        specialization,
-        emergency_contact
-    )
-VALUES (
-        1,
-        'Ph.D. in Information Technology',
-        'University of Computer Studies, Yangon (UCSY)',
-        2010,
-        'Distributed Systems',
-        'Daw Mya Mya (Wife) - 09-500000001'
-    ),
-    (
-        2,
-        'Ph.D. in Computer Engineering',
-        'Yangon Technological University (YTU)',
-        2012,
-        'Artificial Intelligence',
-        'U Ba Win (Husband) - 09-500000002'
-    ),
-    (
-        3,
-        'M.E. in Information Technology',
-        'Yangon Technological University (YTU)',
-        2014,
-        'Database Management Systems',
-        'Daw Nu Nu (Mother) - 09-500000003'
-    ),
-    (
-        4,
-        'M.E. in Computer Engineering',
-        'Yangon Technological University (YTU)',
-        2017,
-        'Computer Networks',
-        'U Tun Tun (Father) - 09-500000004'
-    ),
-    (
-        5,
-        'B.E. (Information Technology)',
-        'Yangon Technological University (YTU)',
-        2018,
-        'Software Engineering',
-        'Daw Hla Hla (Mother) - 09-500000005'
-    ),
-    (
-        6,
-        'B.E. (Computer Engineering)',
-        'Yangon Technological University (YTU)',
-        2021,
-        'Web Technologies',
-        'U Myint Soe (Father) - 09-500000006'
-    ),
-    (
-        7,
-        'Ph.D. in Chemical Engineering',
-        'Yangon Technological University (YTU)',
-        2011,
-        'Process Control',
-        'Emergency Contact - 09-500000007'
-    ),
-    (
-        8,
-        'Ph.D. in Petroleum Engineering',
-        'Yangon Technological University (YTU)',
-        2013,
-        'Reservoir Engineering',
-        'Emergency Contact - 09-500000008'
-    ),
-    (
-        9,
-        'Ph.D. in Civil Engineering',
-        'Yangon Technological University (YTU)',
-        2008,
-        'Structural Engineering',
-        'Emergency Contact - 09-500000009'
-    ),
-    (
-        10,
-        'Ph.D. in Electrical Power',
-        'Yangon Technological University (YTU)',
-        2012,
-        'Power Systems',
-        'Emergency Contact - 09-500000010'
-    ),
-    (
-        11,
-        'M.E. in Food Engineering',
-        'Yangon Technological University (YTU)',
-        2016,
-        'Food Processing',
-        'Emergency Contact - 09-500000011'
-    ),
-    (
-        12,
-        'M.E. in Architecture',
-        'Yangon Technological University (YTU)',
-        2015,
-        'Urban Planning',
-        'Emergency Contact - 09-500000012'
-    ),
-    (
-        13,
-        'Ph.D. in Electronic Engineering',
-        'Yangon Technological University (YTU)',
-        2010,
-        'Communication Systems',
-        'Emergency Contact - 09-500000013'
-    ),
-    (
-        14,
-        'M.E. in Mechatronic Engineering',
-        'Yangon Technological University (YTU)',
-        2017,
-        'Robotics',
-        'Emergency Contact - 09-500000014'
-    ),
-    (
-        15,
-        'Ph.D. in Metallurgy',
-        'Yangon Technological University (YTU)',
-        2012,
-        'Materials Science',
-        'Emergency Contact - 09-500000015'
-    ),
-    (
-        16,
-        'M.E. in Mining Engineering',
-        'Yangon Technological University (YTU)',
-        2015,
-        'Mining Geology',
-        'Emergency Contact - 09-500000016'
-    ),
-    (
-        17,
-        'M.E. in Telecommunication',
-        'Yangon Technological University (YTU)',
-        2016,
-        'Wireless Networks',
-        'Emergency Contact - 09-500000017'
-    ),
-    (
-        18,
-        'M.E. in Textile Engineering',
-        'Yangon Technological University (YTU)',
-        2018,
-        'Textile Chemistry',
-        'Emergency Contact - 09-500000018'
-    );
-
--- ==========================================
--- 5. STUDENTS & ASSOCIATED RECORDS
+-- 6. STUDENTS & RELATED TABLES
+-- Format: <roman_year>-<dept_code>-<no>
 -- ==========================================
 INSERT INTO
     student (
@@ -1010,66 +506,81 @@ INSERT INTO
     )
 VALUES (
         1,
-        1,
+        5,
         'III-CEIT-1',
-        'Mg Mg',
+        'Ren Amamiya',
         1,
         'Third year',
-        45.0,
+        15.0,
         3.85,
-        '2005-01-10',
+        '2006-05-10',
         'Male',
-        'Myanmar',
-        '12/LaMaTa(N)111111',
+        'Japanese',
+        '12/BaBaNa(N)111111',
         NULL
     ),
     (
         2,
-        2,
-        'V-CEIT-2',
-        'Su Su',
-        1,
-        'Fifth year',
-        105.0,
-        3.92,
-        '2003-06-15',
-        'Female',
-        'Myanmar',
-        '12/TaTaNa(N)222222',
-        'https://ytu.edu.mm/images/susu.jpg'
-    ),
-    (
-        3,
-        3,
+        6,
         'III-CEIT-2',
-        'Aung Aung',
+        'Ryuji Sakamoto',
         1,
         'Third year',
-        42.0,
-        3.10,
-        '2005-09-20',
+        15.0,
+        2.70,
+        '2006-07-03',
         'Male',
-        'Myanmar',
-        '12/BaBaNa(N)333333',
+        'Japanese',
+        '12/YaKaNa(N)222222',
+        NULL
+    ),
+    (
+        3,
+        7,
+        'III-CEIT-3',
+        'Ann Takamaki',
+        1,
+        'Third year',
+        15.0,
+        3.20,
+        '2006-11-12',
+        'Female',
+        'Japanese',
+        '12/DaGaNa(N)333333',
         NULL
     ),
     (
         4,
-        4,
-        'IV-EC-1',
-        'Hla Hla',
-        3,
-        'Fourth year',
-        75.0,
-        3.65,
-        '2004-03-11',
+        8,
+        'III-Mech-1',
+        'Yusuke Kitagawa',
+        2,
+        'Third year',
+        15.0,
+        3.90,
+        '2005-02-28',
+        'Male',
+        'Japanese',
+        '12/SaKaNa(N)444444',
+        NULL
+    ),
+    (
+        5,
+        9,
+        'III-Mech-2',
+        'Makoto Niijima',
+        2,
+        'Third year',
+        15.0,
+        4.00,
+        '2005-08-23',
         'Female',
-        'Myanmar',
-        '9/MaTaNa(N)444444',
+        'Japanese',
+        '12/MaGaTa(N)555555',
         NULL
     );
 
--- Edge Case: Mg Mg & Aung Aung have secondary numbers, Su Su & Hla Hla have NULL
+-- Student Contact Info
 INSERT INTO
     student_contact_information (
         student_id,
@@ -1081,37 +592,46 @@ INSERT INTO
     )
 VALUES (
         1,
-        '09-111111111',
-        '09-123456789',
-        'mgmg@student.ytu.edu.mm',
-        'Hlaing Township, Yangon',
-        'Hlaing Township, Yangon'
+        '+959765432101',
+        NULL,
+        'iiiceit1@ytu.edu.mm',
+        'Yongen-Jaya, Tokyo',
+        'Tokyo'
     ),
     (
         2,
-        '09-222222222',
+        '+959765432102',
         NULL,
-        'susu@student.ytu.edu.mm',
-        'Bahan Township, Yangon',
-        'Bahan Township, Yangon'
+        'iiiceit2@ytu.edu.mm',
+        'Shibuya, Tokyo',
+        'Tokyo'
     ),
     (
         3,
-        '09-333333333',
-        '09-987654321',
-        'aungaung@student.ytu.edu.mm',
-        'Mayangone Township, Yangon',
-        'Pyin Oo Lwin'
+        '+959765432103',
+        NULL,
+        'iiiceit3@ytu.edu.mm',
+        'Aoyama-Itchome, Tokyo',
+        'Tokyo'
     ),
     (
         4,
-        '09-444444444',
+        '+959765432104',
         NULL,
-        'hlahla@student.ytu.edu.mm',
-        'Sanchaung Township, Yangon',
-        'Sanchaung Township, Yangon'
+        'iiimech1@ytu.edu.mm',
+        'Ueno, Tokyo',
+        'Tokyo'
+    ),
+    (
+        5,
+        '+959765432105',
+        NULL,
+        'iiimech2@ytu.edu.mm',
+        'Kanda, Tokyo',
+        'Tokyo'
     );
 
+-- Student Guardian Info
 INSERT INTO
     student_guardian (
         student_id,
@@ -1126,49 +646,61 @@ INSERT INTO
     )
 VALUES (
         1,
-        'U Ba',
-        'Engineer',
-        '09-333333333',
-        'uba@gmail.com',
-        'Daw Mya',
-        'Teacher',
-        '09-444444444',
-        'dawmya@gmail.com'
+        'Guardian Uncle',
+        'Business',
+        '+959400000001',
+        'uncle@gmail.com',
+        'Guardian Aunt',
+        'Housewife',
+        '+959400000002',
+        'aunt@gmail.com'
     ),
     (
         2,
-        'U Tun Tun',
-        'Businessman',
-        '09-555555555',
-        'utuntun@gmail.com',
-        'Daw Khin Khin',
-        'Doctor',
-        '09-666666666',
-        'dawkhin@gmail.com'
+        'Tatsumi Sakamoto',
+        'Worker',
+        '+959400000003',
+        'tatsumi@gmail.com',
+        'Mrs. Sakamoto',
+        'Employee',
+        '+959400000004',
+        'mrs.sakamoto@gmail.com'
     ),
     (
         3,
-        'U Mya Win',
-        'Architect',
-        '09-111222333',
-        'myawin@gmail.com',
-        'Daw Nilar',
-        'Accountant',
-        '09-444555666',
-        'nilar@gmail.com'
+        'Mr. Takamaki',
+        'Designer',
+        '+959400000005',
+        'takamaki.sr@gmail.com',
+        'Mrs. Takamaki',
+        'Model',
+        '+959400000006',
+        'takamaki.m@gmail.com'
     ),
     (
         4,
-        'U Kyaw Swar',
-        'Civil Servant',
-        '09-777888999',
-        'kyawswar@gmail.com',
-        'Daw Than Than',
-        'Housewife',
-        '09-222333444',
-        'thanthan@gmail.com'
+        'Madarame (Foster)',
+        'Artist',
+        '+959400000007',
+        'madarame@gmail.com',
+        'N/A',
+        'N/A',
+        '+959400000008',
+        'na@gmail.com'
+    ),
+    (
+        5,
+        'Director Niijima',
+        'Prosecutor',
+        '+959400000009',
+        'niijima@gmail.com',
+        'Mrs. Niijima',
+        'Teacher',
+        '+959400000010',
+        'mrs.niijima@gmail.com'
     );
 
+-- Student Education Background
 INSERT INTO
     student_education_background (
         student_id,
@@ -1178,31 +710,37 @@ INSERT INTO
     )
 VALUES (
         1,
-        'BEHS No. 1 Dagon',
-        2022,
-        'Distinction in Mathematics and Physics'
+        'Aoharu High School',
+        2023,
+        'Transferred from countryside'
     ),
     (
         2,
-        'BEHS No. 2 Kamayut',
-        2020,
-        'Passed with 5 distinctions'
+        'Shujin Academy',
+        2023,
+        'Track star team member'
     ),
     (
         3,
-        'BEHS No. 3 Bahan',
-        2022,
-        'Active in sports club'
+        'Shujin Academy',
+        2023,
+        'Student model'
     ),
     (
         4,
-        'BEHS No. 1 Latha',
-        2021,
-        'Prefect head'
+        'Kosei High School',
+        2022,
+        'Art scholarship'
+    ),
+    (
+        5,
+        'Shujin Academy',
+        2022,
+        'Student Council President'
     );
 
 -- ==========================================
--- 6. COURSE OFFERINGS, ENROLLMENTS, ATTENDANCE & GRADES
+-- 7. COURSE OFFERINGS
 -- ==========================================
 INSERT INTO
     course_offering (
@@ -1218,35 +756,63 @@ VALUES (
         1,
         1,
         2026,
-        30,
+        10,
         'First Semester'
-    ),
+    ), -- Advanced DB (Taught by Sadayo Kawakami)
     (
         2,
         2,
         2,
         2026,
-        30,
+        10,
         'First Semester'
-    ),
+    ), -- Java OOP (Taught by Sojiro Sakura)
     (
         3,
         3,
-        4,
+        3,
         2026,
-        25,
+        10,
         'First Semester'
-    ),
-    (
-        4,
-        1,
-        1,
-        2025,
-        30,
-        'Second Semester'
     );
--- Historical offering for testing past archives
+-- Thermodynamics (Taught by Tae Takemi)
 
+-- 8. CLASS SESSIONS (Updated with Today's Date: 2026-11-15)
+-- ==========================================
+INSERT INTO
+    class_session (
+        session_id,
+        offering_id,
+        session_date,
+        period,
+        is_cancelled
+    )
+VALUES
+    -- Advanced DB Sessions (Offering 1)
+    (1, 1, '2026-06-01', 1, FALSE),
+    (2, 1, '2026-06-03', 1, FALSE),
+    (3, 1, '2026-06-08', 1, FALSE),
+    (4, 1, '2026-06-10', 1, FALSE),
+    (5, 1, '2026-06-15', 1, FALSE),
+    -- Java OOP Sessions (Offering 2)
+    (6, 2, '2026-06-02', 2, FALSE),
+    (7, 2, '2026-06-04', 2, FALSE),
+    (8, 2, '2026-06-09', 2, FALSE),
+    (9, 2, '2026-06-11', 2, FALSE),
+    (10, 2, '2026-06-16', 2, FALSE),
+    -- Thermodynamics Sessions (Offering 3)
+    (11, 3, '2026-06-01', 3, FALSE),
+    (12, 3, '2026-06-05', 3, FALSE),
+
+-- TODAY'S SESSIONS (2026-11-15) for Testing Daily Logs
+(13, 1, '2026-11-15', 1, FALSE), -- Advanced DB (Period 1)
+(14, 2, '2026-11-15', 2, FALSE), -- Java OOP (Period 2)
+(15, 3, '2026-11-15', 3, FALSE);
+-- Thermodynamics (Period 3)
+
+-- ==========================================
+-- 9. COURSE ENROLLMENTS
+-- ==========================================
 INSERT INTO
     course_enrollment (
         enrollment_id,
@@ -1259,84 +825,116 @@ VALUES (
         1,
         1,
         1,
-        '2026-06-01',
+        '2026-05-20',
         'ENROLLED'
-    ),
+    ), -- Ren in Advanced DB
     (
         2,
         2,
         1,
-        '2026-06-01',
+        '2026-05-20',
         'ENROLLED'
-    ),
+    ), -- Ren in Java OOP
     (
         3,
         1,
-        3,
-        '2026-06-01',
+        2,
+        '2026-05-20',
         'ENROLLED'
-    ),
+    ), -- Ryuji in Advanced DB
     (
         4,
-        3,
-        4,
-        '2026-06-01',
+        2,
+        2,
+        '2026-05-20',
         'ENROLLED'
-    ),
+    ), -- Ryuji in Java OOP
     (
         5,
         1,
-        2,
-        '2026-06-01',
-        'DROPPED'
-    ), -- Edge Case: Student enrolled then dropped
+        3,
+        '2026-05-20',
+        'ENROLLED'
+    ), -- Ann in Advanced DB (Low attendance test case)
     (
         6,
+        3,
         4,
-        1,
-        '2025-11-01',
-        'COMPLETED'
+        '2026-05-20',
+        'ENROLLED'
+    ), -- Yusuke in Thermodynamics
+    (
+        7,
+        3,
+        5,
+        '2026-05-20',
+        'ENROLLED'
     );
--- Edge Case: Historical completed enrollment
+-- Makoto in Thermodynamics
 
+-- ==========================================
+-- 10. ATTENDANCE (Expanded Sparse Exception Model)
+-- ==========================================
 INSERT INTO
     attendance (
         attendance_id,
-        absent_date,
+        session_id,
         enrollment_id,
         status,
         reason
     )
-VALUES (
-        1,
-        '2026-06-10',
-        1,
-        'UNEXCUSED',
-        NULL
-    ),
+VALUES
+    -- Ren's absence (Enrollment 1 - Advanced DB)
     (
+        1,
         2,
-        '2026-06-12',
         1,
         'EXCUSED',
-        'Medical leave - fever'
+        'Metaverse Operation'
     ),
-    (
-        3,
-        '2026-06-10',
-        3,
-        'UNEXCUSED',
-        'Skipped class'
-    ),
-    (
-        4,
-        '2026-06-15',
-        4,
-        'EXCUSED',
-        'University sports competition'
-    );
--- Note: Enrollment ID 2 has zero absence logs (perfect attendance record)
 
+-- Ryuji's absence (Enrollment 3 - Advanced DB)
+( 2, 1, 3, 'UNEXCUSED', 'Overslept / Track Practice' ),
+
+-- Ann's multiple absences to test < 75% filter (Enrollment 5 - Advanced DB)
+(
+    3,
+    1,
+    5,
+    'UNEXCUSED',
+    'Modeling Photo Shoot'
+),
+(
+    4,
+    3,
+    5,
+    'UNEXCUSED',
+    'Skipped class'
+),
+(
+    5,
+    4,
+    5,
+    'EXCUSED',
+    'Agency Work'
+),
+
+-- Ren's absence in Java OOP (Enrollment 2)
+( 6, 7, 2, 'EXCUSED', 'Mementos Mission' ),
+
+-- TODAY'S TEST ATTENDANCE RECORDS (2026-11-15)
+-- Session 13 (Advanced DB): Ryuji (Enrollment 3) is absent (Unexcused)
+( 7, 13, 3, 'UNEXCUSED', 'Overslept' ),
+
+-- Session 14 (Java OOP): Ren (Enrollment 2) is excused with a medical reason
+( 8, 14, 2, 'EXCUSED', 'Medical Checkup - Fever' ),
+
+-- Session 15 (Thermodynamics): Makoto (Enrollment 7) is absent (Unexcused)
+( 9, 15, 7, 'UNEXCUSED', 'Student Council Meeting' );
+
+-- ==========================================
+-- 11. ASSESSMENTS & STUDENT GRADES
+-- ==========================================
 INSERT INTO
     assessment (
         assessment_id,
@@ -1349,26 +947,26 @@ INSERT INTO
 VALUES (
         1,
         1,
-        'Midterm Exam',
+        'Database Lab Test 1',
         'LAB_TEST',
-        50.00,
-        40.00
+        20.00,
+        20.00
     ),
     (
         2,
         1,
-        'Final Project',
-        'PRACTICAL',
-        50.00,
-        60.00
+        'Final Examination',
+        'FINAL',
+        100.00,
+        80.00
     ),
     (
         3,
         2,
-        'Algorithm Quiz',
-        'TUTORIAL',
-        20.00,
-        20.00
+        'Java Midterm Project',
+        'ASSIGNMENT',
+        50.00,
+        50.00
     );
 
 INSERT INTO
@@ -1378,10 +976,11 @@ INSERT INTO
         assessment_id,
         marks_obtained
     )
-VALUES (1, 1, 1, 42.50), -- Mg Mg's midterm grade for Advanced DB
-    (2, 3, 1, 35.00), -- Aung Aung's midterm grade for Advanced DB
-    (3, 2, 3, 18.00);
--- Mg Mg's quiz grade for Data Structures
+VALUES (1, 1, 1, 19.00), -- Ren lab score in Advanced DB
+    (2, 3, 1, 12.00), -- Ryuji lab score in Advanced DB
+    (3, 5, 1, 14.50), -- Ann lab score in Advanced DB
+    (4, 2, 3, 48.00);
+-- Ren project score in Java OOP
 
--- Re-enable foreign key checks
+-- Restore foreign key checks
 SET FOREIGN_KEY_CHECKS = 1;

@@ -233,7 +233,6 @@ CREATE TABLE course_enrollment (
 CREATE TABLE attendance (
     attendance_id INT PRIMARY KEY AUTO_INCREMENT,
     session_id INT NOT NULL,
-    absent_date DATE NOT NULL,
     enrollment_id INT NOT NULL,
     status ENUM('UNEXCUSED', 'EXCUSED') DEFAULT 'UNEXCUSED',
     reason VARCHAR(255) NULL,
