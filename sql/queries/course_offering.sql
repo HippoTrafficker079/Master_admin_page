@@ -19,3 +19,11 @@ VALUES (?, ?);
 
 --Update Total Session
 UPDATE course_offering SET total_sessions = ? WHERE offering_id = ?;
+
+--All Active Course Available RIGHT NOW
+SELECT DISTINCT
+    course_name
+FROM course
+WHERE
+    is_active = TRUE
+ORDER BY course_name ASC;
