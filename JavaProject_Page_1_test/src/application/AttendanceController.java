@@ -9,6 +9,7 @@ import java.util.Set;
 import application.dao.AttendanceDAO;
 import application.dao.CourseDAO;
 import application.dao.StudentDAO;
+import application.dto.StudentProfile;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
@@ -124,6 +125,8 @@ public class AttendanceController {
     // Pagination Buttons
     @FXML
     private Button btnPage1, btnPage2, btnPage3, btnPrevPage, btnNextPage;
+
+    private int currentStudentId;
 
     // =========================================================================
     // 2. DATA LISTS & CONTROLLER STATE
@@ -481,7 +484,14 @@ public class AttendanceController {
 
         colStatusLog.setOnEditCommit(event -> {
             AttendanceRecord record = event.getRowValue();
-            record.statusProperty().set(event.getNewValue());
+            String newStatus = event.getNewValue();
+            record.statusProperty().set(newStatus);
+
+            String currentReason = record.getRemarks();
+            AttendanceDAO attendanceDAO = new AttendanceDAO();
+
+            attendanceDAO.updateAttendanceStatus(record, newStatus, currentReason);
+            loadInitialData();
             Platform.runLater(() -> dailyLogTable.getSelectionModel().clearSelection());
         });
 
@@ -873,109 +883,70 @@ public class AttendanceController {
         selectedStudentRollNo = tableRecord.getRollNo();
         selectedStudentName = tableRecord.getStudentName();
         isStudentLocked = true;
-
+        AttendanceDAO attendanceDAO = new AttendanceDAO();
         StudentDAO studentDAO = new StudentDAO();
         Student dbStudent = studentDAO.getStudentbyId(tableRecord.getNo());
+        int actualStudentId = (dbStudent != null) ? dbStudent.getNo() : tableRecord.getNo();
+        this.currentStudentId = (dbStudent != null) ? dbStudent.getNo() : tableRecord.getNo();
+        StudentProfile profile = attendanceDAO.getStudentProfile(actualStudentId);
 
-        String studentIdStr = dbStudent != null ? "21-" + dbStudent.getMajor() + "-0" + dbStudent.getNo()
-                : "21-CEIT-01";
-        String programStr = dbStudent != null ? "B.E in " + dbStudent.getMajor() : "B.E in CEIT";
-        String deptStr = dbStudent != null ? "Department of " + dbStudent.getMajor() : "Department of CEIT";
-        String yearSecStr = dbStudent != null ? dbStudent.getRollNo() : selectedStudentRollNo;
-        String emailStr = dbStudent != null && dbStudent.getEmail() != null && !dbStudent.getEmail().isEmpty()
-                ? dbStudent.getEmail()
-                : selectedStudentName.toLowerCase().replace(" ", ".") + "@student.ytu.edu.mm";
-        String phoneStr = dbStudent != null && dbStudent.getPhoneNo() != null ? dbStudent.getPhoneNo() : "09-111111111";
-        String addressStr = dbStudent != null && dbStudent.getCurrentAddress() != null
-                && !dbStudent.getCurrentAddress().isEmpty()
-                        ? dbStudent.getCurrentAddress()
-                        : "Hlaing Township, Yangon";
+        if (profile != null) {
+            lblIndivName.setText(profile.getFullName());
+            lblIndivStudentId.setText(profile.getRollNo()); // or studentId string
+            lblIndivProgram.setText("B.E in CEIT");
+            lblIndivDept.setText("Department of " + profile.getDeptCode());
+            lblIndivYearSec.setText(profile.getCurrentYear());
+            lblIndivEmail.setText(profile.getEmail());
+            lblIndivPhone.setText(profile.getPhoneNumber());
+            lblIndivAddress.setText(profile.getAddress());
 
-        if (dbStudent != null && dbStudent.getPhotoPath() != null && !dbStudent.getPhotoPath().trim().isEmpty()) {
-            try {
-                String path = dbStudent.getPhotoPath();
-                Image img = (path.startsWith("file:") || path.startsWith("http:"))
-                        ? new Image(path, 78, 110, false, true)
-                        : new Image(getClass().getResourceAsStream(path));
-                if (img != null && indivProfileImage != null) {
-                    indivProfileImage.setImage(img);
-                }
-            } catch (Exception e) {
+            // Update top metrics card from real profile calculation
+            lblTotalAttended.setText(String.valueOf(profile.getTotalAttended()));
+            lblTotalClasses.setText(String.valueOf(profile.getTotalSessions()));
+            lblDeptTotalAttended.setText(profile.getTotalAttended() + " / " + profile.getTotalSessions());
+
+            double overallRate = profile.getTotalSessions() > 0
+                    ? (double) profile.getTotalAttended() / profile.getTotalSessions() * 100
+                    : 0.0;
+            lblDeptTotalRate.setText(String.format("%.1f%%", overallRate));
+
+            String standing = profile.getAcademicStanding();
+            lblAcademicStanding.setText(standing);
+            lblDeptTotalStanding.setText(standing);
+
+            String successStyle = "-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-padding: 2 12; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;";
+            String warningStyle = "-fx-background-color: #fee2e2; -fx-text-fill: #b91c1c; -fx-padding: 2 12; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;";
+
+            if (standing.equals("Excellent") || standing.equals("Good")) {
+                lblAcademicStanding.setStyle(successStyle);
+                lblDeptTotalStanding.setStyle(successStyle);
+            } else {
+                lblAcademicStanding.setStyle(warningStyle);
+                lblDeptTotalStanding.setStyle(warningStyle);
             }
+
+            studentHeaderLabel.setText("👤  Student Details: " + profile.getRollNo() + " – " + profile.getFullName());
         }
+        List<AttendanceRecord> breakdownList = attendanceDAO.getStudentCourseBreakdown(actualStudentId);
+        individualTable.setItems(FXCollections.observableArrayList(breakdownList));
 
-        studentHeaderLabel.setText("👤  Student Details: " + selectedStudentRollNo + " – " + selectedStudentName);
-        lblIndivName.setText(selectedStudentName);
-        lblIndivStudentId.setText(studentIdStr);
-        lblIndivProgram.setText(programStr);
-        lblIndivDept.setText(deptStr);
-        lblIndivYearSec.setText(yearSecStr);
-        lblIndivEmail.setText(emailStr);
-        lblIndivPhone.setText(phoneStr);
-        lblIndivAddress.setText(addressStr);
+        if (comboIndivLogCourse != null)
+            comboIndivLogCourse.setValue("All Courses");
+        if (comboIndivLogStatus != null)
+            comboIndivLogStatus.setValue("All Status");
+        if (indivLogStartDate != null)
+            indivLogStartDate.setValue(null);
+        if (indivLogEndDate != null)
+            indivLogEndDate.setValue(null);
 
-        /*
-         * individualData.setAll(
-         * new AttendanceRecord(1, selectedStudentRollNo, selectedStudentName,
-         * tableRecord.getDepartment(), tableRecord.getYear(), "Semester I",
-         * "Advanced Java", "CEIT-311", "38 / 40", 95.0, LocalDate.of(2026, 7, 20),
-         * "Excellent"),
-         * new AttendanceRecord(2, selectedStudentRollNo, selectedStudentName,
-         * tableRecord.getDepartment(), tableRecord.getYear(), "Semester I",
-         * "Software Engineering", "CEIT-312", "37 / 40", 92.5, LocalDate.of(2026, 7,
-         * 21), "Excellent"),
-         * new AttendanceRecord(3, selectedStudentRollNo, selectedStudentName,
-         * tableRecord.getDepartment(), tableRecord.getYear(), "Semester II",
-         * "Computer Networks", "CEIT-313", "35 / 40", 87.5, LocalDate.of(2026, 7, 22),
-         * "Good"),
-         * new AttendanceRecord(4, selectedStudentRollNo, selectedStudentName,
-         * tableRecord.getDepartment(), tableRecord.getYear(), "Semester II",
-         * "Database Systems", "CEIT-314", "28 / 40", 70.0, LocalDate.of(2026, 7, 23),
-         * "Warning")
-         * );
-         */
-
-        chronoLogData.clear();
-        for (int i = 1; i <= 20; i++) {
-            chronoLogData.add(new AttendanceRecord(i, selectedStudentRollNo, selectedStudentName,
-                    tableRecord.getDepartment(), tableRecord.getYear(), "Semester I", LocalDate.of(2025, 3, i),
-                    (i % 3) + 1, (i % 2 == 0) ? "Advanced Java" : "Software Engineering",
-                    (i % 2 == 0) ? "CEIT-311" : "CEIT-312", (i % 4 == 0) ? "Absent" : "Present", "Prof. D. Balodisi",
-                    (i % 4 == 0) ? "Unexcused" : "-"));
-        }
-
-        int totalAttended = 0;
-        int totalClasses = 0;
-        for (AttendanceRecord rec : individualData) {
-            String[] split = rec.getAttendedTotal().split("/");
-            if (split.length == 2) {
-                totalAttended += Integer.parseInt(split[0].trim());
-                totalClasses += Integer.parseInt(split[1].trim());
-            }
-        }
-
-        lblTotalAttended.setText(String.valueOf(totalAttended));
-        lblTotalClasses.setText(String.valueOf(totalClasses));
-        lblDeptTotalAttended.setText(totalAttended + " / " + totalClasses);
-
-        double overallRate = totalClasses > 0 ? (double) totalAttended / totalClasses * 100 : 0.0;
-        lblDeptTotalRate.setText(String.format("%.1f%%", overallRate));
-
-        String standing = overallRate >= 90 ? "Excellent" : (overallRate >= 75 ? "Good" : "Warning");
-        lblAcademicStanding.setText(standing);
-        lblDeptTotalStanding.setText(standing);
-
-        String successStyle = "-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-padding: 2 12; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;";
-        String warningStyle = "-fx-background-color: #fee2e2; -fx-text-fill: #b91c1c; -fx-padding: 2 12; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;";
-
-        if (standing.equals("Excellent") || standing.equals("Good")) {
-            lblAcademicStanding.setStyle(successStyle);
-            lblDeptTotalStanding.setStyle(successStyle);
-        } else {
-            lblAcademicStanding.setStyle(warningStyle);
-            lblDeptTotalStanding.setStyle(warningStyle);
-        }
-
+        List<AttendanceRecord> logList = attendanceDAO.detailedChronoLog(
+                actualStudentId, null, null, null, null, 0);
+        javafx.application.Platform.runLater(() -> {
+            chronoLogData.setAll(logList);
+            chronologicalLogTable.setItems(chronoLogData);
+            chronologicalLogTable.refresh();
+            chronologicalLogTable.requestLayout();
+        });
         switchToIndividualView();
     }
 
@@ -1078,32 +1049,28 @@ public class AttendanceController {
 
     @FXML
     private void applyIndivLogFilters() {
-        if (filteredChronoData == null)
-            return;
+        String selectedCourse = (comboIndivLogCourse != null) ? comboIndivLogCourse.getValue() : "All Courses";
+        String selectedStatus = (comboIndivLogStatus != null) ? comboIndivLogStatus.getValue() : "All Status";
+        LocalDate fromDate = (indivLogStartDate != null) ? indivLogStartDate.getValue() : null;
+        LocalDate toDate = (indivLogEndDate != null) ? indivLogEndDate.getValue() : null;
 
-        String selectedCourse = comboIndivLogCourse != null ? comboIndivLogCourse.getValue() : "All Courses";
-        String selectedStatus = comboIndivLogStatus != null ? comboIndivLogStatus.getValue() : "All Status";
-        LocalDate fromDate = indivLogStartDate != null ? indivLogStartDate.getValue() : null;
-        LocalDate toDate = indivLogEndDate != null ? indivLogEndDate.getValue() : null;
+        int offset = 0; // Page Number = offset + 1
 
-        filteredChronoData.setPredicate(record -> {
-            boolean matchesStudent = !isStudentLocked || selectedStudentRollNo == null ||
-                    record.getRollNo().equalsIgnoreCase(selectedStudentRollNo);
-            boolean matchesCourse = (selectedCourse == null || selectedCourse.equals("All Courses")) ||
-                    record.getSubject().equalsIgnoreCase(selectedCourse);
-            boolean matchesStatus = (selectedStatus == null || selectedStatus.equals("All Status")) ||
-                    record.getStatus().equalsIgnoreCase(selectedStatus);
-            boolean matchesFrom = (fromDate == null)
-                    || (record.getDateObj() != null && !record.getDateObj().isBefore(fromDate));
-            boolean matchesTo = (toDate == null)
-                    || (record.getDateObj() != null && !record.getDateObj().isAfter(toDate));
+        AttendanceDAO attendanceDAO = new AttendanceDAO();
+        List<AttendanceRecord> filteredList = attendanceDAO.detailedChronoLog(
+                currentStudentId,
+                selectedCourse,
+                selectedStatus,
+                fromDate,
+                toDate,
+                offset);
 
-            return matchesStudent && matchesCourse && matchesStatus && matchesFrom && matchesTo;
+        javafx.application.Platform.runLater(() -> {
+            chronoLogData.setAll(filteredList);
+            chronologicalLogTable.setItems(chronoLogData);
+            chronologicalLogTable.refresh();
+            chronologicalLogTable.requestLayout();
         });
-
-        currentPage = 1;
-        currentPaginationWindow = 1;
-        updateChronoTablePagination();
     }
 
     @FXML
@@ -1223,37 +1190,50 @@ public class AttendanceController {
     }
 
     private void updateChronoTablePagination() {
-        if (chronologicalLogTable == null || filteredChronoData == null)
+        if (chronologicalLogTable == null)
             return;
 
-        int totalRecords = filteredChronoData.size();
+        int rowsPerPage = 6;
+        int offset = (currentPage - 1) * rowsPerPage;
+
+        // Read active filters
+        String selectedCourse = (comboIndivLogCourse != null) ? comboIndivLogCourse.getValue() : "All Courses";
+        String selectedStatus = (comboIndivLogStatus != null) ? comboIndivLogStatus.getValue() : "All Status";
+        LocalDate fromDate = (indivLogStartDate != null) ? indivLogStartDate.getValue() : null;
+        LocalDate toDate = (indivLogEndDate != null) ? indivLogEndDate.getValue() : null;
+        AttendanceDAO attendanceDAO = new AttendanceDAO();
+        List<AttendanceRecord> pageSlice = attendanceDAO.detailedChronoLog(
+                currentStudentId, selectedCourse, selectedStatus, fromDate, toDate, offset);
+
+        int totalRecords = attendanceDAO.getLastFetchedTotalCount();
         int totalPages = Math.max(1, (int) Math.ceil((double) totalRecords / rowsPerPage));
 
+        // Ensure page bounds are safe
         if (currentPage > totalPages)
             currentPage = totalPages;
         if (currentPage < 1)
             currentPage = 1;
 
         int fromIndex = (currentPage - 1) * rowsPerPage;
-        int toIndex = Math.min(fromIndex + rowsPerPage, totalRecords);
+        int toIndex = Math.min(fromIndex + pageSlice.size(), totalRecords);
 
-        ObservableList<AttendanceRecord> pageSlice = FXCollections.observableArrayList();
-        if (totalRecords > 0 && fromIndex < totalRecords) {
-            pageSlice.addAll(filteredChronoData.subList(fromIndex, toIndex));
-        }
+        javafx.application.Platform.runLater(() -> {
+            chronoLogData.setAll(pageSlice);
+            chronologicalLogTable.setItems(chronoLogData);
+            chronologicalLogTable.refresh();
+            chronologicalLogTable.requestLayout();
 
-        chronologicalLogTable.setItems(pageSlice);
-
-        if (lblPaginationInfo != null) {
-            if (totalRecords == 0) {
-                lblPaginationInfo.setText("Showing 0 – 0 of 0 records");
-            } else {
-                lblPaginationInfo.setText(
-                        String.format("Showing %d – %d of %d records", (fromIndex + 1), toIndex, totalRecords));
+            if (lblPaginationInfo != null) {
+                if (totalRecords == 0) {
+                    lblPaginationInfo.setText("Showing 0 – 0 of 0 records");
+                } else {
+                    lblPaginationInfo.setText(
+                            String.format("Showing %d – %d of %d records", (fromIndex + 1), toIndex, totalRecords));
+                }
             }
-        }
 
-        updatePaginationButtonUI(totalPages);
+            updatePaginationButtonUI(totalPages);
+        });
     }
 
     private void updatePaginationButtonUI(int totalPages) {

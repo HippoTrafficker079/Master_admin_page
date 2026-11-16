@@ -16,6 +16,8 @@ public class AttendanceRecord {
     private final StringProperty courseCode;
     private final IntegerProperty totalSessions;
     private final IntegerProperty totalAbsent;
+    private final IntegerProperty sessionId = new SimpleIntegerProperty();
+    private final IntegerProperty enrollmentId = new SimpleIntegerProperty();
 
     private final StringProperty attendedTotal;
     private final DoubleProperty percentage;
@@ -57,22 +59,26 @@ public class AttendanceRecord {
 
     // 2. New Constructor for Department Subject Breakdown (with Course Code &
     // Standing/Remarks)
-    public AttendanceRecord(int no, String rollNo, String studentName, String department, String year,
-            String semester, String subject, String courseCode, int totalSessions,
-            int totalAbsent,
-            double percentage, LocalDate dateObj, String remarks) {
+    // 3. Clean Constructor for Department Subject Breakdown (No redundant student
+    // info)
+    public AttendanceRecord(int no, String subject, String courseCode, int totalSessions,
+            int totalAbsent, double percentage, String remarks) {
         this.no = new SimpleIntegerProperty(no);
-        this.rollNo = new SimpleStringProperty(rollNo);
-        this.studentName = new SimpleStringProperty(studentName);
-        this.department = new SimpleStringProperty(department);
-        this.year = new SimpleStringProperty(year);
-        this.semester = new SimpleStringProperty(semester);
+        this.rollNo = new SimpleStringProperty("");
+        this.studentName = new SimpleStringProperty("");
+        this.department = new SimpleStringProperty("");
+        this.year = new SimpleStringProperty("");
+        this.semester = new SimpleStringProperty("");
         this.subject = new SimpleStringProperty(subject);
         this.courseCode = new SimpleStringProperty(courseCode);
-        this.attendedTotal = new SimpleStringProperty(totalSessions + " / " + (totalSessions - totalAbsent));
+
+        // Attended = Total Sessions - Total Absent
+        int attended = totalSessions - totalAbsent;
+        this.attendedTotal = new SimpleStringProperty(attended + " / " + totalSessions);
+
         this.percentage = new SimpleDoubleProperty(percentage);
-        this.dateObj = dateObj;
-        this.date = new SimpleStringProperty(dateObj != null ? dateObj.toString() : "");
+        this.dateObj = null;
+        this.date = new SimpleStringProperty("");
         this.period = new SimpleIntegerProperty(0);
         this.status = new SimpleStringProperty("");
         this.markedBy = new SimpleStringProperty("");
@@ -88,12 +94,17 @@ public class AttendanceRecord {
         }
     }
 
-    // 3. Existing Constructor for Daily Log
-    public AttendanceRecord(int no, String rollNo, String studentName, String department, String year,
-            String semester, LocalDate dateObj, int period, String subject,
-            String status, String markedBy, String remarks) {
+    // Updated Daily Log Constructor with session_id and enrollment_id
+    // 3. Updated Constructor for Daily Log
+    public AttendanceRecord(int sessionId, int enrollmentId, int no, String rollNo, String studentName,
+            String department, String year, String semester, LocalDate dateObj,
+            int period, String subject, String status, String markedBy, String remarks) {
         this(no, rollNo, studentName, department, year, semester, dateObj, period, subject, "", status, markedBy,
                 remarks);
+
+        // Set the Daily Log IDs
+        this.sessionId.set(sessionId);
+        this.enrollmentId.set(enrollmentId);
     }
 
     // 4. New Constructor for Detailed Chronological Log (with Course Code &
@@ -256,5 +267,13 @@ public class AttendanceRecord {
 
     public String getRemarks() {
         return remarks.get();
+    }
+
+    public int getSessionId() {
+        return sessionId.get();
+    }
+
+    public int getEnrollmentId() {
+        return enrollmentId.get();
     }
 }
