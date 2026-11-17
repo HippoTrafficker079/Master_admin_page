@@ -29,11 +29,13 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -466,42 +468,60 @@ public class StudentAddController {
     }
 
     private void promptBatchConfirmation(List<Student> students) {
-        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
-        alert.setTitle("Data Successfully Imported");
-        alert.setHeaderText("Data are successfully imported from " + selectedExcelFile.getName());
-        alert.setContentText(String.format("Found %d student record(s).\n\nChoose an action below:", students.size()));
+        Alert choiceAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        choiceAlert.setTitle("Data Successfully Imported");
+        choiceAlert.setHeaderText("Data are successfully imported from " + selectedExcelFile.getName());
+        choiceAlert.setContentText("Found " + students.size() + " student record(s).\n\nChoose an action below:");
 
-        ButtonType btnAddAll = new ButtonType("Add All Students", ButtonBar.ButtonData.YES);
-        ButtonType btnPickOne = new ButtonType("Select a Student to Fill Form", ButtonBar.ButtonData.OTHER);
+        ButtonType btnSelectOne = new ButtonType("Select a Student to Fill Form");
+        ButtonType btnAddAll = new ButtonType("Add All Students", ButtonBar.ButtonData.OK_DONE);
         ButtonType btnCancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        choiceAlert.getButtonTypes().setAll(btnSelectOne, btnAddAll, btnCancel);
 
-        alert.getButtonTypes().setAll(btnAddAll, btnPickOne, btnCancel);
-        alert.getDialogPane().setMinWidth(520);
+        // Apply style.css & consistent button styling
+        DialogPane dialogPane = choiceAlert.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+        dialogPane.setStyle("-fx-background-color: #f8fafc;");
+        dialogPane.setMinWidth(540);
 
-        Optional<ButtonType> result = alert.showAndWait();
+        Button selectOneBtn = (Button) dialogPane.lookupButton(btnSelectOne);
+        if (selectOneBtn != null) {
+            selectOneBtn.getStyleClass().add("search-button");
+            selectOneBtn.setPrefHeight(34);
+            selectOneBtn.setStyle("-fx-padding: 0 14;");
+        }
+
+        Button addAllBtn = (Button) dialogPane.lookupButton(btnAddAll);
+        if (addAllBtn != null) {
+            addAllBtn.getStyleClass().add("search-button");
+            addAllBtn.setPrefHeight(34);
+            addAllBtn.setStyle("-fx-padding: 0 16;");
+        }
+
+        Button cancelBtn = (Button) dialogPane.lookupButton(btnCancel);
+        if (cancelBtn != null) {
+            cancelBtn.getStyleClass().add("reset-button");
+            cancelBtn.setPrefHeight(34);
+            cancelBtn.setPrefWidth(95);
+        }
+
+        Optional<ButtonType> result = choiceAlert.showAndWait();
         if (result.isPresent()) {
-            if (result.get() == btnAddAll) {
+            if (result.get() == btnSelectOne) {
+                openSingleStudentPickerDialog(students);
+            } else if (result.get() == btnAddAll) {
                 StudentDAO studentDAO = new StudentDAO();
-                int importedRow = studentDAO.insertBatchStudents(students);
-                if (importedRow > 0) {
-                    if (StudentController.masterData != null) {
-                        List<Student> freshList = studentDAO.getAllStudent();
-                        StudentController.masterData.setAll(freshList);
-                    }
-                    showAlert("Success",
-                            String.format("Successfully registered %d student(s) into the system.", students.size()),
+                int addedCount = studentDAO.insertBatchStudents(students);
+                if (addedCount > 0) {
+                    showAlert("Batch Import Successful",
+                            "Successfully added " + addedCount + " student(s) to the database.",
                             Alert.AlertType.INFORMATION);
                     handleReturn();
-                }
-            } else if (result.get() == btnPickOne) {
-                if (students != null && !students.isEmpty()) {
-                    openSingleStudentPickerDialog(students);
                 } else {
-                    showAlert("Empty List", "No student records were found in the imported file.",
-                            Alert.AlertType.WARNING);
+                    showAlert("Batch Import Failed",
+                            "Failed to insert imported students into the database. Please check for duplicate Roll Nos.",
+                            Alert.AlertType.ERROR);
                 }
-            } else {
-                handleReturn();
             }
         }
     }
@@ -509,11 +529,19 @@ public class StudentAddController {
     private void openSingleStudentPickerDialog(List<Student> students) {
         Dialog<Student> dialog = new Dialog<>();
         dialog.setTitle("Choose Student to Populate Form");
-        dialog.setHeaderText("Select a student row to load into the form blanks below:");
+        dialog.setHeaderText(null);
+
+        DialogPane dialogPane = dialog.getDialogPane();
+        dialogPane.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+        dialogPane.setStyle("-fx-background-color: #f8fafc; -fx-padding: 16;");
+
+        Label promptLbl = new Label("Select a student row to load into the form blanks below:");
+        promptLbl.setStyle("-fx-font-size: 13.5px; -fx-font-weight: bold; -fx-text-fill: #1e3a8a;");
 
         TableView<Student> previewTable = new TableView<>();
-        previewTable.setPrefHeight(300);
+        previewTable.setPrefHeight(320);
         previewTable.setPrefWidth(640);
+        previewTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         TableColumn<Student, String> colRoll = new TableColumn<>("Roll No");
         colRoll.setCellValueFactory(c -> c.getValue().rollNoProperty());
@@ -536,14 +564,34 @@ public class StudentAddController {
         colPhone.setPrefWidth(140);
 
         previewTable.getColumns().addAll(colRoll, colName, colMajor, colYear, colPhone);
+        for (TableColumn<?, ?> col : previewTable.getColumns()) {
+            col.setSortable(false);
+            col.setReorderable(false);
+        }
+
         previewTable.setItems(FXCollections.observableArrayList(students));
         if (!students.isEmpty()) {
             previewTable.getSelectionModel().selectFirst();
         }
 
         ButtonType btnSelect = new ButtonType("Populate Form", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(btnSelect, ButtonType.CANCEL);
-        dialog.getDialogPane().setContent(new VBox(10, previewTable));
+        dialogPane.getButtonTypes().addAll(btnSelect, ButtonType.CANCEL);
+        dialogPane.setContent(new VBox(10, promptLbl, previewTable));
+
+        // Style Populate Form & Cancel buttons to match the rest of the UI
+        Button populateBtn = (Button) dialogPane.lookupButton(btnSelect);
+        if (populateBtn != null) {
+            populateBtn.getStyleClass().add("search-button");
+            populateBtn.setPrefHeight(34);
+            populateBtn.setPrefWidth(130);
+        }
+
+        Button cancelBtn = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
+        if (cancelBtn != null) {
+            cancelBtn.getStyleClass().add("reset-button");
+            cancelBtn.setPrefHeight(34);
+            cancelBtn.setPrefWidth(95);
+        }
 
         dialog.setResultConverter(btn -> {
             if (btn == btnSelect) {
@@ -958,6 +1006,9 @@ public class StudentAddController {
                     selectedPhotoPath = file.toURI().toString();
                     Image image = new Image(selectedPhotoPath, 86, 110, false, true);
                     passportImageView.setImage(image);
+                    passportImageView.setFitWidth(86.0);
+                    passportImageView.setFitHeight(111.0);
+                    passportImageView.setPreserveRatio(false);
                 } catch (Exception e) {
                     showAlert("Image Error", "Could not load image: " + e.getMessage(), Alert.AlertType.ERROR);
                 }

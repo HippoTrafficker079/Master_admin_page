@@ -49,14 +49,17 @@
                         <VBox alignment="CENTER" spacing="4.0">
                            <children>
                               <VBox fx:id="photoContainer" alignment="CENTER" onMouseClicked="#handleUploadPhoto"
-                                    prefHeight="115.0" prefWidth="90.0" maxHeight="115.0" maxWidth="90.0" minHeight="115.0" minWidth="90.0"
-                                    style="-fx-border-color: #1e3a8a; -fx-border-width: 1.5; -fx-background-color: #f8fafc; -fx-border-radius: 4; -fx-cursor: hand;">
-                                 <children>
-                                    <ImageView fx:id="passportImageView" fitHeight="110.0" fitWidth="86.0" pickOnBounds="true" preserveRatio="false">
-                                       <image><Image url="@../freddy.jpg" /></image>
-                                    </ImageView>
-                                 </children>
-                              </VBox>
+							      minWidth="90.0" prefWidth="90.0" maxWidth="90.0"
+							      minHeight="115.0" prefHeight="115.0" maxHeight="115.0"
+							      style="-fx-border-color: #1e3a8a; -fx-border-width: 1.5; -fx-background-color: #f8fafc; -fx-border-radius: 4; -fx-cursor: hand;">
+							   <children>
+							      <ImageView fx:id="passportImageView" fitWidth="86.0" fitHeight="111.0" pickOnBounds="true" preserveRatio="false">
+							         <image>
+							            <Image url="@../freddy.jpg" />
+							         </image>
+							      </ImageView>
+							   </children>
+							</VBox>
                               <Label onMouseClicked="#handleUploadPhoto" text="📷 Change Photo" textFill="#2563eb" style="-fx-cursor: hand; -fx-font-size: 10px; -fx-font-weight: bold;" />
                            </children>
                         </VBox>

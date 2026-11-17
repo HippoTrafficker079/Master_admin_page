@@ -57,6 +57,9 @@ public class TeacherDetailController {
                     String path = teacher.getPhotoPath();
                     Image img = path.startsWith("file:") ? new Image(path, 86, 110, false, true) : new Image(getClass().getResourceAsStream(path));
                     passportImageView.setImage(img);
+                    passportImageView.setFitWidth(86.0);
+                    passportImageView.setFitHeight(111.0);
+                    passportImageView.setPreserveRatio(false);
                 } catch (Exception e) {}
             }
         }

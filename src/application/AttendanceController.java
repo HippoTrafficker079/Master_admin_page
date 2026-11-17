@@ -1045,32 +1045,40 @@ public class AttendanceController {
 
     @FXML
     private void handleReset() {
-        searchField.clear();
-        comboDepartment.setValue("All Departments");
-        comboYear.setValue("All Years");
+        if (isClassViewActive && isMatrixMode) {
+            
+            if (searchField != null) searchField.clear();
+            if (comboDepartment != null) comboDepartment.setValue("All Departments");
+            if (comboYear != null) comboYear.setValue("All Years");
+            
 
-        comboSubject.setValue("All Subjects");
-        if (comboSubject.getEditor() != null) {
-            comboSubject.getEditor().clear();
-        }
+            if (comboSubject != null) {
+                comboSubject.setValue("All Subjects");
+                if (comboSubject.getEditor() != null) {
+                    comboSubject.getEditor().clear();
+                }
+            }
 
-        startDatePicker.setValue(null);
-        endDatePicker.setValue(null);
-        chkLowAttendance.setSelected(false);
+            if (startDatePicker != null) startDatePicker.setValue(null);
+            if (endDatePicker != null) endDatePicker.setValue(null);
+            if (chkLowAttendance != null) chkLowAttendance.setSelected(false);
 
-        dailyDatePicker.setValue(null);
-        dailyPeriodCombo.setValue("All Periods");
-        dailySearchField.clear();
-        chkPresent.setSelected(false);
-        chkAbsent.setSelected(false);
-        chkExcuse.setSelected(false);
-
-        resetIndivLogFilters();
-
-        if (isClassViewActive) {
-            matrixData.clear();
-            dailyLogData.clear();
             applyFilters();
+
+        } else if (isClassViewActive && !isMatrixMode) {
+            // 2. Daily Log Reset ONLY (leaves Matrix Summary & Individual filters untouched)
+            if (dailyDatePicker != null) dailyDatePicker.setValue(null);
+            if (dailyPeriodCombo != null) dailyPeriodCombo.setValue("All Periods");
+            if (dailySearchField != null) dailySearchField.clear();
+            if (chkPresent != null) chkPresent.setSelected(false);
+            if (chkAbsent != null) chkAbsent.setSelected(false);
+            if (chkExcuse != null) chkExcuse.setSelected(false);
+
+            applyFilters();
+
+        } else {
+            
+            resetIndivLogFilters();
         }
     }
 
@@ -1245,5 +1253,15 @@ public class AttendanceController {
         alert.setContentText("Attendance status modifications have been successfully saved.");
         alert.getDialogPane().setMinWidth(380);
         alert.showAndWait();
+    }
+    
+    @FXML
+    private void handleResetDailyStatus() {
+        // Clear any unsaved edits in memory and reload original statuses from the database
+        if (modifiedDailyRecords != null) {
+            modifiedDailyRecords.clear();
+        }
+        dailyLogTable.getSelectionModel().clearSelection();
+        applyFilters();
     }
 }

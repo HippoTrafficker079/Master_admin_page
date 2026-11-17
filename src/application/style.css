@@ -45,6 +45,207 @@
     -fx-padding: 0 6px;
 }
 
+/* =========================================================================
+   1. STANDARD DROPDOWNS & DATEPICKERS (3D Shaded Option A + Edge-to-Edge Icon)
+   ========================================================================= */
+.combo-box-base {
+    -fx-background-color: linear-gradient(to bottom, #f8fafc 0%, #e2e8f0 100%);
+    -fx-background-insets: 0;
+    -fx-border-color: #94a3b8;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.08), 3, 0, 0, 1.5);
+}
+
+.combo-box-base:hover {
+    -fx-background-color: linear-gradient(to bottom, #ffffff 0%, #cbd5e1 100%);
+    -fx-border-color: #64748b;
+}
+
+.combo-box-base:focused,
+.combo-box-base:showing {
+    -fx-background-color: #e2e8f0;
+    -fx-border-color: #395d87;
+    -fx-border-width: 1.5px;
+    -fx-effect: dropshadow(three-pass-box, rgba(57, 93, 135, 0.16), 5, 0, 0, 1);
+}
+
+/* Selected text inside non-editable dropdowns */
+.combo-box .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #1e293b;
+    -fx-font-weight: 600;
+    -fx-padding: 4px 10px;
+}
+
+/* Edge-to-edge right-side trigger (eliminates top/bottom/right inner gaps) */
+.combo-box-base .arrow-button {
+    -fx-background-color: rgba(57, 93, 135, 0.10);
+    -fx-background-insets: 0;
+    -fx-background-radius: 0 5px 5px 0;
+    -fx-border-color: transparent transparent transparent rgba(148, 163, 184, 0.45);
+    -fx-border-width: 0 0 0 1px;
+    -fx-padding: 0 10px;
+}
+
+.combo-box-base:hover .arrow-button,
+.combo-box-base:showing .arrow-button {
+    -fx-background-color: rgba(57, 93, 135, 0.18);
+}
+
+.combo-box-base .arrow {
+    -fx-background-color: #1e3a8a;
+}
+
+/* DatePicker inner text field & calendar icon */
+.date-picker > .text-field {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-border-color: transparent;
+    -fx-text-fill: #1e293b;
+    -fx-font-weight: 600;
+    -fx-padding: 4px 10px;
+}
+
+.date-picker .arrow-button .arrow {
+    -fx-background-color: #1e3a8a;
+}
+
+/* =========================================================================
+   2. SEARCHABLE / EDITABLE COMBOBOXES (Flat White Input + Edge-to-Edge Trigger)
+   ========================================================================= */
+.combo-box:editable {
+    -fx-background-color: #ffffff;
+    -fx-background-insets: 0;
+    -fx-border-color: #94a3b8;
+    -fx-border-width: 1.2px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 0;
+    -fx-effect: none;
+    -fx-cursor: text;
+}
+
+.combo-box:editable:hover {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #395d87;
+}
+
+.combo-box:editable:focused,
+.combo-box:editable:showing {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #2563eb;
+    -fx-border-width: 1.5px;
+    -fx-effect: dropshadow(three-pass-box, rgba(37, 99, 235, 0.15), 4, 0, 0, 0);
+}
+
+/* Extra breathing room inside the searchable text box */
+.combo-box:editable > .text-field {
+    -fx-background-color: #ffffff;
+    -fx-background-insets: 0;
+    -fx-background-radius: 5px 0 0 5px;
+    -fx-border-color: transparent;
+    -fx-text-fill: #0f172a;
+    -fx-prompt-text-fill: #64748b;
+    -fx-font-weight: normal;
+    -fx-padding: 5px 12px;
+    -fx-cursor: text;
+}
+
+/* Edge-to-edge soft-blue dropdown button on the right of searchable ComboBoxes */
+.combo-box:editable .arrow-button {
+    -fx-background-color: #eff6ff;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0 5px 5px 0;
+    -fx-border-color: transparent transparent transparent #cbd5e1;
+    -fx-border-width: 0 0 0 1px;
+    -fx-padding: 0 10px;
+    -fx-cursor: hand;
+}
+
+.combo-box:editable .arrow-button:hover,
+.combo-box:editable:showing .arrow-button {
+    -fx-background-color: #dbeafe;
+}
+
+.combo-box:editable .arrow {
+    -fx-background-color: #1d4ed8;
+}
+
+/* =========================================================================
+   3. OPENED DROPDOWN POPUP MENU
+   ========================================================================= */
+.combo-box-popup .list-view {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 3px;
+    -fx-effect: dropshadow(three-pass-box, rgba(15, 23, 42, 0.14), 10, 0, 0, 4);
+}
+
+.combo-box-popup .list-cell {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #1e293b;
+    -fx-font-weight: normal;
+    -fx-padding: 6px 10px;
+    -fx-background-radius: 4px;
+    -fx-cursor: hand;
+}
+
+.combo-box-popup .list-cell:filled:hover {
+    -fx-background-color: #eff6ff;
+    -fx-text-fill: #1e3a8a;
+}
+
+.combo-box-popup .list-cell:filled:selected,
+.combo-box-popup .list-cell:filled:selected:hover {
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: #1e3a8a;
+    -fx-font-weight: bold;
+}
+
+/* =========================================================================
+   CHECKBOX STYLING (Matches UI Slate-Navy Palette)
+   ========================================================================= */
+.check-box {
+    -fx-cursor: hand;
+}
+
+.check-box > .box {
+    -fx-background-color: #ffffff;
+    -fx-background-insets: 0;
+    -fx-border-color: #94a3b8;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-padding: 3px;
+}
+
+.check-box:hover > .box {
+    -fx-background-color: #eff6ff;
+    -fx-border-color: #395d87;
+}
+
+.check-box:selected > .box {
+    -fx-background-color: #395d87;
+    -fx-border-color: #395d87;
+}
+
+.check-box:selected:hover > .box {
+    -fx-background-color: #4a78ab;
+    -fx-border-color: #4a78ab;
+}
+
+.check-box:selected > .box > .mark {
+    -fx-background-color: #ffffff;
+    -fx-background-insets: 0;
+}
+
 /* --- Header Filter Dropdowns (Option 3: Semi-Translucent Ghost - Centered) --- */
 .table-view .column-header .combo-box {
     -fx-background-color: rgba(255, 255, 255, 0.22);
@@ -57,6 +258,7 @@
     -fx-pref-height: 24px;
     -fx-min-height: 24px;
     -fx-max-height: 24px;
+    -fx-effect: none;
     -fx-cursor: hand;
 }
 
@@ -64,6 +266,7 @@
 .table-view .column-header .combo-box:showing {
     -fx-background-color: rgba(255, 255, 255, 0.34);
     -fx-border-color: white;
+    -fx-effect: none;
 }
 
 .table-view .column-header .combo-box .list-cell {
@@ -77,6 +280,7 @@
 
 .table-view .column-header .combo-box .arrow-button {
     -fx-background-color: transparent;
+    -fx-border-width: 0;
     -fx-padding: 0 6px 0 2px;
 }
 
@@ -298,6 +502,23 @@
 
 .reset-button:pressed {
     -fx-background-color: #94a3b8;
+}
+
+/* --- Mark All Present Button (UI-Matched Deep Sage-Teal) --- */
+.mark-present-button {
+    -fx-background-color: #1f7a68;
+    -fx-text-fill: white;
+    -fx-background-radius: 6px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+}
+
+.mark-present-button:hover {
+    -fx-background-color: #26937e;
+}
+
+.mark-present-button:pressed {
+    -fx-background-color: #16594c;
 }
 
 /* --- Sidebar Navigation Buttons --- */
