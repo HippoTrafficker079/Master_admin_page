@@ -53,8 +53,6 @@ public class StudentModifyController {
     private String updatedPhotoPath = null;
     private boolean isUpdating = false;
 
-
-
     private final String[] VALID_MAJORS = { "C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE"};
     private final String[] VALID_YEARS = { "First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year" };
 
@@ -64,10 +62,8 @@ public class StudentModifyController {
         setupBidirectionalSync();
     }
 
- // --- Add these field declarations if not already present ---
     private ObservableList<String> currentTownshipOptions;
     private FilteredList<String> filteredTownships;
-
 
     private void initializeNrcComponent() {
         if (comboNrcState != null) {
@@ -85,8 +81,6 @@ public class StudentModifyController {
             comboNrcTownship.setVisibleRowCount(12);
         }
 
-        // Track whether a township selection is locked in. 
-        // Set to true by default on load/modify so it requires Backspace to clear first!
         final boolean[] isTownshipLocked = {true};
 
         if (comboNrcState != null) {
@@ -96,7 +90,6 @@ public class StudentModifyController {
                 if (newVal != null && !newVal.equals(oldVal)) {
                     isUpdating = true;
                     try {
-                        // Fetch and set only the townships associated with this specific State code
                         ObservableList<String> stateTownships = NrcData.getTownshipsForState(newVal);
                         if (currentTownshipOptions != null) {
                             currentTownshipOptions.setAll(stateTownships);
@@ -126,7 +119,6 @@ public class StudentModifyController {
         }
 
         if (comboNrcTownship != null && comboNrcTownship.getEditor() != null) {
-            // Type-ahead autocomplete listener (allows free searching when unlocked)
             comboNrcTownship.getEditor().textProperty().addListener((obs, oldValue, newValue) -> {
                 if (isUpdating) return;
 
@@ -151,7 +143,6 @@ public class StudentModifyController {
                 }
             });
 
-            // Lock selection when a specific township is chosen from the dropdown list
             comboNrcTownship.valueProperty().addListener((obs, oldVal, newVal) -> {
                 if (isUpdating) return;
                 
@@ -169,7 +160,6 @@ public class StudentModifyController {
                             isUpdating = true;
                             try {
                                 comboNrcState.setValue(matchedState);
-                                // Ensure dropdown options match the newly synced state
                                 ObservableList<String> stateTownships = NrcData.getTownshipsForState(matchedState);
                                 if (currentTownshipOptions != null) {
                                     currentTownshipOptions.setAll(stateTownships);
@@ -194,14 +184,12 @@ public class StudentModifyController {
                 }
             });
 
-            // Key Filter: Restrict typing over a selected township unless Backspace is pressed first
             comboNrcTownship.getEditor().addEventFilter(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
                 if (isUpdating) return;
 
                 if (isTownshipLocked[0]) {
                     javafx.scene.input.KeyCode code = event.getCode();
 
-                    // Allow Backspace or Delete to clear the selection and unlock typing on the FIRST press
                     if (code == javafx.scene.input.KeyCode.BACK_SPACE || code == javafx.scene.input.KeyCode.DELETE) {
                         isUpdating = true;
                         try {
@@ -209,7 +197,6 @@ public class StudentModifyController {
                             comboNrcTownship.setValue(null);
                             comboNrcTownship.getEditor().clear();
                             
-                            // Re-load correct townships for current state upon clearing
                             if (comboNrcState != null && comboNrcState.getValue() != null) {
                                 ObservableList<String> stateTownships = NrcData.getTownshipsForState(comboNrcState.getValue());
                                 if (currentTownshipOptions != null) {
@@ -224,8 +211,6 @@ public class StudentModifyController {
                         return;
                     }
 
-                    // Block any other button and trigger the warning error message popup
-                 // Block any other button and trigger the warning error message popup
                     event.consume();
                     Platform.runLater(() -> {
                         Alert alert = new Alert(Alert.AlertType.WARNING);
@@ -277,7 +262,6 @@ public class StudentModifyController {
             if (parts.length >= 2) {
                 String state = parts[0].trim();
                 
-                // 1. Set State ComboBox
                 if (comboNrcState != null) {
                     if (!comboNrcState.getItems().contains(state)) {
                         comboNrcState.getItems().add(state);
@@ -290,7 +274,6 @@ public class StudentModifyController {
                 if (typeIndex != -1) {
                     String township = remainder.substring(0, typeIndex).trim();
                     
-                    // 2. Set Township ComboBox & Editor text
                     if (comboNrcTownship != null) {
                         if (currentTownshipOptions != null && !currentTownshipOptions.contains(township)) {
                             currentTownshipOptions.add(township);
@@ -305,7 +288,6 @@ public class StudentModifyController {
                     if (closingIndex != -1) {
                         String type = remainder.substring(typeIndex, closingIndex + 1).trim();
                         
-                        // 3. Set Type ComboBox
                         if (comboNrcType != null) {
                             if (!comboNrcType.getItems().contains(type)) {
                                 comboNrcType.getItems().add(type);
@@ -313,7 +295,6 @@ public class StudentModifyController {
                             comboNrcType.setValue(type);
                         }
 
-                        // 4. Set Number TextField
                         String number = remainder.substring(closingIndex + 1).trim();
                         if (txtNrcNumber != null) {
                             txtNrcNumber.setText(number);
@@ -396,7 +377,6 @@ public class StudentModifyController {
         }
     }
 
-    // UPDATE method signature to accept the row number instead of student ID
     public void initData(Student student) {
         this.currentStudent = student;
         if (student != null) {
@@ -413,7 +393,6 @@ public class StudentModifyController {
                 bannerBox = new HBox();
                 bannerBox.setStyle("-fx-background-color: #dbeafe; -fx-border-color: #2563eb; -fx-border-width: 1.5; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 12 18;");
 
-                // Retrieve the displayNo passed from the Main Controller
                 int displayRowNumber = student.getDisplayNo() > 0 ? student.getDisplayNo() : student.getNo();
 
                 String bannerText = String.format("⭐     %d     |     %s     |     %s     |     %s     |     %s",
@@ -456,7 +435,6 @@ public class StudentModifyController {
                     comboYear.setValue(y);
                 }
 
-                // Auto-select NRC parts correctly in Modify mode
                 setParsedNrc(student.getNrc());
 
                 if (txtPhone != null) txtPhone.setText(safe(student.getPhoneNo()));
@@ -563,18 +541,25 @@ public class StudentModifyController {
 
     private void loadImage(String path) {
         if (passportImageView == null) return;
-        if (path != null && !path.trim().isEmpty()) {
-            try {
-                Image img = (path.startsWith("file:") || path.startsWith("http:"))
-                        ? new Image(path, 86, 110, false, true)
-                        : new Image(getClass().getResourceAsStream(path));
-                if (img != null) {
-                	passportImageView.setImage(img);
-                	passportImageView.setFitWidth(86.0);
-                	passportImageView.setFitHeight(111.0);
-                	passportImageView.setPreserveRatio(false);
-                }
-            } catch (Exception e) {}
+        if (path == null || path.trim().isEmpty() || path.trim().equalsIgnoreCase("null")
+                || path.toLowerCase().contains("freddy.jpg")) {
+            passportImageView.setImage(null);
+            return;
+        }
+        try {
+            Image img = (path.startsWith("file:") || path.startsWith("http:") || path.startsWith("https:"))
+                    ? new Image(path, 86, 111, false, true, true)
+                    : new Image(getClass().getResourceAsStream(path), 86, 111, false, true);
+            if (img != null && !img.isError()) {
+                passportImageView.setImage(img);
+                passportImageView.setFitWidth(86.0);
+                passportImageView.setFitHeight(111.0);
+                passportImageView.setPreserveRatio(false);
+            } else {
+                passportImageView.setImage(null);
+            }
+        } catch (Exception e) {
+            passportImageView.setImage(null);
         }
     }
 
@@ -651,19 +636,12 @@ public class StudentModifyController {
                 return;
             }
             
-            if (StudentController.masterData != null) {
-                for (int i = 0; i < StudentController.masterData.size(); i++) {
-                    if (StudentController.masterData.get(i).getNo() == currentStudent.getNo()) {
-                        StudentController.masterData.set(i, currentStudent);
-                        break;
-                    }
-                }
-            }
-            
+            StudentController.refreshLive();
+            AttendanceController.refreshLive();
+            DashboardController.refreshDashboard();
         }
         
         handleReturn();
-        DashboardController.refreshDashboard();
     }
 
     @FXML
@@ -677,13 +655,10 @@ public class StudentModifyController {
                 currentStudent.resetToOriginal();
             }
             
-            // Populate form data back with fresh database values
             initData(currentStudent);
 
-            // --- FIX NRC STATE & TOWNSHIP RESET SYNC ---
             if (currentStudent.getNrc() != null && !currentStudent.getNrc().isEmpty()) {
                 String fullNrc = currentStudent.getNrc();
-                // Example format: 12/DaGaNa(N)123456 or similar
                 try {
                     String stateCode = fullNrc.split("/")[0].trim();
                     String remainder = fullNrc.split("/")[1];
@@ -693,7 +668,6 @@ public class StudentModifyController {
                     try {
                         if (comboNrcState != null) {
                             comboNrcState.setValue(stateCode);
-                            // Repopulate townships strictly for this state code
                             ObservableList<String> stateTownships = NrcData.getTownshipsForState(stateCode);
                             if (currentTownshipOptions != null) {
                                 currentTownshipOptions.setAll(stateTownships);

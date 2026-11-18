@@ -51,11 +51,7 @@
 							      minHeight="115.0" prefHeight="115.0" maxHeight="115.0"
 							      style="-fx-border-color: #1e3a8a; -fx-border-width: 1.5; -fx-background-color: #f8fafc; -fx-border-radius: 4; -fx-cursor: hand;">
 							   <children>
-							      <ImageView fx:id="passportImageView" fitWidth="86.0" fitHeight="111.0" pickOnBounds="true" preserveRatio="false">
-							         <image>
-							            <Image url="@../freddy.jpg" />
-							         </image>
-							      </ImageView>
+							      <ImageView fx:id="passportImageView" fitHeight="111.0" fitWidth="86.0" pickOnBounds="true" preserveRatio="false" />
 							   </children>
 							</VBox>
                               <Label onMouseClicked="#handleUploadPhoto" text="📷 Upload Photo" textFill="#2563eb" style="-fx-cursor: hand; -fx-font-size: 10px; -fx-font-weight: bold;" />
@@ -189,17 +185,17 @@
                         </HBox>
                         <Label text=":" GridPane.columnIndex="1" GridPane.rowIndex="4" />
                         
-                        <HBox alignment="CENTER_LEFT" spacing="6.0" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.rowIndex="4">
-                           <children>
-                              <ComboBox fx:id="comboNrcState" prefWidth="70.0" promptText="State" />
-                              <Label text="/" textFill="#64748b">
-                                 <font><Font name="System Bold" size="13.0" /></font>
-                              </Label>
-                              <ComboBox fx:id="comboNrcTownship" editable="true" prefWidth="180.0" promptText="Township" HBox.hgrow="ALWAYS" />
-                              <ComboBox fx:id="comboNrcType" prefWidth="75.0" promptText="(N)" />
-                              <TextField fx:id="txtNrcNumber" prefWidth="110.0" promptText="111111" />
-                           </children>
-                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="8.0" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.rowIndex="4">
+						   <children>
+						      <ComboBox fx:id="comboNrcState" minWidth="92.0" prefHeight="34.0" prefWidth="92.0" promptText="State" />
+						      <Label text="/">
+						         <font><Font name="System Bold" size="15.0" /></font>
+						      </Label>
+						      <ComboBox fx:id="comboNrcTownship" editable="true" minWidth="165.0" prefHeight="34.0" prefWidth="175.0" promptText="Township" />
+						      <ComboBox fx:id="comboNrcType" minWidth="78.0" prefHeight="34.0" prefWidth="78.0" promptText="(N)" />
+						      <TextField fx:id="txtNrcNumber" minWidth="115.0" prefHeight="34.0" prefWidth="125.0" promptText="111111" />
+						   </children>
+						</HBox>
                      </children>
                   </GridPane>
 

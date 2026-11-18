@@ -76,29 +76,7 @@
 			         </children>
 			      </VBox>
 			
-			      <!-- 2. Active Students (Emerald Mint Circle) -->
-			      <VBox minWidth="0.0" spacing="6.0" HBox.hgrow="ALWAYS"
-			            style="-fx-background-color: white; -fx-padding: 12 12; -fx-background-radius: 10; -fx-border-color: #e2e8f0; -fx-border-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.04), 8, 0, 0, 2);">
-			         <children>
-			            <HBox alignment="CENTER_LEFT" spacing="10.0">
-			               <children>
-			                  <StackPane minHeight="38.0" minWidth="38.0" prefHeight="38.0" prefWidth="38.0" maxHeight="38.0" maxWidth="38.0"
-			                             style="-fx-background-color: #ecfdf5; -fx-background-radius: 50em;">
-			                     <children>
-			                        <Label text="🎓" style="-fx-text-fill: #10b981; -fx-font-size: 19px;" />
-			                     </children>
-			                  </StackPane>
-			                  <Label fx:id="lblActiveStudents" text="19" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 21px;" />
-			               </children>
-			            </HBox>
-			            <VBox spacing="1.0">
-			               <children>
-			                  <Label text="Active Students" style="-fx-text-fill: #334155; -fx-font-weight: bold; -fx-font-size: 11.5px;" />
-			                  <Label text="Currently Enrolled" style="-fx-text-fill: #94a3b8; -fx-font-size: 10px;" />
-			               </children>
-			            </VBox>
-			         </children>
-			      </VBox>
+			      
 			
 			      <!-- 3. Total Teachers (Soft Purple Circle) -->
 			      <VBox minWidth="0.0" spacing="6.0" HBox.hgrow="ALWAYS"

@@ -387,7 +387,6 @@ public class AttendanceDAO {
         int enrollmentId = record.getEnrollmentId();
 
         if ("Present".equalsIgnoreCase(newStatus)) {
-            // Remove exception row so it defaults back to Present
             String deleteSql = "DELETE FROM attendance WHERE session_id = ? AND enrollment_id = ?";
 
             try (Connection conn = DatabaseConnector.getConnection();
@@ -400,8 +399,10 @@ public class AttendanceDAO {
                 e.printStackTrace();
             }
         } else {
-            // Map UI text to database ENUM ('UNEXCUSED' or 'EXCUSED')
             String dbStatus = "Absent".equalsIgnoreCase(newStatus) ? "UNEXCUSED" : "EXCUSED";
+            String cleanReason = (reason != null && !reason.trim().isEmpty() && !reason.trim().equals("-"))
+                    ? reason.trim()
+                    : ("Absent".equalsIgnoreCase(newStatus) ? "Absent Today" : "");
 
             String upsertSql = """
                         INSERT INTO attendance (session_id, enrollment_id, status, reason)
@@ -416,7 +417,7 @@ public class AttendanceDAO {
                 pstmt.setInt(1, sessionId);
                 pstmt.setInt(2, enrollmentId);
                 pstmt.setString(3, dbStatus);
-                pstmt.setString(4, reason != null ? reason : "");
+                pstmt.setString(4, cleanReason);
                 int rowsAffected = pstmt.executeUpdate();
                 System.out.println("UPSERT executed. Rows affected: " + rowsAffected);
             } catch (SQLException e) {
@@ -816,6 +817,38 @@ public class AttendanceDAO {
         }
         this.lastFetchedTotalCount = totalRecords;
         return logList;
+    }
+
+    public double getTodayAttendancePercentage() {
+        String sql = """
+                    SELECT
+                        COUNT(CASE WHEN COALESCE(a.status, 'Present') IN ('Present', 'EXCUSED') THEN 1 END) AS present_count,
+                        COUNT(*) AS total_count
+                    FROM class_session cs
+                    JOIN course_offering co ON cs.offering_id = co.offering_id
+                    JOIN course_enrollment ce ON co.offering_id = ce.offering_id
+                    LEFT JOIN attendance a ON cs.session_id = a.session_id AND ce.enrollment_id = a.enrollment_id
+                    WHERE cs.session_date = CURDATE() AND ce.status = 'ENROLLED'
+                """;
+
+        try (Connection conn = DatabaseConnector.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()) {
+
+            if (rs.next()) {
+                int presentCount = rs.getInt("present_count");
+                int totalCount = rs.getInt("total_count");
+
+                if (totalCount == 0) {
+                    return 100.0;
+                }
+                return ((double) presentCount / totalCount) * 100.0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0.0;
     }
 
     public int getLastFetchedTotalCount() {

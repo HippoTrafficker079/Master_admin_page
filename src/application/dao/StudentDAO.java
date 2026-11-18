@@ -354,39 +354,53 @@ public class StudentDAO {
         }
     }
 
+    private String lastBatchError = "";
+
+    public String getLastBatchError() {
+        return lastBatchError;
+    }
+
     public int insertBatchStudents(List<Student> students) {
-        Connection conn = null;
         int successCount = 0;
-        try {
-            conn = DatabaseConnector.getConnection();
-            conn.setAutoCommit(false);
-            for (Student student : students) {
-                int studentId = insertSingleStudent(conn, student, "Default123");
-                if (studentId > -1) {
-                    successCount++;
-                }
-            }
-            conn.commit();
-            return successCount;
-        } catch (SQLException e) {
-            if (conn != null) {
+        List<String> duplicateDetails = new ArrayList<>();
+        lastBatchError = "";
+
+        for (Student student : students) {
+            try (Connection conn = DatabaseConnector.getConnection()) {
+                conn.setAutoCommit(false);
                 try {
+                    int studentId = insertSingleStudent(conn, student, "Default123");
+                    if (studentId > -1) {
+                        conn.commit();
+                        successCount++;
+                    } else {
+                        conn.rollback();
+                    }
+                } catch (java.sql.SQLIntegrityConstraintViolationException dupEx) {
                     conn.rollback();
-                } catch (SQLException rollbackEx) {
-                    rollbackEx.printStackTrace();
+                    String msg = dupEx.getMessage() != null ? dupEx.getMessage() : "Duplicate record";
+                    if (msg.contains("student.nrc")) {
+                        duplicateDetails.add("• " + student.getName() + " (" + student.getRollNo() + "): Duplicate NRC '" + student.getNrc() + "'");
+                    } else if (msg.contains("student.roll_no") || msg.contains("user_account.username")) {
+                        duplicateDetails.add("• " + student.getName() + ": Duplicate Roll No '" + student.getRollNo() + "'");
+                    } else if (msg.contains("email")) {
+                        duplicateDetails.add("• " + student.getName() + " (" + student.getRollNo() + "): Duplicate Email '" + student.getEmail() + "'");
+                    } else {
+                        duplicateDetails.add("• " + student.getName() + " (" + student.getRollNo() + "): " + msg);
+                    }
+                } catch (SQLException e) {
+                    conn.rollback();
+                    lastBatchError = e.getMessage();
                 }
-            }
-            e.printStackTrace();
-            return -1;
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException closeEx) {
-                    closeEx.printStackTrace();
-                }
+            } catch (SQLException connEx) {
+                lastBatchError = connEx.getMessage();
             }
         }
+
+        if (!duplicateDetails.isEmpty()) {
+            lastBatchError = String.join("\n", duplicateDetails);
+        }
+        return successCount;
     }
 
     private int insertSingleStudent(Connection conn, Student student, String password) throws SQLException {
@@ -449,7 +463,7 @@ public class StudentDAO {
                 )
                 VALUES (?, ?, ?, ?);
                 """;
-
+        
         String username = student.getRollNo();
         String email = student.getRollNo().toLowerCase().replace("-", "") + "@ytu.edu.mm";
 
@@ -472,11 +486,12 @@ public class StudentDAO {
         }
 
         int studentId = -1;
+        DepartmentDAO departmentDAO = new DepartmentDAO();
+        int deptId = departmentDAO.getDeptIdByCodeOrName(conn, student.getMajor());
         try (PreparedStatement pstmtStudent = conn.prepareStatement(studentCreateSql,
                 Statement.RETURN_GENERATED_KEYS)) {
 
-            DepartmentDAO departmentDAO = new DepartmentDAO();
-            int deptId = departmentDAO.getDeptIdByCodeOrName(conn, student.getMajor());
+            
 
             String rawDob = student.getDob();
             String formattedDob = rawDob;
@@ -539,6 +554,28 @@ public class StudentDAO {
             pstmtBackground.setString(4, student.getAdditionalInfo());
 
             pstmtBackground.executeUpdate();
+        }
+
+        // Paste the autoEnrollSql block HERE (where studentId and deptId already exist!)
+        String targetTerm = (student.getSemester() != null && !student.getSemester().trim().isEmpty()
+                && !student.getSemester().equalsIgnoreCase("Pending"))
+                ? student.getSemester().trim()
+                : "First Semester";
+
+        String autoEnrollSql = """
+                INSERT IGNORE INTO course_enrollment (offering_id, student_id, enrollment_date, status)
+                SELECT co.offering_id, ?, CURDATE(), 'ENROLLED'
+                FROM course_offering co
+                JOIN course c ON co.course_id = c.course_id
+                WHERE c.dept_id = ?
+                  AND co.term = ?
+                """;
+
+        try (PreparedStatement pstmtEnroll = conn.prepareStatement(autoEnrollSql)) {
+            pstmtEnroll.setInt(1, studentId);
+            pstmtEnroll.setInt(2, deptId);
+            pstmtEnroll.setString(3, targetTerm);
+            pstmtEnroll.executeUpdate();
         }
 
         return studentId;

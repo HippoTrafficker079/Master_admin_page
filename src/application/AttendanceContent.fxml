@@ -71,51 +71,63 @@
                      </children>
                   </HBox>
 
-                  <!-- Filter Panel 1: Matrix / Individual Filters -->
-                  <VBox fx:id="matrixFilterBox" prefHeight="95.0" minHeight="95.0" maxHeight="95.0" spacing="8.0" style="-fx-background-color: white; -fx-padding: 12; -fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;">
-                     <children>
-                        <HBox spacing="8.0">
-                           <children>
-                              	<ComboBox fx:id="comboDepartment" minWidth="0.0" prefHeight="30.0" prefWidth="130.0" promptText="Department" />
-								<ComboBox fx:id="comboYear" minWidth="0.0" prefHeight="30.0" prefWidth="105.0" promptText="Year" />
-								<ComboBox fx:id="comboSubject" editable="true" minWidth="0.0" prefHeight="30.0" prefWidth="150.0" promptText="Search Subject..." />
-								<DatePicker fx:id="startDatePicker" minWidth="0.0" prefHeight="30.0" prefWidth="115.0" promptText="Start Date" />
-								<DatePicker fx:id="endDatePicker" minWidth="0.0" prefHeight="30.0" prefWidth="115.0" promptText="End Date" />
-								<TextField fx:id="searchField" minWidth="0.0" prefHeight="30.0" prefWidth="130.0" promptText="Search student..." HBox.hgrow="ALWAYS" />
-                           </children>
-                        </HBox>
-                        <HBox alignment="CENTER_LEFT" spacing="15.0">
-                           <children>
-                              <CheckBox fx:id="chkLowAttendance" mnemonicParsing="false"  text="Only show attendance &lt;75%" style="-fx-text-fill: #b91c1c; -fx-font-weight: bold; -fx-font-size: 12px;" />
-                              <Button mnemonicParsing="false" onAction="#applyFilters" prefHeight="28.0" prefWidth="85.0" styleClass="search-button" text="Filter" />
-                              <Button mnemonicParsing="false" onAction="#handleReset" prefHeight="28.0" prefWidth="85.0" styleClass="reset-button" text="Reset" />
-                           </children>
-                        </HBox>
-                     </children>
-                  </VBox>
+                  <!-- Filter Panel 1: Matrix / Individual View Filters -->
+			      <VBox fx:id="matrixFilterBox" spacing="12.0" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
+			         <children>
+			            <Label text="Filter &amp; Search Attendance" textFill="#0f172a">
+			               <font><Font name="System Bold" size="15.0" /></font>
+			            </Label>
+			
+			            <!-- Row 1: Dropdowns + Start & End DatePickers -->
+			            <HBox fx:id="matrixFilterRow1" alignment="CENTER_LEFT" spacing="10.0">
+			               <children>
+			                  <ComboBox fx:id="comboDepartment" prefHeight="34.0" prefWidth="155.0" promptText="Department" HBox.hgrow="SOMETIMES" />
+			                  <ComboBox fx:id="comboYear" prefHeight="34.0" prefWidth="135.0" promptText="Year" HBox.hgrow="SOMETIMES" />
+			                  <ComboBox fx:id="comboSubject" editable="true" prefHeight="34.0" prefWidth="275.0" promptText="Search Subject..." HBox.hgrow="ALWAYS" />
+			                  <DatePicker fx:id="startDatePicker" prefHeight="34.0" prefWidth="145.0" promptText="Start Date" HBox.hgrow="SOMETIMES" />
+			                  <DatePicker fx:id="endDatePicker" prefHeight="34.0" prefWidth="145.0" promptText="End Date" HBox.hgrow="SOMETIMES" />
+			               </children>
+			            </HBox>
+			
+			            <!-- Row 2: Search Student + Low Attendance Checkbox + Filter & Reset -->
+			            <HBox fx:id="matrixFilterRow2" alignment="CENTER_LEFT" spacing="12.0">
+			               <children>
+			                  <TextField fx:id="searchField" prefHeight="34.0" prefWidth="260.0" promptText="Search student name or roll no..." styleClass="search-field" />
+			                  <CheckBox fx:id="chkLowAttendance" mnemonicParsing="false" style="-fx-text-fill: #b91c1c; -fx-font-weight: bold;" text="Only show attendance &lt;75%" />
+			                  <Button fx:id="btnFilter" mnemonicParsing="false" onAction="#applyFilters" prefHeight="34.0" prefWidth="95.0" styleClass="search-button" text="Filter" />
+			                  <Button fx:id="btnReset" mnemonicParsing="false" onAction="#handleReset" prefHeight="34.0" prefWidth="95.0" styleClass="reset-button" text="↺ Reset" />
+			               </children>
+			            </HBox>
+			         </children>
+			      </VBox>
 
-                  <!-- Filter Panel 2: Daily Log Filters -->
-                  <VBox fx:id="dailyFilterBox" visible="false" managed="false" prefHeight="95.0" minHeight="95.0" maxHeight="95.0" spacing="8.0" style="-fx-background-color: white; -fx-padding: 12; -fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;">
-                     <children>
-                        <HBox spacing="10.0" alignment="CENTER_LEFT">
-                           <children>
-                              <DatePicker fx:id="dailyDatePicker" prefHeight="30.0" prefWidth="140.0" promptText="Date" />
-                              <ComboBox fx:id="dailyPeriodCombo" prefHeight="30.0" prefWidth="120.0" promptText="Period" />
-                              <TextField fx:id="dailySearchField" prefHeight="30.0" prefWidth="180.0" promptText="Search student/subject..." HBox.hgrow="ALWAYS" />
-                           </children>
-                        </HBox>
-                        <HBox alignment="CENTER_LEFT" spacing="15.0">
-                           <children>
-                              <Label text="Remarks / Status:" style="-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 12px;" />
-                              <CheckBox fx:id="chkPresent" mnemonicParsing="false"  text="Present" style="-fx-text-fill: #1e293b;" />
-                              <CheckBox fx:id="chkAbsent" mnemonicParsing="false"  text="Absent" style="-fx-text-fill: #1e293b;" />
-                              <CheckBox fx:id="chkExcuse" mnemonicParsing="false"  text="Excuse" style="-fx-text-fill: #1e293b;" />
-                              <Button mnemonicParsing="false" onAction="#applyFilters" prefHeight="28.0" prefWidth="85.0" styleClass="search-button" text="Filter" />
-                              <Button mnemonicParsing="false" onAction="#handleReset" prefHeight="28.0" prefWidth="85.0" styleClass="reset-button" text="Reset" />
-                           </children>
-                        </HBox>
-                     </children>
-                  </VBox>
+                  <!-- Filter Panel 2: Daily Log Filters (Isolated) -->
+			      <VBox fx:id="dailyFilterBox" managed="false" spacing="12.0" style="-fx-background-color: white; -fx-padding: 16; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;" visible="false">
+			         <children>
+			            <Label text="Filter &amp; Search Daily Log" textFill="#0f172a">
+			               <font><Font name="System Bold" size="15.0" /></font>
+			            </Label>
+			
+			            <HBox alignment="CENTER_LEFT" spacing="12.0">
+			               <children>
+			                  <DatePicker fx:id="dailyDatePicker" minWidth="155.0" prefHeight="34.0" prefWidth="155.0" promptText="Log Date" />
+			                  <ComboBox fx:id="dailyPeriodCombo" prefHeight="34.0" prefWidth="140.0" promptText="Period" />
+			                  <TextField fx:id="dailySearchField" prefHeight="34.0" prefWidth="240.0" promptText="Search student or subject..." styleClass="search-field" HBox.hgrow="ALWAYS" />
+			               </children>
+			            </HBox>
+			
+			            <HBox alignment="CENTER_LEFT" spacing="15.0">
+			               <children>
+			                  <Label text="Remarks / Status:" textFill="#1e3a8a"><font><Font name="System Bold" size="12.0" /></font></Label>
+			                  <CheckBox fx:id="chkPresent" mnemonicParsing="false" text="Present" />
+			                  <CheckBox fx:id="chkAbsent" mnemonicParsing="false" text="Absent" />
+			                  <CheckBox fx:id="chkExcuse" mnemonicParsing="false" text="Excuse" />
+			                  <Button mnemonicParsing="false" onAction="#applyFilters" prefHeight="34.0" prefWidth="95.0" styleClass="search-button" text="Filter" />
+			                  <Button mnemonicParsing="false" onAction="#handleReset" prefHeight="34.0" prefWidth="95.0" styleClass="reset-button" text="↺ Reset" />
+			               </children>
+			            </HBox>
+			         </children>
+			      </VBox>
 
                   <!-- Hint Banners -->
                   <HBox fx:id="hintBoxMatrix" alignment="CENTER_LEFT" prefHeight="45.0" minHeight="45.0" maxHeight="45.0" styleClass="instruction-banner-box" style="-fx-background-color: #eff6ff; -fx-padding: 10 14; -fx-background-radius: 6; -fx-border-color: #bfdbfe; -fx-border-radius: 6;">
@@ -124,15 +136,20 @@
                      </children>
                   </HBox>
 
-                  <HBox fx:id="hintBoxDaily" alignment="CENTER_LEFT" visible="false" managed="false" prefHeight="45.0" minHeight="45.0" maxHeight="45.0" styleClass="instruction-banner-box" style="-fx-background-color: #eff6ff; -fx-padding: 6 14; -fx-background-radius: 6; -fx-border-color: #bfdbfe; -fx-border-radius: 6;">
-                     <children>
-                        <VBox spacing="2.0" alignment="CENTER_LEFT">
-                           <children>
-                              <Label text="💡  Hint: Click on the Status column to edit it, then press &quot;Save Changes&quot;." style="-fx-text-fill: #1d4ed8; -fx-font-weight: bold; -fx-font-size: 12px;" />
-                           </children>
-                        </VBox>
-                     </children>
-                  </HBox>
+                  <!-- Striking Hint Banner 2 (Visible in Class View - Daily Log Only) -->
+      <HBox fx:id="hintBoxDaily" alignment="CENTER_LEFT" managed="false" style="-fx-background-color: #eff6ff; -fx-padding: 10 14; -fx-background-radius: 6; -fx-border-color: #bfdbfe; -fx-border-radius: 6;" styleClass="instruction-banner-box" visible="false">
+         <children>
+            <VBox alignment="CENTER_LEFT" spacing="6.0">
+               <children>
+                  <Label text="💡  Hint: Select a row and click &quot;Toggle Status&quot; to cycle Present → Absent → Excused. For Excused rows, double-click Remarks, type a reason, press Enter, and click &quot;Save Changes&quot;." textFill="#1d4ed8" wrapText="true">
+                     <font>
+                        <Font name="System Bold" size="13.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
+         </children>
+      </HBox>
 
                   <HBox fx:id="hintBoxIndiv" alignment="CENTER_LEFT" visible="false" managed="false" prefHeight="45.0" minHeight="45.0" maxHeight="45.0" styleClass="instruction-banner-box" style="-fx-background-color: #eff6ff; -fx-padding: 10 14; -fx-background-radius: 6; -fx-border-color: #bfdbfe; -fx-border-radius: 6;">
                      <children>
@@ -174,6 +191,7 @@
 					      <HBox fx:id="saveChangesBox" alignment="CENTER_RIGHT" managed="false" spacing="12.0" style="-fx-padding: 10 0 0 0;" visible="false">
 					         <children>
 					            <Button fx:id="btnResetDailyStatus" mnemonicParsing="false" onAction="#handleResetDailyStatus" prefHeight="36.0" prefWidth="150.0" styleClass="reset-button" style="-fx-font-size: 13px;" text="↺ Reset Status" />
+					            <Button fx:id="btnToggleStatus" mnemonicParsing="false" onAction="#handleToggleStatus" prefHeight="36.0" prefWidth="155.0" styleClass="toggle-status-button" text="⇄ Toggle Status" />
 					            <Button fx:id="btnMarkAllPresent" mnemonicParsing="false" onAction="#handleMarkAllPresent" prefHeight="36.0" prefWidth="170.0" styleClass="mark-present-button" style="-fx-font-size: 13px;" text="✔ Mark All Present" />
 					            <Button fx:id="btnSaveChanges" mnemonicParsing="false" onAction="#handleSaveChanges" prefHeight="36.0" prefWidth="160.0" styleClass="search-button" style="-fx-font-size: 13px;" text="💾 Save Changes" />
 					         </children>
@@ -210,52 +228,39 @@
 										      minHeight="115.0" prefHeight="115.0" maxHeight="115.0"
 										      style="-fx-background-color: #f8fafc; -fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;">
 										   <children>
-										      <ImageView fx:id="indivProfileImage" fitHeight="111.0" fitWidth="86.0" pickOnBounds="true" preserveRatio="false">
-										         <image>
-										            <Image url="@../freddy.jpg" />
-										         </image>
-										      </ImageView>
+										      <ImageView fx:id="indivProfileImage" fitHeight="111.0" fitWidth="86.0" pickOnBounds="true" preserveRatio="false" />
 										   </children>
 										</VBox>
                                           <VBox spacing="4.0" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
                                              <children>
                                                 <Label fx:id="lblIndivName" text="Mg Mg" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 15px;" />
                                                 
-                                                <GridPane hgap="4.0" vgap="4.0">
-                                                   <columnConstraints>
-                                                      <ColumnConstraints minWidth="75.0" prefWidth="78.0" />
-                                                      <ColumnConstraints minWidth="6.0" prefWidth="8.0" />
-                                                      <ColumnConstraints minWidth="130.0" prefWidth="145.0" />
-                                                   </columnConstraints>
-                                                   <rowConstraints>
-                                                      <RowConstraints minHeight="20.0" prefHeight="20.0" />
-                                                      <RowConstraints minHeight="20.0" prefHeight="20.0" />
-                                                      <RowConstraints minHeight="20.0" prefHeight="20.0" />
-                                                      <RowConstraints minHeight="20.0" prefHeight="20.0" />
-                                                      <RowConstraints minHeight="22.0" prefHeight="22.0" />
-                                                   </rowConstraints>
-                                                   <children>
-                                                      <Label text="Student ID" style="-fx-text-fill: #334155; -fx-font-size: 12px;" />
-                                                      <Label text=":" style="-fx-text-fill: #334155;" GridPane.columnIndex="1" />
-                                                      <Label fx:id="lblIndivStudentId" text="21-CEIT-01" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 12px;" GridPane.columnIndex="2" />
-
-                                                      <Label text="Program" style="-fx-text-fill: #334155; -fx-font-size: 12px;" GridPane.rowIndex="1" />
-                                                      <Label text=":" style="-fx-text-fill: #334155;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                                                      <Label fx:id="lblIndivProgram" text="B.E in CEIT" style="-fx-text-fill: #0f172a; -fx-font-size: 12px;" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-
-                                                      <Label text="Department" style="-fx-text-fill: #334155; -fx-font-size: 12px;" GridPane.rowIndex="2" />
-                                                      <Label text=":" style="-fx-text-fill: #334155;" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                                                      <Label fx:id="lblIndivDept" text="Department of CEIT" style="-fx-text-fill: #0f172a; -fx-font-size: 12px;" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-
-                                                      <Label text="Year / Section" style="-fx-text-fill: #334155; -fx-font-size: 12px;" GridPane.rowIndex="3" />
-                                                      <Label text=":" style="-fx-text-fill: #334155;" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                                                      <Label fx:id="lblIndivYearSec" text="III-CEIT-1" style="-fx-text-fill: #0f172a; -fx-font-size: 12px;" GridPane.columnIndex="2" GridPane.rowIndex="3" />
-
-                                                      <Label text="Status" style="-fx-text-fill: #334155; -fx-font-size: 12px;" GridPane.rowIndex="4" />
-                                                      <Label text=":" style="-fx-text-fill: #334155;" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-                                                      <Label fx:id="lblIndivStatusBadge" style="-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-padding: 2 10; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;" text="Active" GridPane.columnIndex="2" GridPane.rowIndex="4" />
-                                                   </children>
-                                                </GridPane>
+                                                <GridPane hgap="8.0" vgap="4.0">
+												   <columnConstraints>
+												      <ColumnConstraints minWidth="80.0" prefWidth="85.0" />
+												      <ColumnConstraints minWidth="10.0" prefWidth="10.0" />
+												      <ColumnConstraints minWidth="160.0" prefWidth="210.0" />
+												   </columnConstraints>
+												   <rowConstraints>
+												      <RowConstraints minHeight="20.0" prefHeight="20.0" />
+												      <RowConstraints minHeight="20.0" prefHeight="20.0" />
+												      <RowConstraints minHeight="20.0" prefHeight="20.0" />
+												      <RowConstraints minHeight="22.0" prefHeight="22.0" />
+												   </rowConstraints>
+												   <children>
+												      <Label text="Student ID" textFill="#334155" /><Label text=":" textFill="#334155" GridPane.columnIndex="1" />
+												      <Label fx:id="lblIndivStudentId" text="21-CEIT-0482" textFill="#0f172a" GridPane.columnIndex="2"><font><Font name="System Bold" size="12.0" /></font></Label>
+												
+												      <Label text="Department" textFill="#334155" GridPane.rowIndex="1" /><Label text=":" textFill="#334155" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+												      <Label fx:id="lblIndivDept" text="College of Engineering and IT (CEIT)" textFill="#0f172a" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+												
+												      <Label text="Year / Section" textFill="#334155" GridPane.rowIndex="2" /><Label text=":" textFill="#334155" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+												      <Label fx:id="lblIndivYearSec" text="III – CEIT – 1" textFill="#0f172a" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+												
+												      <Label text="Status" textFill="#334155" GridPane.rowIndex="3" /><Label text=":" textFill="#334155" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+												      <Label fx:id="lblIndivStatusBadge" style="-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-padding: 2 10; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;" text="Active" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+												   </children>
+												</GridPane>
                                              </children>
                                           </VBox>
                                        </children>
@@ -384,20 +389,23 @@
                                  </children>
                               </HBox>
 
-                              <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-background-color: #f8fafc; -fx-padding: 10 15; -fx-border-color: #cbd5e1; -fx-border-width: 0 0 1 0;">
-                                 <children>
-                                    <Label text="Filter:" style="-fx-text-fill: #1e293b; -fx-font-weight: bold; -fx-font-size: 12px;" />
-                                    <ComboBox fx:id="comboIndivLogCourse" prefHeight="30.0" prefWidth="155.0" promptText="All Courses" />
-                                    <ComboBox fx:id="comboIndivLogStatus" prefHeight="30.0" prefWidth="125.0" promptText="All Status" />
-                                    <Label text="Date: From" style="-fx-text-fill: #475569;" />
-                                    <DatePicker fx:id="indivLogStartDate" prefHeight="30.0" prefWidth="130.0" promptText="Start Date" />
-                                    <Label text="To" style="-fx-text-fill: #475569;" />
-                                    <DatePicker fx:id="indivLogEndDate" prefHeight="30.0" prefWidth="130.0" promptText="End Date" />
-                                    <Region HBox.hgrow="ALWAYS" />
-                                    <Button mnemonicParsing="false" onAction="#applyIndivLogFilters" prefHeight="30.0" prefWidth="115.0" styleClass="search-button" text="🔍 Apply Filter" />
-                                    <Button mnemonicParsing="false" onAction="#resetIndivLogFilters" prefHeight="30.0" prefWidth="85.0" styleClass="reset-button" text="↻ Reset" />
-                                 </children>
-                              </HBox>
+                              <VBox spacing="10.0" style="-fx-background-color: #f8fafc; -fx-padding: 12 14; -fx-background-radius: 6; -fx-border-color: #e2e8f0; -fx-border-radius: 6;">
+								   <children>
+								      <Label text="Filter &amp; Search Chronological Records" textFill="#0f172a">
+								         <font><Font name="System Bold" size="14.0" /></font>
+								      </Label>
+								      <HBox alignment="CENTER_LEFT" spacing="12.0">
+								         <children>
+								            <ComboBox fx:id="comboIndivLogCourse" prefHeight="32.0" prefWidth="180.0" promptText="All Courses" />
+								            <ComboBox fx:id="comboIndivLogStatus" prefHeight="32.0" prefWidth="135.0" promptText="All Status" />
+								            <DatePicker fx:id="indivLogStartDate" minWidth="150.0" prefHeight="32.0" prefWidth="150.0" promptText="Start Date" />
+								            <DatePicker fx:id="indivLogEndDate" minWidth="150.0" prefHeight="32.0" prefWidth="150.0" promptText="End Date" />
+								            <Button mnemonicParsing="false" onAction="#applyIndivLogFilters" prefHeight="32.0" prefWidth="90.0" styleClass="search-button" text="Filter" />
+								            <Button mnemonicParsing="false" onAction="#resetIndivLogFilters" prefHeight="32.0" prefWidth="90.0" styleClass="reset-button" text="↺ Reset" />
+								         </children>
+								      </HBox>
+								   </children>
+								</VBox>
 
                               <!-- Detailed Chronological Log Table -->
                               <TableView fx:id="chronologicalLogTable" prefHeight="272.0" minHeight="272.0" maxHeight="272.0" style="-fx-border-width: 0;">

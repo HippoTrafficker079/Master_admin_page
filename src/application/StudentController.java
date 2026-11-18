@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import application.dao.StudentDAO;
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -14,6 +15,7 @@ import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
@@ -25,6 +27,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 
 public class StudentController {
 
@@ -53,12 +57,11 @@ public class StudentController {
     private Button add;
     @FXML
     private Button remove;
-    @FXML
-    private Button restore;
 
     @FXML
     private TextField searchField;
 
+    private static StudentController instance;
     public static ObservableList<Student> masterData = null;
     private FilteredList<Student> filteredData;
 
@@ -66,8 +69,16 @@ public class StudentController {
     private ComboBox<String> yearHeaderCombo;
     private ComboBox<String> semesterHeaderCombo;
 
+    public static void refreshLive() {
+        if (instance != null) {
+            Platform.runLater(() -> instance.refreshDataFromDatabase());
+        }
+    }
+
     @FXML
     public void initialize() {
+        instance = this;
+
         if (rootPane != null) {
             rootPane.setOnMouseClicked(event -> {
                 studentTable.getSelectionModel().clearSelection();
@@ -86,9 +97,10 @@ public class StudentController {
         colYear.setCellValueFactory(cellData -> cellData.getValue().yearProperty());
         colSemester.setCellValueFactory(cellData -> cellData.getValue().semesterProperty());
         colPhone.setCellValueFactory(cellData -> cellData.getValue().phoneNoProperty());
-        
+
         ObservableList<String> majorOptions = FXCollections.observableArrayList(
-                "All Majors", "Pending", "C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE");
+                "All Majors", "Pending", "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex",
+                "FE");
 
         ObservableList<String> yearOptions = FXCollections.observableArrayList(
                 "All Years", "First Year", "Second Year", "Third Year", "Fourth Year", "Fifth Year");
@@ -113,9 +125,7 @@ public class StudentController {
         semesterHeaderCombo.setMaxWidth(Double.MAX_VALUE);
         semesterHeaderCombo.setValue("All Semesters");
         colSemester.setGraphic(semesterHeaderCombo);
-        
-        // ALWAYS fetch fresh data from the database so newly imported 
-        // students get their real auto-incremented database IDs immediately.
+
         refreshDataFromDatabase();
 
         majorHeaderCombo.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
@@ -127,16 +137,13 @@ public class StudentController {
                 openStudentDetail(studentTable.getSelectionModel().getSelectedItem());
             }
         });
-        
-        // 1. Lock everything from user sorting, reordering, and resizing
+
         for (TableColumn<?, ?> col : studentTable.getColumns()) {
             col.setSortable(false);
             col.setReorderable(false);
-//          col.setResizable(false);
         }
 
         studentTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
-        
     }
 
     public void refreshDataFromDatabase() {
@@ -176,14 +183,12 @@ public class StudentController {
 
     private void openStudentDetail(Student student) {
         try {
-            // Calculate the 1-based index from the table view
             int uiRowNumber = studentTable.getItems().indexOf(student) + 1;
-            
+
             StudentDAO studentDAO = new StudentDAO();
             Student fullStudent = studentDAO.getStudentbyId(student.getNo());
             Student targetStudent = (fullStudent != null) ? fullStudent : student;
-            
-            // Pass the calculated UI row number using your newly added setter
+
             targetStudent.setDisplayNo(uiRowNumber > 0 ? uiRowNumber : student.getNo());
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentDetail.fxml"));
@@ -211,21 +216,18 @@ public class StudentController {
         Student selected = studentTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
             try {
-                // Calculate the 1-based index from the table view
                 int uiRowNumber = studentTable.getItems().indexOf(selected) + 1;
-                
+
                 StudentDAO studentDAO = new StudentDAO();
                 Student fullStudent = studentDAO.getStudentbyId(selected.getNo());
                 Student targetStudent = (fullStudent != null) ? fullStudent : selected;
-                
-                // Set the display number directly on the student object before passing it
+
                 targetStudent.setDisplayNo(uiRowNumber > 0 ? uiRowNumber : selected.getNo());
 
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentModify.fxml"));
                 Parent modifyView = loader.load();
 
                 StudentModifyController controller = loader.getController();
-                // We only need to pass the student object now, as it contains the displayNo
                 controller.initData(targetStudent);
 
                 BorderPane mainLayout = (BorderPane) studentTable.getScene().lookup("#mainBorderPane");
@@ -251,7 +253,7 @@ public class StudentController {
         if (selectedStudents != null && !selectedStudents.isEmpty()) {
             Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
             confirmAlert.setTitle("Confirm Deletion");
-            
+
             if (selectedStudents.size() == 1) {
                 Student selected = selectedStudents.get(0);
                 confirmAlert.setHeaderText("Are you sure you want to remove this student?");
@@ -260,7 +262,7 @@ public class StudentController {
                 confirmAlert.setHeaderText("Are you sure you want to remove " + selectedStudents.size() + " selected students?");
                 confirmAlert.setContentText("This action will soft-delete all selected student records.");
             }
-            
+
             confirmAlert.getDialogPane().setMinWidth(450);
             confirmAlert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
 
@@ -273,9 +275,8 @@ public class StudentController {
 
                 boolean success = studentDAO.removeStudents(idsToRemove);
                 if (success) {
-                    masterData.removeAll(selectedStudents);
-                    List<Student> freshList = studentDAO.getAllStudent();
-                    masterData.setAll(freshList);
+                    refreshDataFromDatabase();
+                    AttendanceController.refreshLive();
                     studentTable.getSelectionModel().clearSelection();
                     studentTable.refresh();
                 } else {
@@ -284,6 +285,35 @@ public class StudentController {
             }
         } else {
             showAlert("No Selection", "Please select one or more student rows to remove.", Alert.AlertType.WARNING);
+        }
+    }
+
+    @FXML
+    public void handleRestore() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentRestore.fxml"));
+            Parent root = loader.load();
+
+            StudentRestoreController controller = loader.getController();
+
+            Stage stage = new Stage();
+            stage.setTitle("Restore Deleted Students");
+            stage.initModality(Modality.APPLICATION_MODAL);
+            if (studentTable != null && studentTable.getScene() != null) {
+                stage.initOwner(studentTable.getScene().getWindow());
+            }
+
+            stage.setScene(new Scene(root));
+            stage.setResizable(false);
+            stage.showAndWait();
+
+            if (controller.isRecordRestored()) {
+                refreshDataFromDatabase();
+                AttendanceController.refreshLive();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            showAlert("Error", "Could not open the restore dialog: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
@@ -329,41 +359,13 @@ public class StudentController {
         }
         alert.showAndWait();
     }
-    
+
     private void disableTableSortingAndReordering(TableView<?> table) {
         for (TableColumn<?, ?> col : table.getColumns()) {
             col.setSortable(false);
             col.setResizable(false);
-            col.setReorderable(false); // Disables dragging column headers to reorder
+            col.setReorderable(false);
         }
     }
     
-    @FXML
-    public void handleRestore() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentRestore.fxml"));
-            Parent root = loader.load();
-
-            StudentRestoreController controller = loader.getController();
-
-            javafx.stage.Stage stage = new javafx.stage.Stage();
-            stage.setTitle("Restore Deleted Students");
-            stage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
-            if (studentTable != null && studentTable.getScene() != null) {
-                stage.initOwner(studentTable.getScene().getWindow());
-            }
-
-            stage.setScene(new javafx.scene.Scene(root));
-            stage.setResizable(false);
-            stage.showAndWait();
-
-            // When the restore dialog closes, check if any rows were restored and refresh
-            if (controller.isRecordRestored()) {
-                refreshDataFromDatabase();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert("Error", "Could not open the restore dialog: " + e.getMessage(), Alert.AlertType.ERROR);
-        }
-    }
 }

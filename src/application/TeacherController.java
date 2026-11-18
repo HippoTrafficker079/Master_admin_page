@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import application.dao.TeacherDAO;
+import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -47,14 +48,23 @@ public class TeacherController {
 
     @FXML private TextField searchField;
 
+    private static TeacherController instance;
     public static ObservableList<Teacher> masterData = null;
     private FilteredList<Teacher> filteredData;
 
     private ComboBox<String> deptHeaderCombo;
     private ComboBox<String> posHeaderCombo;
 
+    public static void refreshLive() {
+        if (instance != null) {
+            Platform.runLater(() -> instance.refreshDataFromDatabase());
+        }
+    }
+
     @FXML
     public void initialize() {
+        instance = this;
+
         if (rootPane != null) {
             rootPane.setOnMouseClicked(event -> {
                 teacherTable.getSelectionModel().clearSelection();
@@ -79,11 +89,11 @@ public class TeacherController {
         colPhone.setCellValueFactory(cellData -> cellData.getValue().phoneNoProperty());
 
         ObservableList<String> departmentOptions = FXCollections.observableArrayList(
-        	    "All Departments", "C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE"
-        	);
+                "All Departments", "C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE"
+        );
 
         ObservableList<String> positionOptions = FXCollections.observableArrayList(
-            "All Positions", "Professor & Head", "Professor", "Associate Professor", "Lecturer", "Assistant Lecturer", "Tutor"
+                "All Positions", "Professor & Head", "Professor", "Associate Professor", "Lecturer", "Assistant Lecturer", "Tutor"
         );
 
         deptHeaderCombo = new ComboBox<>(departmentOptions);
@@ -120,6 +130,7 @@ public class TeacherController {
         List<Teacher> list = teacherDAO.getAllTeacher();
         masterData = FXCollections.observableArrayList(list);
         setupTableData();
+        DashboardController.refreshDashboard();
     }
 
     private void setupTableData() {
@@ -242,6 +253,7 @@ public class TeacherController {
                 boolean success = teacherDAO.removeBatchTeacher(idsToRemove);
                 if (success) {
                     refreshDataFromDatabase();
+                    AttendanceController.refreshLive();
                     teacherTable.getSelectionModel().clearSelection();
                     teacherTable.refresh();
                 } else {
@@ -274,6 +286,7 @@ public class TeacherController {
 
             if (controller.isRecordRestored()) {
                 refreshDataFromDatabase();
+                AttendanceController.refreshLive();
             }
         } catch (IOException e) {
             e.printStackTrace();

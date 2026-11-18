@@ -115,54 +115,57 @@
 }
 
 /* =========================================================================
-   2. SEARCHABLE / EDITABLE COMBOBOXES (Flat White Input + Edge-to-Edge Trigger)
+   2. SEARCHABLE / EDITABLE COMBOBOXES (Inset Framed Input + Integrated Trigger)
    ========================================================================= */
 .combo-box:editable {
-    -fx-background-color: #ffffff;
+    -fx-background-color: #eff6ff;
     -fx-background-insets: 0;
     -fx-border-color: #94a3b8;
     -fx-border-width: 1.2px;
     -fx-border-radius: 6px;
     -fx-background-radius: 6px;
-    -fx-padding: 0;
+    -fx-padding: 3px;
     -fx-effect: none;
     -fx-cursor: text;
 }
 
 .combo-box:editable:hover {
-    -fx-background-color: #ffffff;
+    -fx-background-color: #e0ecff;
     -fx-border-color: #395d87;
 }
 
 .combo-box:editable:focused,
 .combo-box:editable:showing {
-    -fx-background-color: #ffffff;
+    -fx-background-color: #dbeafe;
     -fx-border-color: #2563eb;
     -fx-border-width: 1.5px;
     -fx-effect: dropshadow(three-pass-box, rgba(37, 99, 235, 0.15), 4, 0, 0, 0);
 }
 
-/* Extra breathing room inside the searchable text box */
+/* Inset white text box inside the outer rounded shell */
 .combo-box:editable > .text-field {
     -fx-background-color: #ffffff;
     -fx-background-insets: 0;
-    -fx-background-radius: 5px 0 0 5px;
-    -fx-border-color: transparent;
+    -fx-background-radius: 3px 0 0 3px;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 1px 0 1px 1px;
+    -fx-border-radius: 3px 0 0 3px;
     -fx-text-fill: #0f172a;
     -fx-prompt-text-fill: #64748b;
     -fx-font-weight: normal;
-    -fx-padding: 5px 12px;
+    -fx-padding: 4px 10px;
     -fx-cursor: text;
 }
 
-/* Edge-to-edge soft-blue dropdown button on the right of searchable ComboBoxes */
+/* Integrated arrow button attached directly to the right of the inset text field */
 .combo-box:editable .arrow-button {
     -fx-background-color: #eff6ff;
     -fx-background-insets: 0;
-    -fx-background-radius: 0 5px 5px 0;
-    -fx-border-color: transparent transparent transparent #cbd5e1;
-    -fx-border-width: 0 0 0 1px;
-    -fx-padding: 0 10px;
+    -fx-background-radius: 0 3px 3px 0;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 1px;
+    -fx-border-radius: 0 3px 3px 0;
+    -fx-padding: 0 9px;
     -fx-cursor: hand;
 }
 
@@ -549,6 +552,24 @@
     -fx-alignment: BASELINE_LEFT;
     -fx-padding: 0 0 0 25px;
     -fx-font-size: 14px;
+}
+/* --- Daily Log Toggle Status Button --- */
+.toggle-status-button {
+    -fx-background-color: #2b6cb0;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-cursor: hand;
+}
+
+.toggle-status-button:hover {
+    -fx-background-color: #1e4e8c;
+}
+
+.toggle-status-button:pressed {
+    -fx-background-color: #1a365d;
 }
 
 /* Attendance Area Chart Custom Blue Styling */

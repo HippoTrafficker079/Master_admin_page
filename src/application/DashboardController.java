@@ -5,11 +5,19 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import application.dao.AttendanceDAO;
+import application.dao.CourseDAO;
+import application.dao.DashboardDAO;
 import application.dao.StudentDAO;
 import application.dao.TeacherDAO;
+import application.dto.AttendanceTrendRecord;
+import application.dto.EnrollmentTrendRecord;
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -53,44 +61,72 @@ public class DashboardController {
     // =========================================================================
 
     // Root & KPI Summary Labels
-    @FXML private ScrollPane rootScrollPane;
-    @FXML private Label lblTotalStudents;
-    @FXML private Label lblActiveStudents;
-    @FXML private Label lblTotalTeachers;
-    @FXML private Label lblTotalCourses;
-    @FXML private Label lblTodaysAttendance;
-    @FXML private Label lblCurrentDate;
+    @FXML
+    private ScrollPane rootScrollPane;
+    @FXML
+    private Label lblTotalStudents;
+    @FXML
+    private Label lblActiveStudents;
+    @FXML
+    private Label lblTotalTeachers;
+    @FXML
+    private Label lblTotalCourses;
+    @FXML
+    private Label lblTodaysAttendance;
+    @FXML
+    private Label lblCurrentDate;
 
     // Recent Mark Registrations Table
-    @FXML private TableView<MarkRecord> markTable;
-    @FXML private TableColumn<MarkRecord, String> colStudentId;
-    @FXML private TableColumn<MarkRecord, String> colStudentName;
-    @FXML private TableColumn<MarkRecord, String> colSubject;
-    @FXML private TableColumn<MarkRecord, String> colMarks;
-    @FXML private TableColumn<MarkRecord, String> colStatus;
+    @FXML
+    private TableView<MarkRecord> markTable;
+    @FXML
+    private TableColumn<MarkRecord, String> colStudentId;
+    @FXML
+    private TableColumn<MarkRecord, String> colStudentName;
+    @FXML
+    private TableColumn<MarkRecord, String> colSubject;
+    @FXML
+    private TableColumn<MarkRecord, String> colMarks;
+    @FXML
+    private TableColumn<MarkRecord, String> colStatus;
 
     // Students by Department Pie Chart
-    @FXML private PieChart departmentPieChart;
-    @FXML private VBox departmentLegendBox;
+    @FXML
+    private PieChart departmentPieChart;
+    @FXML
+    private VBox departmentLegendBox;
 
     // Student Enrollment Trend Bar Chart
-    @FXML private BarChart<String, Number> enrollmentBarChart;
-    @FXML private CategoryAxis xAxisEnrollment;
-    @FXML private NumberAxis yAxisEnrollment;
-    @FXML private ComboBox<String> comboEnrollmentFilter;
+    @FXML
+    private BarChart<String, Number> enrollmentBarChart;
+    @FXML
+    private CategoryAxis xAxisEnrollment;
+    @FXML
+    private NumberAxis yAxisEnrollment;
+    @FXML
+    private ComboBox<String> comboEnrollmentFilter;
 
     // Attendance Overview Area Chart & Interactive Controls
-    @FXML private AreaChart<String, Number> attendanceAreaChart;
-    @FXML private CategoryAxis xAxisAttendance;
-    @FXML private NumberAxis yAxisAttendance;
-    @FXML private Label lblWeeklyAttendanceAvg;
-    @FXML private Label lblAttendanceDateRange;
-    @FXML private Button btnAttDaily;
-    @FXML private Button btnAttWeekly;
-    @FXML private Button btnAttMonthly;
-    @FXML private ComboBox<String> comboAttendanceMajor;
-    @FXML private Pane attendanceOverlayPane;
-
+    @FXML
+    private AreaChart<String, Number> attendanceAreaChart;
+    @FXML
+    private CategoryAxis xAxisAttendance;
+    @FXML
+    private NumberAxis yAxisAttendance;
+    @FXML
+    private Label lblWeeklyAttendanceAvg;
+    @FXML
+    private Label lblAttendanceDateRange;
+    @FXML
+    private Button btnAttDaily;
+    @FXML
+    private Button btnAttWeekly;
+    @FXML
+    private Button btnAttMonthly;
+    @FXML
+    private ComboBox<String> comboAttendanceMajor;
+    @FXML
+    private Pane attendanceOverlayPane;
 
     // =========================================================================
     // 2. CONTROLLER STATE & SINGLETON INSTANCE
@@ -102,7 +138,6 @@ public class DashboardController {
     private Timeline activeAttendanceAnim;
     private String lastRenderedPeriod = "";
     private String currentAttendancePeriod = "Weekly";
-
 
     // =========================================================================
     // 3. INITIALIZATION & REAL-TIME LISTENERS
@@ -137,7 +172,8 @@ public class DashboardController {
 
     private void setupChartFilters() {
         if (comboEnrollmentFilter != null) {
-            comboEnrollmentFilter.setItems(FXCollections.observableArrayList("Last 6 Years", "Last 4 Years", "Last 2 Years"));
+            comboEnrollmentFilter
+                    .setItems(FXCollections.observableArrayList("Last 6 Years", "Last 4 Years", "Last 2 Years"));
             comboEnrollmentFilter.setValue("Last 6 Years");
             comboEnrollmentFilter.valueProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal != null) {
@@ -151,8 +187,8 @@ public class DashboardController {
 
         if (comboAttendanceMajor != null) {
             comboAttendanceMajor.setItems(FXCollections.observableArrayList(
-                "All Majors", "C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE"
-            ));
+                    "All Majors", "C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele",
+                    "Met", "FE"));
             comboAttendanceMajor.setValue("All Majors");
             comboAttendanceMajor.valueProperty().addListener((obs, oldVal, newVal) -> {
                 if (newVal != null) {
@@ -174,16 +210,18 @@ public class DashboardController {
 
         // Listen for real-time changes in Student master data if loaded
         if (StudentController.masterData != null) {
-            StudentController.masterData.addListener((javafx.collections.ListChangeListener.Change<? extends Student> c) -> {
-                updateDashboardMetricsAndCharts();
-            });
+            StudentController.masterData
+                    .addListener((javafx.collections.ListChangeListener.Change<? extends Student> c) -> {
+                        updateDashboardMetricsAndCharts();
+                    });
         }
 
         // Listen for real-time changes in Teacher master data if loaded
         if (TeacherController.masterData != null) {
-            TeacherController.masterData.addListener((javafx.collections.ListChangeListener.Change<? extends Teacher> c) -> {
-                updateDashboardMetricsAndCharts();
-            });
+            TeacherController.masterData
+                    .addListener((javafx.collections.ListChangeListener.Change<? extends Teacher> c) -> {
+                        updateDashboardMetricsAndCharts();
+                    });
         }
     }
 
@@ -193,7 +231,6 @@ public class DashboardController {
         }
     }
 
-
     // =========================================================================
     // 4. KPI METRICS & MARK REGISTRATIONS TABLE REFRESH
     // =========================================================================
@@ -201,9 +238,10 @@ public class DashboardController {
     private void updateDashboardMetricsAndCharts() {
         // 1. Fetch fresh live counts directly from Database DAOs
         int totalStudents = 0;
+        int activeStudents = 0;
         int totalTeachers = 0;
-        int totalCourses = 96;
-        double todaysAttendance = 94.5;
+        int totalCourses = 0;
+        double todaysAttendance = 0.0;
 
         List<Student> dbStudents = null;
 
@@ -212,13 +250,17 @@ public class DashboardController {
             dbStudents = studentDAO.getAllStudent();
             if (dbStudents != null) {
                 totalStudents = dbStudents.size();
+                activeStudents = dbStudents.size();
             }
         } catch (Exception e) {
             if (StudentController.masterData != null) {
                 dbStudents = StudentController.masterData;
                 totalStudents = dbStudents.size();
+                activeStudents = dbStudents.size();
             }
         }
+
+        cachedTotalStudents = totalStudents > 0 ? totalStudents : 510;
 
         try {
             TeacherDAO teacherDAO = new TeacherDAO();
@@ -232,67 +274,190 @@ public class DashboardController {
             }
         }
 
-        int activeStudents = (int) (totalStudents * 0.96);
+        try {
+            CourseDAO courseDAO = new CourseDAO();
+            List<String> dbCourses = courseDAO.getAllActiveCourseName();
+            if (dbCourses != null) {
+                totalCourses = dbCourses.size();
+            }
+        } catch (Exception e) {
+            totalCourses = 0;
+        }
+
+        try {
+            DashboardDAO dashboardDAO = new DashboardDAO();
+            LocalDate today = LocalDate.now();
+            List<AttendanceTrendRecord> todaySummary = dashboardDAO.getWeeklyAttendance(today, today, "All Majors");
+            if (todaySummary != null && !todaySummary.isEmpty()) {
+                todaysAttendance = todaySummary.get(0).getAttendancePercentage();
+            } else {
+                todaysAttendance = 0.0;
+            }
+        } catch (Exception e) {
+            todaysAttendance = 0.0;
+        }
 
         // Update KPI UI labels
-        if (lblTotalStudents != null) lblTotalStudents.setText(String.format("%,d", totalStudents));
-        if (lblActiveStudents != null) lblActiveStudents.setText(String.format("%,d", activeStudents));
-        if (lblTotalTeachers != null) lblTotalTeachers.setText(String.format("%,d", totalTeachers));
-        if (lblTotalCourses != null) lblTotalCourses.setText(String.valueOf(totalCourses));
-        if (lblTodaysAttendance != null) lblTodaysAttendance.setText(String.format("%.1f%%", todaysAttendance));
+        if (lblTotalStudents != null)
+            lblTotalStudents.setText(String.format("%,d", totalStudents));
+        if (lblActiveStudents != null)
+            lblActiveStudents.setText(String.format("%,d", activeStudents));
+        if (lblTotalTeachers != null)
+            lblTotalTeachers.setText(String.format("%,d", totalTeachers));
+        if (lblTotalCourses != null)
+            lblTotalCourses.setText(String.valueOf(totalCourses));
+        if (lblTodaysAttendance != null)
+            lblTodaysAttendance.setText(String.format("%.1f%%", todaysAttendance));
 
         ObservableList<Student> studentsObservable = dbStudents != null ? FXCollections.observableArrayList(dbStudents)
-                : (StudentController.masterData != null ? StudentController.masterData : FXCollections.observableArrayList());
+                : (StudentController.masterData != null ? StudentController.masterData
+                        : FXCollections.observableArrayList());
 
         // 2. Update Student Enrollment Trend Bar Chart
         updateEnrollmentTrend(studentsObservable);
 
-        // 3. Update Mark Registrations Table
-        updateMarkRegistrationsTable(studentsObservable);
-
-        // 4. Update Students by Department Pie Chart
+        // 3. Update Students by Department Pie Chart
         updateDepartmentPieChart(studentsObservable, totalStudents);
 
-        // 5. Update Attendance Overview Area Chart
+        // 4. Update Attendance Overview Area Chart
         updateAttendanceChart();
     }
-
-    private void updateMarkRegistrationsTable(ObservableList<Student> studentsObservable) {
-        if (markTable == null) return;
-
-        ObservableList<MarkRecord> markRecords = FXCollections.observableArrayList();
-        if (!studentsObservable.isEmpty()) {
-            int limit = Math.min(studentsObservable.size(), 10);
-            String[] subjects = {"Data Structures", "Database Systems", "Embedded Systems", "Digital Electronics", "Computer Networks", "Algorithms"};
-            for (int i = studentsObservable.size() - 1; i >= Math.max(0, studentsObservable.size() - limit); i--) {
-                Student s = studentsObservable.get(i);
-                String id = getStudentProperty(s, "getStudentId", "getNo", "YTU2026018");
-                String name = getStudentProperty(s, "getName", "getStudentName", "Student");
-                String subj = subjects[i % subjects.length];
-                String score = String.valueOf(75 + (i * 3) % 25);
-
-                markRecords.add(new MarkRecord(
-                    id.startsWith("YTU") ? id : "YTU20260" + id,
-                    name,
-                    subj,
-                    score,
-                    "● Passed"
-                ));
-            }
-        } else {
-            markRecords.addAll(
-                new MarkRecord("YTU2026018", "Aye Chan", "Embedded Systems", "88", "● Passed"),
-                new MarkRecord("YTU2026017", "Htet Htet", "Database Systems", "92", "● Passed")
-            );
-        }
-        markTable.setItems(markRecords);
-    }
-
+// codes associated with Mark Registration Table is scrapped and not needed
+    
+//    private void updateMarkRegistrationsTable(ObservableList<Student> studentsObservable) {
+//        if (markTable == null)
+//            return;
+//
+//        ObservableList<MarkRecord> markRecords = FXCollections.observableArrayList();
+//        if (!studentsObservable.isEmpty()) {
+//            int limit = Math.min(studentsObservable.size(), 10);
+//            String[] subjects = { "Data Structures", "Database Systems", "Embedded Systems", "Digital Electronics",
+//                    "Computer Networks", "Algorithms" };
+//            for (int i = studentsObservable.size() - 1; i >= Math.max(0, studentsObservable.size() - limit); i--) {
+//                Student s = studentsObservable.get(i);
+//                String id = getStudentProperty(s, "getStudentId", "getNo", "YTU2026018");
+//                String name = getStudentProperty(s, "getName", "getStudentName", "Student");
+//                String subj = subjects[i % subjects.length];
+//                String score = String.valueOf(75 + (i * 3) % 25);
+//
+//                markRecords.add(new MarkRecord(
+//                        id.startsWith("YTU") ? id : "YTU20260" + id,
+//                        name,
+//                        subj,
+//                        score,
+//                        "● Passed"));
+//            }
+//        } else {
+//            markRecords.addAll(
+//                    new MarkRecord("YTU2026018", "Aye Chan", "Embedded Systems", "88", "● Passed"),
+//                    new MarkRecord("YTU2026017", "Htet Htet", "Database Systems", "92", "● Passed"));
+//        }
+//        markTable.setItems(markRecords);
+//    }
 
     // =========================================================================
     // 5. STUDENT ENROLLMENT TREND BAR CHART
     // =========================================================================
-
+// If u want 1200 students, Open the comment of the code below and
+    
+//    private void updateEnrollmentTrend(ObservableList<Student> students) {
+//        if (enrollmentBarChart == null)
+//            return;
+//
+//        String filter = comboEnrollmentFilter != null && comboEnrollmentFilter.getValue() != null
+//                ? comboEnrollmentFilter.getValue()
+//                : "Last 6 Years";
+//
+//        int currentYear = LocalDate.now().getYear(); // 2026
+//        int numYears = 6;
+//        if (filter.equals("Last 2 Years")) {
+//            numYears = 2;
+//        } else if (filter.equals("Last 4 Years")) {
+//            numYears = 4;
+//        } else {
+//            numYears = 6;
+//        }
+//
+//        String[] years = new String[numYears];
+//        int startYear = currentYear - numYears + 1;
+//        for (int i = 0; i < numYears; i++) {
+//            years[i] = String.valueOf(startYear + i);
+//        }
+//
+//        ObservableList<String> categoryList = FXCollections.observableArrayList(years);
+//        if (xAxisEnrollment != null) {
+//            xAxisEnrollment.getCategories().clear();
+//            xAxisEnrollment.setCategories(categoryList);
+//        }
+//
+//        enrollmentBarChart.getData().clear();
+//        enrollmentBarChart.setLegendVisible(false);
+//
+//        XYChart.Series<String, Number> s1 = new XYChart.Series<>();
+//        s1.setName("First Year");
+//        XYChart.Series<String, Number> s2 = new XYChart.Series<>();
+//        s2.setName("Second Year");
+//        XYChart.Series<String, Number> s3 = new XYChart.Series<>();
+//        s3.setName("Third Year");
+//        XYChart.Series<String, Number> s4 = new XYChart.Series<>();
+//        s4.setName("Fourth Year");
+//        XYChart.Series<String, Number> s5 = new XYChart.Series<>();
+//        s5.setName("Fifth Year");
+//
+//        DashboardDAO dashboardDAO = new DashboardDAO();
+//        List<EnrollmentTrendRecord> dbRecords = dashboardDAO.getHistoricalTrend(numYears);
+//
+//        s1.getData().clear();
+//        s2.getData().clear();
+//        s3.getData().clear();
+//        s4.getData().clear();
+//        s5.getData().clear();
+//
+//        for (EnrollmentTrendRecord record : dbRecords) {
+//            String yr = String.valueOf(record.getAcademicSchoolYear());
+//            int count = record.getStudentCount();
+//
+//            switch (record.getHistoricalYearLevel()) {
+//                case 1 -> s1.getData().add(new XYChart.Data<>(yr, count));
+//                case 2 -> s2.getData().add(new XYChart.Data<>(yr, count));
+//                case 3 -> s3.getData().add(new XYChart.Data<>(yr, count));
+//                case 4 -> s4.getData().add(new XYChart.Data<>(yr, count));
+//                case 5 -> s5.getData().add(new XYChart.Data<>(yr, count));
+//            }
+//        }
+//        if (enrollmentBarChart.getData().isEmpty()) {
+//            enrollmentBarChart.getData().addAll(s1, s2, s3, s4, s5);
+//        }
+//
+//        // Lock consistent colors to each series name regardless of filter/index shifts
+//        enrollmentBarChart.applyCss();
+//        for (int i = 0; i < enrollmentBarChart.getData().size(); i++) {
+//            XYChart.Series<String, Number> series = enrollmentBarChart.getData().get(i);
+//            String colorStyle = switch (i) {
+//                case 0 -> "-fx-bar-fill: #2563eb;"; // First Year (Royal Blue)
+//                case 1 -> "-fx-bar-fill: #16a34a;"; // Second Year (Green)
+//                case 2 -> "-fx-bar-fill: #ca8a04;"; // Third Year (Amber / Gold)
+//                case 3 -> "-fx-bar-fill: #dc2626;"; // Fourth Year (Red)
+//                case 4 -> "-fx-bar-fill: #9333ea;"; // Fifth Year (Purple)
+//                default -> "-fx-bar-fill: #cbd5e1;";
+//            };
+//
+//            for (XYChart.Data<String, Number> data : series.getData()) {
+//                Node bar = data.getNode();
+//                if (bar != null) {
+//                    bar.setStyle(colorStyle);
+//                }
+//            }
+//        }
+//
+//        Platform.runLater(() -> {
+//            if (xAxisEnrollment != null) {
+//                xAxisEnrollment.requestAxisLayout();
+//            }
+//            enrollmentBarChart.applyCss();
+//            enrollmentBarChart.requestLayout();
+//        });
+//    }
     private void updateEnrollmentTrend(ObservableList<Student> students) {
         if (enrollmentBarChart == null) return;
 
@@ -300,30 +465,48 @@ public class DashboardController {
                 ? comboEnrollmentFilter.getValue()
                 : "Last 6 Years";
 
-        int currentYear = LocalDate.now().getYear(); // 2026
         int numYears = 6;
-        if (filter.equals("Last 2 Years")) {
-            numYears = 2;
-        } else if (filter.equals("Last 4 Years")) {
-            numYears = 4;
-        } else {
-            numYears = 6;
-        }
+        if (filter.equals("Last 2 Years")) numYears = 2;
+        else if (filter.equals("Last 4 Years")) numYears = 4;
 
-        String[] years = new String[numYears];
-        int startYear = currentYear - numYears + 1;
+        // Match DashboardDAO: November (month >= 11) starts the next academic year (2027)
+        LocalDate now = LocalDate.now();
+        int currAcadYear = (now.getMonthValue() >= 11) ? now.getYear() + 1 : now.getYear();
+        int startYear = currAcadYear - numYears + 1;
+
+        List<String> years = new ArrayList<>();
         for (int i = 0; i < numYears; i++) {
-            years[i] = String.valueOf(startYear + i);
+            years.add(String.valueOf(startYear + i));
         }
 
-        ObservableList<String> categoryList = FXCollections.observableArrayList(years);
-        if (xAxisEnrollment != null) {
-            xAxisEnrollment.getCategories().clear();
-            xAxisEnrollment.setCategories(categoryList);
+        // Query MySQL via DashboardDAO
+        DashboardDAO dao = new DashboardDAO();
+        List<EnrollmentTrendRecord> dbRecords = dao.getHistoricalTrend(numYears);
+
+        Map<Integer, Map<Integer, Integer>> yearMap = new HashMap<>();
+        int maxCount = 0;
+        for (EnrollmentTrendRecord rec : dbRecords) {
+            yearMap.computeIfAbsent(rec.getAcademicSchoolYear(), k -> new HashMap<>())
+                   .put(rec.getHistoricalYearLevel(), rec.getStudentCount());
+            maxCount = Math.max(maxCount, rec.getStudentCount());
         }
 
         enrollmentBarChart.getData().clear();
         enrollmentBarChart.setLegendVisible(false);
+
+        if (xAxisEnrollment != null) {
+            xAxisEnrollment.getCategories().clear();
+            xAxisEnrollment.setCategories(FXCollections.observableArrayList(years));
+        }
+
+        // Rescale Y-axis from 1,200 down to fit actual database counts!
+        if (yAxisEnrollment != null) {
+            yAxisEnrollment.setAutoRanging(false);
+            yAxisEnrollment.setLowerBound(0.0);
+            int upper = Math.max(5, ((maxCount / 5) + 1) * 5);
+            yAxisEnrollment.setUpperBound(upper);
+            yAxisEnrollment.setTickUnit(Math.max(1, upper / 5));
+        }
 
         XYChart.Series<String, Number> s1 = new XYChart.Series<>(); s1.setName("First Year");
         XYChart.Series<String, Number> s2 = new XYChart.Series<>(); s2.setName("Second Year");
@@ -331,89 +514,49 @@ public class DashboardController {
         XYChart.Series<String, Number> s4 = new XYChart.Series<>(); s4.setName("Fourth Year");
         XYChart.Series<String, Number> s5 = new XYChart.Series<>(); s5.setName("Fifth Year");
 
-        for (int i = 0; i < years.length; i++) {
-            String yr = years[i];
-            int f1 = 0, f2 = 0, f3 = 0, f4 = 0, f5 = 0;
-
-            switch (yr) {
-                case "2021":
-                    f1 = 400; f2 = 350; f3 = 300; f4 = 250; f5 = 200;
-                    break;
-                case "2022":
-                    f1 = 500; f2 = 420; f3 = 350; f4 = 280; f5 = 220;
-                    break;
-                case "2023":
-                    f1 = 650; f2 = 550; f3 = 450; f4 = 350; f5 = 280;
-                    break;
-                case "2024":
-                    f1 = 800; f2 = 700; f3 = 600; f4 = 450; f5 = 350;
-                    break;
-                case "2025":
-                    f1 = 50; f2 = 150; f3 = 250; f4 = 60; f5 = 450;
-                    break;
-                case "2026":
-                    f1 = 1150; f2 = 900; f3 = 1000; f4 = 100; f5 = 50;
-                    break;
-                default:
-                    f1 = 300; f2 = 250; f3 = 200; f4 = 150; f5 = 100;
-                    break;
-            }
-
-            s1.getData().add(new XYChart.Data<>(yr, f1));
-            s2.getData().add(new XYChart.Data<>(yr, f2));
-            s3.getData().add(new XYChart.Data<>(yr, f3));
-            s4.getData().add(new XYChart.Data<>(yr, f4));
-            s5.getData().add(new XYChart.Data<>(yr, f5));
+        for (String yrStr : years) {
+            int yr = Integer.parseInt(yrStr);
+            Map<Integer, Integer> counts = yearMap.getOrDefault(yr, Map.of());
+            s1.getData().add(new XYChart.Data<>(yrStr, counts.getOrDefault(1, 0)));
+            s2.getData().add(new XYChart.Data<>(yrStr, counts.getOrDefault(2, 0)));
+            s3.getData().add(new XYChart.Data<>(yrStr, counts.getOrDefault(3, 0)));
+            s4.getData().add(new XYChart.Data<>(yrStr, counts.getOrDefault(4, 0)));
+            s5.getData().add(new XYChart.Data<>(yrStr, counts.getOrDefault(5, 0)));
         }
 
         enrollmentBarChart.getData().addAll(s1, s2, s3, s4, s5);
 
-        // Lock consistent colors to each series name regardless of filter/index shifts
+        // Apply consistent blue shades to each year bar
         enrollmentBarChart.applyCss();
         for (XYChart.Series<String, Number> series : enrollmentBarChart.getData()) {
-            String colorStyle = "";
-            switch (series.getName()) {
-                case "First Year":
-                    colorStyle = "-fx-bar-fill: #1d4ed8;";
-                    break;
-                case "Second Year":
-                    colorStyle = "-fx-bar-fill: #2563eb;";
-                    break;
-                case "Third Year":
-                    colorStyle = "-fx-bar-fill: #3b82f6;";
-                    break;
-                case "Fourth Year":
-                    colorStyle = "-fx-bar-fill: #60a5fa;";
-                    break;
-                case "Fifth Year":
-                    colorStyle = "-fx-bar-fill: #93c5fd;";
-                    break;
-            }
-
+            String colorStyle = switch (series.getName()) {
+                case "First Year"  -> "-fx-bar-fill: #1d4ed8;";
+                case "Second Year" -> "-fx-bar-fill: #2563eb;";
+                case "Third Year"  -> "-fx-bar-fill: #3b82f6;";
+                case "Fourth Year" -> "-fx-bar-fill: #60a5fa;";
+                case "Fifth Year"  -> "-fx-bar-fill: #93c5fd;";
+                default -> "";
+            };
             for (XYChart.Data<String, Number> data : series.getData()) {
-                Node bar = data.getNode();
-                if (bar != null && !colorStyle.isEmpty()) {
-                    bar.setStyle(colorStyle);
+                if (data.getNode() != null && !colorStyle.isEmpty()) {
+                    data.getNode().setStyle(colorStyle);
                 }
             }
         }
 
         Platform.runLater(() -> {
-            if (xAxisEnrollment != null) {
-                xAxisEnrollment.requestAxisLayout();
-            }
+            if (xAxisEnrollment != null) xAxisEnrollment.requestAxisLayout();
             enrollmentBarChart.applyCss();
             enrollmentBarChart.requestLayout();
         });
     }
-
-
     // =========================================================================
     // 6. STUDENTS BY DEPARTMENT PIE CHART
     // =========================================================================
 
     private void updateDepartmentPieChart(ObservableList<Student> students, int totalStudents) {
-        if (departmentPieChart == null) return;
+        if (departmentPieChart == null)
+            return;
         departmentPieChart.getData().clear();
         if (departmentLegendBox != null) {
             departmentLegendBox.getChildren().clear();
@@ -422,24 +565,25 @@ public class DashboardController {
             departmentLegendBox.getChildren().clear();
             departmentLegendBox.setAlignment(Pos.CENTER_LEFT);
         }
-        
-        // Ordered list of majors matching ManageStudent (code -> {Full Name, Hex Color})
+
+        // Ordered list of majors matching ManageStudent (code -> {Full Name, Hex
+        // Color})
         Map<String, String[]> majorMeta = new LinkedHashMap<>();
-        majorMeta.put("Arch",    new String[]{"Architecture",                                  "#0a192f"});
-        majorMeta.put("ChE",     new String[]{"Chemical Engineering",                          "#0f2942"});
-        majorMeta.put("C",       new String[]{"Civil Engineering",                             "#13385c"});
-        majorMeta.put("CEIT",    new String[]{"Computer Engineering and Information Technology","#1d4ed8"});
-        majorMeta.put("EP",      new String[]{"Electrical Power Engineering",                  "#2563eb"});
-        majorMeta.put("EC",      new String[]{"Electronic Engineering",                        "#3b82f6"});
-        majorMeta.put("FE",      new String[]{"Food Engineering",                              "#60a5fa"});
-        majorMeta.put("Mech",    new String[]{"Mechanical Engineering",                        "#1e40af"});
-        majorMeta.put("McE",     new String[]{"Mechatronic Engineering",                       "#0284c7"});
-        majorMeta.put("Met",     new String[]{"Metallurgical Engineering",                     "#0f766e"});
-        majorMeta.put("Mn",      new String[]{"Mining Engineering",                            "#0d9488"});
-        majorMeta.put("PE",      new String[]{"Petroleum Engineering",                         "#10b981"});
-        majorMeta.put("Tele",    new String[]{"Telecommunication Engineering",                 "#64748b"});
-        majorMeta.put("Tex",     new String[]{"Textile Engineering",                           "#94a3b8"});
-        majorMeta.put("Pending", new String[]{"Pending Assignment",                            "#cbd5e1"});
+        majorMeta.put("Arch", new String[] { "Architecture", "#0a192f" });
+        majorMeta.put("ChE", new String[] { "Chemical Engineering", "#0f2942" });
+        majorMeta.put("C", new String[] { "Civil Engineering", "#13385c" });
+        majorMeta.put("CEIT", new String[] { "Computer Engineering and Information Technology", "#1d4ed8" });
+        majorMeta.put("EP", new String[] { "Electrical Power Engineering", "#2563eb" });
+        majorMeta.put("EC", new String[] { "Electronic Engineering", "#3b82f6" });
+        majorMeta.put("FE", new String[] { "Food Engineering", "#60a5fa" });
+        majorMeta.put("Mech", new String[] { "Mechanical Engineering", "#1e40af" });
+        majorMeta.put("McE", new String[] { "Mechatronic Engineering", "#0284c7" });
+        majorMeta.put("Met", new String[] { "Metallurgical Engineering", "#0f766e" });
+        majorMeta.put("Mn", new String[] { "Mining Engineering", "#0d9488" });
+        majorMeta.put("PE", new String[] { "Petroleum Engineering", "#10b981" });
+        majorMeta.put("Tele", new String[] { "Telecommunication Engineering", "#64748b" });
+        majorMeta.put("Tex", new String[] { "Textile Engineering", "#94a3b8" });
+        majorMeta.put("Pending", new String[] { "Pending Assignment", "#cbd5e1" });
 
         // Count students per major from live ManageStudent data
         Map<String, Integer> counts = new LinkedHashMap<>();
@@ -473,7 +617,8 @@ public class DashboardController {
             return;
         }
 
-        // Build PieChart slices & matching right-side legend rows for all majors with >= 1 student
+        // Build PieChart slices & matching right-side legend rows for all majors with
+        // >= 1 student
         ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
         List<String> activeColors = new ArrayList<>();
 
@@ -534,7 +679,6 @@ public class DashboardController {
         Platform.runLater(applySliceColors);
     }
 
-
     // =========================================================================
     // 7. ATTENDANCE OVERVIEW AREA CHART & INTERACTIVE OVERLAY
     // =========================================================================
@@ -564,18 +708,21 @@ public class DashboardController {
         String activeStyle = "-fx-background-color: #2563eb; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-background-radius: 4; -fx-cursor: hand;";
         String inactiveStyle = "-fx-background-color: transparent; -fx-text-fill: #334155; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-cursor: hand;";
 
-        if (btnAttDaily != null) btnAttDaily.setStyle("Daily".equals(currentAttendancePeriod) ? activeStyle : inactiveStyle);
-        if (btnAttWeekly != null) btnAttWeekly.setStyle("Weekly".equals(currentAttendancePeriod) ? activeStyle : inactiveStyle);
-        if (btnAttMonthly != null) btnAttMonthly.setStyle("Monthly".equals(currentAttendancePeriod) ? activeStyle : inactiveStyle);
+        if (btnAttDaily != null)
+            btnAttDaily.setStyle("Daily".equals(currentAttendancePeriod) ? activeStyle : inactiveStyle);
+        if (btnAttWeekly != null)
+            btnAttWeekly.setStyle("Weekly".equals(currentAttendancePeriod) ? activeStyle : inactiveStyle);
+        if (btnAttMonthly != null)
+            btnAttMonthly.setStyle("Monthly".equals(currentAttendancePeriod) ? activeStyle : inactiveStyle);
     }
 
     private void updateAttendanceChart() {
-        if (attendanceAreaChart == null) return;
+        if (attendanceAreaChart == null)
+            return;
 
         String selectedMajor = (comboAttendanceMajor != null && comboAttendanceMajor.getValue() != null)
-                ? comboAttendanceMajor.getValue() : "All Majors";
-
-        double majorOffset = "All Majors".equals(selectedMajor) ? 0.0 : ((Math.abs(selectedMajor.hashCode()) % 5) - 2) * 0.6;
+                ? comboAttendanceMajor.getValue()
+                : "All Majors";
 
         String[] categories;
         String[] popupTitles;
@@ -584,8 +731,22 @@ public class DashboardController {
         String dateRangeText;
 
         if ("Daily".equals(currentAttendancePeriod)) {
-            categories = new String[]{"P-1", "P-2", "P-3", "P-4", "P-5", "P-6", "P-7", "P-8", "P-9"};
-            rawValues = new double[]{93.0, 91.5, 94.0, 92.0, 89.5, 90.8, 92.4, 91.0, 88.5};
+            categories = new String[] { "P-1", "P-2", "P-3", "P-4", "P-5", "P-6", "P-7", "P-8", "P-9" };
+
+            // 1. Default unscheduled periods (P-4..P-9) to 0.0 instead of 100.0
+            rawValues = new double[9];
+            Arrays.fill(rawValues, 0.0);
+
+            DashboardDAO dashboardDAO = new DashboardDAO();
+            List<AttendanceTrendRecord> attendanceRecords = dashboardDAO.getDailyAttendance(selectedMajor);
+
+            for (AttendanceTrendRecord record : attendanceRecords) {
+                int index = record.getPeriod() - 1;
+                if (index >= 0 && index < rawValues.length) {
+                    rawValues[index] = record.getAttendancePercentage();
+                }
+            }
+
             xAxisTitle = "Class Periods";
             String todayStr = LocalDate.now().format(DateTimeFormatter.ofPattern("EEE, MMM d"));
             dateRangeText = "📅  " + LocalDate.now().format(DateTimeFormatter.ofPattern("EEE, dd MMM yyyy"));
@@ -594,48 +755,106 @@ public class DashboardController {
                 popupTitles[i] = "Period " + (i + 1) + " • " + todayStr;
             }
         } else if ("Monthly".equals(currentAttendancePeriod)) {
-            categories = new String[]{"Week 1", "Week 2", "Week 3", "Week 4"};
-            rawValues = new double[]{90.2, 91.8, 92.5, 91.4};
+            DashboardDAO dashboardDAO = new DashboardDAO();
+            // 2. DashboardDAO.getMonthlyAttendanceTrend expects "ALL" for all majors
+            String monthlyDeptParam = "All Majors".equals(selectedMajor) ? "ALL" : selectedMajor;
+            List<AttendanceTrendRecord> monthlyRecords = dashboardDAO.getMonthlyAttendanceTrend(monthlyDeptParam);
+
+            Map<Integer, Double> weekMap = new HashMap<>();
+            for (AttendanceTrendRecord record : monthlyRecords) {
+                weekMap.put(record.getWeekNumber(), record.getAttendancePercentage());
+            }
+
+            LocalDate today = LocalDate.now();
+            LocalDate firstDayOfMonth = today.withDayOfMonth(1);
+
+            List<String> validCategories = new ArrayList<>();
+            List<Double> validValues = new ArrayList<>();
+            List<String> validPopupTitles = new ArrayList<>();
+
+            String monthStr = today.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
+            for (int weekNum = 1; weekNum <= 4; weekNum++) {
+                LocalDate estimatedWeekStart = firstDayOfMonth.plusWeeks(weekNum - 1);
+                if (estimatedWeekStart.isAfter(today)) {
+                    break;
+                }
+
+                validCategories.add("Week " + weekNum);
+                validValues.add(weekMap.getOrDefault(weekNum, 0.0));
+                validPopupTitles.add("Week " + weekNum + " • " + monthStr);
+            }
+
+            categories = validCategories.toArray(new String[0]);
+            rawValues = validValues.stream().mapToDouble(Double::doubleValue).toArray();
+            popupTitles = validPopupTitles.toArray(new String[0]);
+
             xAxisTitle = "Weeks of Month";
-            String monthStr = LocalDate.now().format(DateTimeFormatter.ofPattern("MMMM yyyy"));
             dateRangeText = "📅  " + monthStr;
-            popupTitles = new String[]{
-                "Week 1 • " + monthStr,
-                "Week 2 • " + monthStr,
-                "Week 3 • " + monthStr,
-                "Week 4 • " + monthStr
-            };
         } else {
-            categories = new String[]{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-            rawValues = new double[]{91.0, 88.0, 92.0, 94.0, 90.0, 92.3};
             xAxisTitle = "Days of the Week";
             LocalDate monday = LocalDate.now().with(DayOfWeek.MONDAY);
             LocalDate saturday = monday.plusDays(5);
+            LocalDate today = LocalDate.now();
+
+            DashboardDAO dashboardDAO = new DashboardDAO();
+            List<AttendanceTrendRecord> weeklyRecords = dashboardDAO.getWeeklyAttendance(monday, saturday,
+                    selectedMajor);
+
+            Map<LocalDate, Double> attendanceMap = new HashMap<>();
+            for (AttendanceTrendRecord record : weeklyRecords) {
+                attendanceMap.put(record.getSessionDate(), record.getAttendancePercentage());
+            }
+
+            List<String> validCategories = new ArrayList<>();
+            List<Double> validValues = new ArrayList<>();
+            List<String> validPopupTitles = new ArrayList<>();
+
+            // Loop through the 6 days (Mon through Sat)
+            for (int i = 0; i < 6; i++) {
+                LocalDate currentDay = monday.plusDays(i);
+
+                if (currentDay.isAfter(today)) {
+                    break;
+                }
+
+                String dayName = currentDay.format(DateTimeFormatter.ofPattern("EEE"));
+                validCategories.add(dayName);
+
+                validValues.add(attendanceMap.getOrDefault(currentDay, 0.0));
+
+                validPopupTitles.add(currentDay.format(DateTimeFormatter.ofPattern("EEEE, MMM d")));
+            }
+
+            categories = validCategories.toArray(new String[0]);
+            rawValues = validValues.stream().mapToDouble(Double::doubleValue).toArray();
+            popupTitles = validPopupTitles.toArray(new String[0]);
+
             dateRangeText = "📅  " + monday.format(DateTimeFormatter.ofPattern("EEE d")) + " – "
                     + saturday.format(DateTimeFormatter.ofPattern("EEE d MMM"));
-            popupTitles = new String[categories.length];
-            for (int i = 0; i < categories.length; i++) {
-                popupTitles[i] = monday.plusDays(i).format(DateTimeFormatter.ofPattern("EEEE, MMM d"));
-            }
         }
 
-        // Compute final target percentages
+        // 3. Use exact rounded DB percentages without artificial 80.5–99.5 clamping
         double[] targetValues = new double[categories.length];
         double sum = 0.0;
+        int activeCount = 0;
         double minFound = 100.0;
         for (int i = 0; i < categories.length; i++) {
-            double val = Math.min(99.5, Math.max(80.5, Math.round((rawValues[i] + majorOffset) * 10.0) / 10.0));
+            double val = Math.round(rawValues[i] * 10.0) / 10.0;
             targetValues[i] = val;
-            sum += val;
             minFound = Math.min(minFound, val);
+            if (val > 0.0) {
+                sum += val;
+                activeCount++;
+            }
         }
 
         if (lblAttendanceDateRange != null) {
             lblAttendanceDateRange.setText(dateRangeText);
         }
 
-        if (lblWeeklyAttendanceAvg != null && targetValues.length > 0) {
-            double avg = sum / targetValues.length;
+        // 4. Average only across periods/days that actually had classes
+        if (lblWeeklyAttendanceAvg != null) {
+            double avg = activeCount > 0 ? (sum / activeCount) : 0.0;
             lblWeeklyAttendanceAvg.setText(String.format("%s Avg: %.1f%%", currentAttendancePeriod, avg));
         }
 
@@ -677,7 +896,6 @@ public class DashboardController {
             attendanceAreaChart.getData().add(series);
             attendanceAreaChart.setLegendVisible(false);
 
-            // Subtle fade-in for the chart area when switching timeframe tabs
             FadeTransition fade = new FadeTransition(Duration.millis(260), attendanceAreaChart);
             fade.setFromValue(0.35);
             fade.setToValue(1.0);
@@ -689,13 +907,13 @@ public class DashboardController {
         final double[] finalTargets = targetValues;
 
         Platform.runLater(() -> {
-            if (xAxisAttendance != null) xAxisAttendance.requestAxisLayout();
+            if (xAxisAttendance != null)
+                xAxisAttendance.requestAxisLayout();
             attendanceAreaChart.applyCss();
             attendanceAreaChart.requestLayout();
 
             List<Label> floatingLabels = renderAttendanceDotsOverlay(animSeries, finalTitles);
 
-            // Build smooth 380ms interpolation across every data point & floating label
             Timeline timeline = new Timeline();
             Duration duration = Duration.millis(380);
 
@@ -706,7 +924,6 @@ public class DashboardController {
                 KeyValue kv = new KeyValue(dataPoint.YValueProperty(), targetY, Interpolator.EASE_BOTH);
                 timeline.getKeyFrames().add(new KeyFrame(duration, kv));
 
-                // Keep the percentage text above each dot synced live during the animation
                 if (i < floatingLabels.size()) {
                     Label lbl = floatingLabels.get(i);
                     dataPoint.YValueProperty().addListener((obs, oldVal, newVal) -> {
@@ -720,7 +937,6 @@ public class DashboardController {
                 }
             }
 
-            // Snap exact final label formatting when animation finishes
             timeline.setOnFinished(e -> {
                 for (int i = 0; i < floatingLabels.size() && i < finalTargets.length; i++) {
                     double v = finalTargets[i];
@@ -737,7 +953,8 @@ public class DashboardController {
 
     private List<Label> renderAttendanceDotsOverlay(XYChart.Series<String, Number> series, String[] popupTitles) {
         List<Label> createdLabels = new ArrayList<>();
-        if (attendanceOverlayPane == null) return createdLabels;
+        if (attendanceOverlayPane == null)
+            return createdLabels;
         attendanceOverlayPane.getChildren().clear();
 
         VBox activePopup = new VBox();
@@ -748,7 +965,8 @@ public class DashboardController {
         for (int i = 0; i < series.getData().size(); i++) {
             XYChart.Data<String, Number> data = series.getData().get(i);
             Node dotNode = data.getNode();
-            if (dotNode == null) continue;
+            if (dotNode == null)
+                continue;
 
             double pctValue = data.getYValue().doubleValue();
             String topPctText = (pctValue % 1 == 0)
@@ -757,7 +975,8 @@ public class DashboardController {
 
             Label pctLabel = new Label(topPctText);
             pctLabel.setMouseTransparent(true);
-            pctLabel.setStyle("-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-background-color: rgba(255,255,255,0.85); -fx-background-radius: 4; -fx-padding: 1 4;");
+            pctLabel.setStyle(
+                    "-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 11.5px; -fx-background-color: rgba(255,255,255,0.85); -fx-background-radius: 4; -fx-padding: 1 4;");
             attendanceOverlayPane.getChildren().add(pctLabel);
             createdLabels.add(pctLabel);
 
@@ -785,7 +1004,8 @@ public class DashboardController {
                 double livePct = data.getYValue().doubleValue();
                 int livePresent = (int) Math.round((livePct / 100.0) * cachedTotalStudents);
 
-                dotNode.setStyle("-fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(37, 99, 235, 0.65), 12, 0.5, 0, 0);");
+                dotNode.setStyle(
+                        "-fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(37, 99, 235, 0.65), 12, 0.5, 0, 0);");
 
                 activePopup.getChildren().clear();
                 activePopup.setAlignment(Pos.CENTER);
@@ -794,7 +1014,8 @@ public class DashboardController {
                 arrow.setFill(Color.web("#0f172a"));
 
                 VBox card = new VBox(5.0);
-                card.setStyle("-fx-background-color: #0f172a; -fx-background-radius: 8; -fx-padding: 10 14; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.35), 10, 0, 0, 4);");
+                card.setStyle(
+                        "-fx-background-color: #0f172a; -fx-background-radius: 8; -fx-padding: 10 14; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.35), 10, 0, 0, 4);");
 
                 Label lblTitle = new Label(headerTitle);
                 lblTitle.setStyle("-fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px;");
@@ -844,13 +1065,13 @@ public class DashboardController {
         return lbl;
     }
 
-
     // =========================================================================
     // 8. HELPER UTILITIES
     // =========================================================================
 
     private String getStudentDepartmentSafe(Student s) {
-        if (s == null) return "Pending";
+        if (s == null)
+            return "Pending";
         String dept = getStudentProperty(s, "getMajor", "getDepartment", null);
         if (dept == null || dept.trim().isEmpty() || dept.trim().equals("-")) {
             return "Pending";
@@ -862,12 +1083,14 @@ public class DashboardController {
         try {
             Method m = obj.getClass().getMethod(method1);
             Object val = m.invoke(obj);
-            if (val != null) return val.toString();
+            if (val != null)
+                return val.toString();
         } catch (Exception e1) {
             try {
                 Method m = obj.getClass().getMethod(method2);
                 Object val = m.invoke(obj);
-                if (val != null) return val.toString();
+                if (val != null)
+                    return val.toString();
             } catch (Exception e2) {
                 // Ignore
             }

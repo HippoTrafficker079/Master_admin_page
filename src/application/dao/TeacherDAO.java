@@ -224,39 +224,53 @@ public class TeacherDAO {
         }
     }
 
+    private String lastBatchError = "";
+
+    public String getLastBatchError() {
+        return lastBatchError;
+    }
+
     public int insertBatchTeachers(List<Teacher> teachers) {
-        Connection conn = null;
         int successCount = 0;
-        try {
-            conn = DatabaseConnector.getConnection();
-            conn.setAutoCommit(false);
-            for (Teacher teacher : teachers) {
-                int teacherId = insertSingleTeacher(conn, teacher, "Default123");
-                if (teacherId > -1) {
-                    successCount++;
-                }
-            }
-            conn.commit();
-            return successCount;
-        } catch (SQLException e) {
-            if (conn != null) {
+        List<String> duplicateDetails = new ArrayList<>();
+        lastBatchError = "";
+
+        for (Teacher teacher : teachers) {
+            try (Connection conn = DatabaseConnector.getConnection()) {
+                conn.setAutoCommit(false);
                 try {
+                    int teacherId = insertSingleTeacher(conn, teacher, "Default123");
+                    if (teacherId > -1) {
+                        conn.commit();
+                        successCount++;
+                    } else {
+                        conn.rollback();
+                    }
+                } catch (java.sql.SQLIntegrityConstraintViolationException dupEx) {
                     conn.rollback();
-                } catch (SQLException rollbackEx) {
-                    rollbackEx.printStackTrace();
+                    String msg = dupEx.getMessage() != null ? dupEx.getMessage() : "Duplicate record";
+                    if (msg.contains("teacher.nrc")) {
+                        duplicateDetails.add("• " + teacher.getName() + " (" + teacher.getTeacherCode() + "): Duplicate NRC '" + teacher.getNrc() + "'");
+                    } else if (msg.contains("user_account.username")) {
+                        duplicateDetails.add("• " + teacher.getName() + ": Duplicate Teacher ID '" + teacher.getTeacherCode() + "'");
+                    } else if (msg.contains("email")) {
+                        duplicateDetails.add("• " + teacher.getName() + ": Duplicate Email '" + teacher.getEmail() + "'");
+                    } else {
+                        duplicateDetails.add("• " + teacher.getName() + ": " + msg);
+                    }
+                } catch (SQLException e) {
+                    conn.rollback();
+                    lastBatchError = e.getMessage();
                 }
-            }
-            e.printStackTrace();
-            return -1;
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.close();
-                } catch (SQLException closeEx) {
-                    closeEx.printStackTrace();
-                }
+            } catch (SQLException connEx) {
+                lastBatchError = connEx.getMessage();
             }
         }
+
+        if (!duplicateDetails.isEmpty()) {
+            lastBatchError = String.join("\n", duplicateDetails);
+        }
+        return successCount;
     }
 
     private int insertSingleTeacher(Connection conn, Teacher teacher, String password) throws SQLException {

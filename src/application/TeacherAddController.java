@@ -73,13 +73,13 @@ public class TeacherAddController {
 
     private File selectedExcelFile = null;
     private String selectedPhotoPath = null;
-    private final String DEFAULT_IMAGE_PATH = "/freddy.jpg";
+    private final String DEFAULT_IMAGE_PATH = null;
     private boolean isUpdating = false;
 
     private final String[] VALID_DEPTS = {"C", "Mech", "EC", "CEIT", "EP", "McE", "ChE", "Tex", "Mn", "PE", "Arch", "Tele", "Met", "FE"};
     
     private final String[] VALID_POSITIONS = { "Professor & Head", "Professor", "Associate Professor", "Lecturer", "Assistant Lecturer", "Tutor" };
-
+    
     @FXML
     public void initialize() {
         initializeNrcComponent();
@@ -466,15 +466,29 @@ public class TeacherAddController {
             } else if (result.get() == btnAddAll) {
                 TeacherDAO teacherDAO = new TeacherDAO();
                 int addedCount = teacherDAO.insertBatchTeachers(teachers);
+                String dupErrors = teacherDAO.getLastBatchError();
+
                 if (addedCount > 0) {
-                    showAlert("Batch Import Successful",
-                            "Successfully added " + addedCount + " teacher(s) to the database.",
-                            Alert.AlertType.INFORMATION);
+                    TeacherController.refreshLive();
+                    AttendanceController.refreshLive();
+                    DashboardController.refreshDashboard();
+
+                    if (dupErrors != null && !dupErrors.isEmpty()) {
+                        showAlert("Partial Import Completed",
+                                "Successfully added " + addedCount + " teacher(s) to the database.\n\n"
+                                + "The following duplicate record(s) were skipped:\n" + dupErrors,
+                                Alert.AlertType.WARNING);
+                    } else {
+                        showAlert("Batch Import Successful",
+                                "Successfully added " + addedCount + " teacher(s) to the database.",
+                                Alert.AlertType.INFORMATION);
+                    }
                     handleReturn();
                 } else {
-                    showAlert("Batch Import Failed",
-                            "Failed to insert imported teachers into the database. Please check for duplicate Teacher IDs or emails.",
-                            Alert.AlertType.ERROR);
+                    String reason = (dupErrors != null && !dupErrors.isEmpty())
+                            ? "No new teachers were added because duplicate record(s) were found:\n\n" + dupErrors
+                            : "Failed to insert imported teachers into the database. Please check for duplicate Teacher IDs, NRCs, or Emails.";
+                    showAlert("Batch Import Failed", reason, Alert.AlertType.ERROR);
                 }
             }
         }
@@ -530,7 +544,6 @@ public class TeacherAddController {
         dialogPane.getButtonTypes().addAll(btnSelect, ButtonType.CANCEL);
         dialogPane.setContent(new VBox(10, promptLbl, previewTable));
 
-        // Style Populate Form & Cancel buttons to match the rest of the UI
         Button populateBtn = (Button) dialogPane.lookupButton(btnSelect);
         if (populateBtn != null) {
             populateBtn.getStyleClass().add("search-button");
@@ -634,14 +647,25 @@ public class TeacherAddController {
                 List<String> rowCells = new ArrayList<>();
                 Matcher cMatcher = Pattern.compile("<c\\b[^>]*>(.*?)</c>", Pattern.DOTALL).matcher(rowMatcher.group(1));
                 while (cMatcher.find()) {
-                    Matcher vMatcher = Pattern.compile("<v>(.*?)</v>").matcher(cMatcher.group(1));
+                    String cellXml = cMatcher.group(1);
+                    Matcher vMatcher = Pattern.compile("<v>(.*?)</v>").matcher(cellXml);
                     if (vMatcher.find()) {
                         String val = vMatcher.group(1);
-                        try {
-                            int idx = Integer.parseInt(val);
-                            if (idx >= 0 && idx < sharedStrings.size()) val = sharedStrings.get(idx);
-                        } catch (Exception e) {}
+                        if (cMatcher.group(0).contains("t=\"s\"")) {
+                            try {
+                                int idx = Integer.parseInt(val);
+                                if (idx >= 0 && idx < sharedStrings.size())
+                                    val = sharedStrings.get(idx);
+                            } catch (Exception e) {
+                            }
+                        }
                         rowCells.add(val);
+                    } else if (cellXml.contains("<is>")) {
+                        Matcher isMatcher = Pattern.compile("<t[^>]*>(.*?)</t>", Pattern.DOTALL).matcher(cellXml);
+                        StringBuilder sb = new StringBuilder();
+                        while (isMatcher.find())
+                            sb.append(isMatcher.group(1));
+                        rowCells.add(sb.toString());
                     } else {
                         rowCells.add("");
                     }
@@ -683,7 +707,7 @@ public class TeacherAddController {
                 dob, getMapOrIndex(map, rawOrder, 6, "gender"),
                 getMapOrIndex(map, rawOrder, 7, "nationality"), getMapOrIndex(map, rawOrder, 8, "nrc"),
                 getMapOrIndex(map, rawOrder, 9, "email"), getMapOrIndex(map, rawOrder, 10, "current address"),
-                getMapOrIndex(map, rawOrder, 11, "permanent address"), getMapOrIndex(map, rawOrder, 12, "degree"),
+                getMapOrIndex(map, rawOrder, 11, "permanent address"), getMapOrIndex(map, rawOrder, 12, "degree", "highest degree"),
                 getMapOrIndex(map, rawOrder, 13, "university"), getMapOrIndex(map, rawOrder, 14, "year completed"),
                 getMapOrIndex(map, rawOrder, 15, "specialization"),
                 getMapOrIndex(map, rawOrder, 16, "emergency contact"),
@@ -777,10 +801,7 @@ public class TeacherAddController {
             showAlert("Invalid Email Address", "Email address must contain '@'.", Alert.AlertType.ERROR);
             return;
         }
-        if (!rawEmergency.isEmpty() && !rawEmergency.matches("^09-\\d+$")) {
-            showAlert("Invalid Emergency Contact", "Emergency contact must be in the format 09-xxxxxxxx.", Alert.AlertType.ERROR);
-            return;
-        }
+
         if (!rawYearComp.matches("^\\d{4}$")) {
             showAlert("Invalid Year Completed", "Year Completed must be a 4-digit year (e.g., 2015).", Alert.AlertType.ERROR);
             return;
@@ -807,9 +828,9 @@ public class TeacherAddController {
 
         if (generatedId > 0) {
             newTeacher.setTeacherId(generatedId);
-            if (TeacherController.masterData != null) {
-                TeacherController.masterData.setAll(teacherDAO.getAllTeacher());
-            }
+            TeacherController.refreshLive();
+            AttendanceController.refreshLive();
+            DashboardController.refreshDashboard();
             Session.clear();
             showAlert("Success", "Teacher '" + rawName + "' has been successfully added to the database.", Alert.AlertType.INFORMATION);
             handleReturn();
@@ -861,9 +882,7 @@ public class TeacherAddController {
         selectedExcelFile = null;
         selectedPhotoPath = null;
         if (passportImageView != null) {
-            try {
-                passportImageView.setImage(new Image(getClass().getResourceAsStream(DEFAULT_IMAGE_PATH)));
-            } catch (Exception e) {}
+            passportImageView.setImage(null);
         }
         showAlert("Reset", "Form cleared.", Alert.AlertType.INFORMATION);
     }
@@ -922,9 +941,8 @@ public class TeacherAddController {
         if (cleaned.matches("^\\d+(\\.0+)?$")) {
             try {
                 long serialDays = (long) Double.parseDouble(cleaned);
-                // Excel epoch starts 1899-12-30 (accounting for Excel's 1900 leap-year bug)
                 LocalDate date = LocalDate.of(1899, 12, 30).plusDays(serialDays);
-                return date.format(DateTimeFormatter.ISO_LOCAL_DATE); // yyyy-MM-dd
+                return date.format(DateTimeFormatter.ISO_LOCAL_DATE);
             } catch (Exception ignored) {
             }
         }
@@ -946,7 +964,7 @@ public class TeacherAddController {
         for (String pattern : patterns) {
             try {
                 LocalDate parsed = LocalDate.parse(cleaned, DateTimeFormatter.ofPattern(pattern));
-                return parsed.format(DateTimeFormatter.ISO_LOCAL_DATE); // Always returns yyyy-MM-dd
+                return parsed.format(DateTimeFormatter.ISO_LOCAL_DATE);
             } catch (DateTimeParseException ignored) {
             }
         }

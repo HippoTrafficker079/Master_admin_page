@@ -94,7 +94,7 @@ public class StudentAddController {
 
     private File selectedExcelFile = null;
     private String selectedPhotoPath = null;
-    private final String DEFAULT_IMAGE_PATH = "/freddy.jpg";
+    private final String DEFAULT_IMAGE_PATH = null;
     private boolean isUpdating = false;
 
     private ObservableList<String> currentTownshipOptions;
@@ -512,15 +512,29 @@ public class StudentAddController {
             } else if (result.get() == btnAddAll) {
                 StudentDAO studentDAO = new StudentDAO();
                 int addedCount = studentDAO.insertBatchStudents(students);
+                String dupErrors = studentDAO.getLastBatchError();
+
                 if (addedCount > 0) {
-                    showAlert("Batch Import Successful",
-                            "Successfully added " + addedCount + " student(s) to the database.",
-                            Alert.AlertType.INFORMATION);
+                    StudentController.refreshLive();
+                    AttendanceController.refreshLive();
+                    DashboardController.refreshDashboard();
+
+                    if (dupErrors != null && !dupErrors.isEmpty()) {
+                        showAlert("Partial Import Completed",
+                                "Successfully added " + addedCount + " student(s) to the database.\n\n"
+                                + "The following duplicate record(s) were skipped:\n" + dupErrors,
+                                Alert.AlertType.WARNING);
+                    } else {
+                        showAlert("Batch Import Successful",
+                                "Successfully added " + addedCount + " student(s) to the database.",
+                                Alert.AlertType.INFORMATION);
+                    }
                     handleReturn();
                 } else {
-                    showAlert("Batch Import Failed",
-                            "Failed to insert imported students into the database. Please check for duplicate Roll Nos.",
-                            Alert.AlertType.ERROR);
+                    String reason = (dupErrors != null && !dupErrors.isEmpty())
+                            ? "No new students were added because duplicate record(s) were found:\n\n" + dupErrors
+                            : "Failed to insert imported students into the database. Please check for duplicate Roll Nos, NRCs, or Emails.";
+                    showAlert("Batch Import Failed", reason, Alert.AlertType.ERROR);
                 }
             }
         }
@@ -806,6 +820,10 @@ public class StudentAddController {
         if (year == null)
             year = "First Year";
 
+        String semester = getMapOrIndex(map, rawOrder, 4, "semester", "term");
+        if (semester.isEmpty())
+            semester = "First Semester";
+
         String phone = getMapOrIndex(map, rawOrder, 5, "phone", "phone number", "phone no", "phoneno");
         if (phone.isEmpty())
             phone = "09-000000000";
@@ -842,7 +860,7 @@ public class StudentAddController {
         if (rollNo.isEmpty() || name.isEmpty())
             return null;
 
-        return new Student(seqNo, rollNo, name, major, year, "Pending", phone,
+        return new Student(seqNo, rollNo, name, major, year, semester, phone,
                 dob, gender, nationality, nrc, email, currAddr, permAddr,
                 fName, fOcc, fPhone, fEmail, mName, mOcc, mPhone, mEmail,
                 prevSchool, yearComp, addInfo, DEFAULT_IMAGE_PATH);
@@ -1161,7 +1179,7 @@ public class StudentAddController {
         String finalPhotoPath = (selectedPhotoPath != null) ? selectedPhotoPath : DEFAULT_IMAGE_PATH;
 
         Student newStudent = new Student(newNo, standardizedRollNo, nameInput, validatedMajor, validatedYear,
-                "Pending", phoneInput,
+                "First Semester", phoneInput,
                 dobInput, genderInput, nationality, constructedNrc, emailInput, currAddr, permAddr,
                 fName, fOcc, fPhoneInput, fEmailInput, mName, mOcc, mPhoneInput, mEmailInput,
                 prevSchool, yearCompInput, addInfo, finalPhotoPath);
@@ -1173,13 +1191,12 @@ public class StudentAddController {
             return;
         }
         
-        if (StudentController.masterData != null) {
-            StudentController.masterData.add(newStudent);
-        }
+        StudentController.refreshLive();
+        AttendanceController.refreshLive();
+        DashboardController.refreshDashboard();
         
         Session.clear();
         handleReturn();
-        DashboardController.refreshDashboard();
     }
 
     @FXML
@@ -1223,11 +1240,9 @@ public class StudentAddController {
             
             selectedExcelFile = null;
             selectedPhotoPath = null;
-            try {
-                if (passportImageView != null) {
-                    passportImageView.setImage(new Image(getClass().getResourceAsStream(DEFAULT_IMAGE_PATH)));
-                }
-            } catch (Exception e) {}
+            if (passportImageView != null) {
+                passportImageView.setImage(null);
+            }
         } finally {
             isUpdating = false;
         }
@@ -1275,9 +1290,8 @@ public class StudentAddController {
         if (cleaned.matches("^\\d+(\\.0+)?$")) {
             try {
                 long serialDays = (long) Double.parseDouble(cleaned);
-                // Excel epoch starts 1899-12-30 (accounting for Excel's 1900 leap-year bug)
                 LocalDate date = LocalDate.of(1899, 12, 30).plusDays(serialDays);
-                return date.format(DateTimeFormatter.ISO_LOCAL_DATE); // yyyy-MM-dd
+                return date.format(DateTimeFormatter.ISO_LOCAL_DATE);
             } catch (Exception ignored) {
             }
         }
@@ -1299,7 +1313,7 @@ public class StudentAddController {
         for (String pattern : patterns) {
             try {
                 LocalDate parsed = LocalDate.parse(cleaned, DateTimeFormatter.ofPattern(pattern));
-                return parsed.format(DateTimeFormatter.ISO_LOCAL_DATE); // Always returns yyyy-MM-dd
+                return parsed.format(DateTimeFormatter.ISO_LOCAL_DATE);
             } catch (DateTimeParseException ignored) {
             }
         }
