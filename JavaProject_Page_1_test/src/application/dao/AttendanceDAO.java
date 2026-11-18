@@ -19,7 +19,7 @@ public class AttendanceDAO {
             String selectedYear,
             String SelectedSubject, LocalDate startDate, LocalDate endDate, boolean lowOnly) {
         StringBuilder sql = new StringBuilder("""
-                                                                            WITH
+                WITH
                     student_attendance_metric AS (
                         SELECT
                             s.user_id,
@@ -101,9 +101,8 @@ public class AttendanceDAO {
                         2
                     ) AS overall_percentage
                 FROM student_attendance_metric
-                WHERE
-                    1 = 1
-                                        """);
+                WHERE 1 = 1
+                """);
         List<Object> parameters = new ArrayList<>();
 
         parameters.add(startDate != null ? startDate.toString() : null);
@@ -111,27 +110,22 @@ public class AttendanceDAO {
 
         parameters.add(startDate != null ? startDate.toString() : null);
         parameters.add(endDate != null ? endDate.toString() : null);
+
         if (searchText != null && !searchText.trim().isEmpty()) {
-            sql.append("""
-                    AND ( full_name LIKE ? OR roll_no LIKE ? )
-                    """);
+            sql.append(" AND ( full_name LIKE ? OR roll_no LIKE ? ) ");
             parameters.add("%" + searchText.toLowerCase() + "%");
             parameters.add("%" + searchText.toLowerCase() + "%");
         }
         if (selectedDept != null && !selectedDept.trim().isEmpty()) {
-            sql.append("""
-                    AND dept_code = ?
-                    """);
+            sql.append(" AND dept_code = ? ");
             parameters.add(selectedDept);
         }
         if (selectedYear != null && !selectedYear.trim().isEmpty()) {
-            sql.append("""
-                    AND current_year = ?
-                    """);
+            sql.append(" AND current_year = ? ");
             parameters.add(selectedYear);
         }
         if (lowOnly) {
-            sql.append("AND overall_percentage < 75");
+            sql.append(" HAVING overall_percentage < 75 ");
         }
         return executeAttendanceQuery(sql, parameters);
     }
@@ -299,7 +293,7 @@ public class AttendanceDAO {
         // 2. Period Filter
         if (selectedPeriod != null && !selectedPeriod.equals("All Periods")) {
             sql.append(" AND cs.period = ? ");
-            parameters.add(selectedPeriod);
+            parameters.add(Integer.parseInt(selectedPeriod.trim()));
         }
 
         // 3. Search Text Filter (Student Name, Roll No, or Course Name)
@@ -345,44 +339,39 @@ public class AttendanceDAO {
             }
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    while (rs.next()) {
-                        int studentId = rs.getInt("student_id");
-                        String rollNo = rs.getString("roll_no");
-                        String studentName = rs.getString("full_name");
+                    int studentId = rs.getInt("student_id");
+                    String rollNo = rs.getString("roll_no");
+                    String studentName = rs.getString("full_name");
+                    String department = rs.getString("dept_code");
+                    String year = rs.getString("current_year");
+                    String semester = "First Semester";
 
-                        String department = rs.getString("dept_code");
-                        String year = rs.getString("current_year");
+                    LocalDate dateObj = rs.getDate("session_date") != null
+                            ? rs.getDate("session_date").toLocalDate()
+                            : null;
+                    int period = rs.getInt("period");
+                    String subject = rs.getString("course_name");
+                    String status = rs.getString("computed_status");
+                    String markedBy = rs.getString("teacher_name");
+                    String remarks = rs.getString("reason");
 
-                        // Fallback semester string if your query doesn't select it directly
-                        String semester = "First Semester";
+                    AttendanceRecord record = new AttendanceRecord(
+                            rs.getInt("session_id"),
+                            rs.getInt("enrollment_id"),
+                            studentId,
+                            rollNo,
+                            studentName,
+                            department != null ? department : "",
+                            year != null ? year : "",
+                            semester,
+                            dateObj,
+                            period,
+                            subject,
+                            status,
+                            markedBy != null ? markedBy : "Unmarked",
+                            remarks != null ? remarks : "On Time");
 
-                        LocalDate dateObj = rs.getDate("session_date") != null
-                                ? rs.getDate("session_date").toLocalDate()
-                                : null;
-                        int period = rs.getInt("period");
-                        String subject = rs.getString("course_name");
-                        String status = rs.getString("computed_status");
-                        String markedBy = rs.getString("teacher_name");
-                        String remarks = rs.getString("reason");
-
-                        AttendanceRecord record = new AttendanceRecord(
-                                rs.getInt("session_id"),
-                                rs.getInt("enrollment_id"),
-                                studentId,
-                                rollNo,
-                                studentName,
-                                department != null ? department : "",
-                                year != null ? year : "",
-                                semester,
-                                dateObj,
-                                period,
-                                subject,
-                                status,
-                                markedBy != null ? markedBy : "Unmarked",
-                                remarks != null ? remarks : "On Time");
-
-                        dailyLogs.add(record);
-                    }
+                    dailyLogs.add(record);
                 }
             }
         } catch (SQLException e) {
@@ -398,7 +387,6 @@ public class AttendanceDAO {
         int enrollmentId = record.getEnrollmentId();
 
         if ("Present".equalsIgnoreCase(newStatus)) {
-            // Remove exception row so it defaults back to Present
             String deleteSql = "DELETE FROM attendance WHERE session_id = ? AND enrollment_id = ?";
 
             try (Connection conn = DatabaseConnector.getConnection();
@@ -411,7 +399,6 @@ public class AttendanceDAO {
                 e.printStackTrace();
             }
         } else {
-            // Map UI text to database ENUM ('UNEXCUSED' or 'EXCUSED')
             String dbStatus = "Absent".equalsIgnoreCase(newStatus) ? "UNEXCUSED" : "EXCUSED";
 
             String upsertSql = """
@@ -827,6 +814,38 @@ public class AttendanceDAO {
         }
         this.lastFetchedTotalCount = totalRecords;
         return logList;
+    }
+
+    public double getTodayAttendancePercentage() {
+        String sql = """
+                    SELECT
+                        COUNT(CASE WHEN COALESCE(a.status, 'Present') IN ('Present', 'EXCUSED') THEN 1 END) AS present_count,
+                        COUNT(*) AS total_count
+                    FROM class_session cs
+                    JOIN course_offering co ON cs.offering_id = co.offering_id
+                    JOIN course_enrollment ce ON co.offering_id = ce.offering_id
+                    LEFT JOIN attendance a ON cs.session_id = a.session_id AND ce.enrollment_id = a.enrollment_id
+                    WHERE cs.session_date = CURDATE() AND ce.status = 'ENROLLED'
+                """;
+
+        try (Connection conn = DatabaseConnector.getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql);
+                ResultSet rs = pstmt.executeQuery()) {
+
+            if (rs.next()) {
+                int presentCount = rs.getInt("present_count");
+                int totalCount = rs.getInt("total_count");
+
+                if (totalCount == 0) {
+                    return 100.0;
+                }
+                return ((double) presentCount / totalCount) * 100.0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return 0.0;
     }
 
     public int getLastFetchedTotalCount() {

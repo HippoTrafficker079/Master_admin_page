@@ -14,15 +14,19 @@ import application.Teacher;
 
 public class TeacherDAO {
 
-    public List<Teacher> getAllTeacher() {
+	public List<Teacher> getAllTeacher() {
         List<Teacher> teachers = new ArrayList<>();
         String sql = """
-                SELECT t.teacher_id, t.full_name, d.dept_code, t.position, tci.primary_phone_number
+                SELECT t.teacher_id,
+                       t.full_name,
+                       COALESCE(d.dept_code, 'N/A') AS dept_code,
+                       t.position,
+                       COALESCE(tci.primary_phone_number, '') AS primary_phone_number
                 FROM teacher t
-                JOIN user_account ua ON t.user_id = ua.user_id
-                JOIN department d ON t.dept_id = d.dept_id
-                JOIN teacher_contact_information tci ON t.teacher_id = tci.teacher_id
-                WHERE ua.status = TRUE
+                LEFT JOIN user_account ua ON t.user_id = ua.user_id
+                LEFT JOIN department d ON t.dept_id = d.dept_id
+                LEFT JOIN teacher_contact_information tci ON t.teacher_id = tci.teacher_id
+                WHERE ua.status = TRUE OR ua.status IS NULL
                 ORDER BY t.teacher_id ASC;
                 """;
         try (Connection conn = DatabaseConnector.getConnection();
@@ -36,8 +40,7 @@ public class TeacherDAO {
                 String phone = rs.getString("primary_phone_number");
                 String teacherCode = "TCH-" + dept + "-" + teacherId;
 
-                Teacher teacher = new Teacher(teacherId, teacherCode, name, dept, position, phone);
-                teachers.add(teacher);
+                teachers.add(new Teacher(teacherId, teacherCode, name, dept, position, phone));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -48,13 +51,17 @@ public class TeacherDAO {
     public List<Teacher> getDeletedTeachers() {
         List<Teacher> teachers = new ArrayList<>();
         String sql = """
-                SELECT t.teacher_id, t.full_name, d.dept_code, t.position, tci.primary_phone_number
-                        FROM teacher t
-                        JOIN user_account ua ON t.user_id = ua.user_id
-                        JOIN department d ON t.dept_id = d.dept_id
-                        JOIN teacher_contact_information tci ON t.teacher_id = tci.teacher_id
-                        WHERE ua.status = FALSE
-                        ORDER BY t.teacher_id ASC;
+                SELECT t.teacher_id,
+                       t.full_name,
+                       COALESCE(d.dept_code, 'N/A') AS dept_code,
+                       t.position,
+                       COALESCE(tci.primary_phone_number, '') AS primary_phone_number
+                FROM teacher t
+                JOIN user_account ua ON t.user_id = ua.user_id
+                LEFT JOIN department d ON t.dept_id = d.dept_id
+                LEFT JOIN teacher_contact_information tci ON t.teacher_id = tci.teacher_id
+                WHERE ua.status = FALSE
+                ORDER BY t.teacher_id ASC;
                 """;
         try (Connection conn = DatabaseConnector.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql);
@@ -65,8 +72,7 @@ public class TeacherDAO {
                 String deptCode = rs.getString("dept_code");
                 String position = rs.getString("position");
                 String phoneNo = rs.getString("primary_phone_number");
-                Teacher teacher = new Teacher(id, fullName, deptCode, position, phoneNo);
-                teachers.add(teacher);
+                teachers.add(new Teacher(id, fullName, deptCode, position, phoneNo));
             }
         } catch (SQLException e) {
             e.printStackTrace();

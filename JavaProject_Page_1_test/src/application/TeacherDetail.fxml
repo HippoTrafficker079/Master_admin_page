@@ -46,15 +46,18 @@
                         <Pane HBox.hgrow="ALWAYS" />
                         <VBox alignment="CENTER" spacing="4.0">
                            <children>
-                              <VBox alignment="CENTER" prefHeight="105.0" prefWidth="85.0" style="-fx-border-color: #1e3a8a; -fx-border-width: 1.5; -fx-background-color: #f8fafc; -fx-border-radius: 4;">
-                                 <children>
-                                    <ImageView fx:id="passportImageView" fitHeight="92.0" fitWidth="83.0" pickOnBounds="true" preserveRatio="true">
-                                       <image>
-                                          <Image url="@../freddy.jpg" />
-                                       </image>
-                                    </ImageView>
-                                 </children>
-                              </VBox>
+                              <VBox alignment="CENTER"
+							      minWidth="90.0" prefWidth="90.0" maxWidth="90.0"
+							      minHeight="115.0" prefHeight="115.0" maxHeight="115.0"
+							      style="-fx-border-color: #1e3a8a; -fx-border-width: 1.5; -fx-background-color: #f8fafc; -fx-border-radius: 4;">
+							   <children>
+							      <ImageView fx:id="passportImageView" fitWidth="86.0" fitHeight="111.0" pickOnBounds="true" preserveRatio="false">
+							         <image>
+							            <Image url="@../freddy.jpg" />
+							         </image>
+							      </ImageView>
+							   </children>
+							</VBox>
                            </children>
                         </VBox>
                      </children>

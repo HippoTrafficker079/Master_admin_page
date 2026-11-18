@@ -424,75 +424,75 @@ public class TeacherModifyController {
         }
     }
 
-    @FXML
-    public void handleBrowseExcel() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select Excel / CSV File");
-        fileChooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Spreadsheet & CSV Files (*.xlsx, *.csv)", "*.xlsx", "*.csv"),
-                new FileChooser.ExtensionFilter("All Files (*.*)", "*.*"));
-        Stage stage = (Stage) txtTeacherId.getScene().getWindow();
-        File file = fileChooser.showOpenDialog(stage);
-        if (file != null) {
-            selectedExcelFile = file;
-            if (txtExcelPath != null) txtExcelPath.setText(file.getAbsolutePath());
-        }
-    }
+//    @FXML
+//    public void handleBrowseExcel() {
+//        FileChooser fileChooser = new FileChooser();
+//        fileChooser.setTitle("Select Excel / CSV File");
+//        fileChooser.getExtensionFilters().addAll(
+//                new FileChooser.ExtensionFilter("Spreadsheet & CSV Files (*.xlsx, *.csv)", "*.xlsx", "*.csv"),
+//                new FileChooser.ExtensionFilter("All Files (*.*)", "*.*"));
+//        Stage stage = (Stage) txtTeacherId.getScene().getWindow();
+//        File file = fileChooser.showOpenDialog(stage);
+//        if (file != null) {
+//            selectedExcelFile = file;
+//            if (txtExcelPath != null) txtExcelPath.setText(file.getAbsolutePath());
+//        }
+//    }
+//
+//    @FXML
+//    public void handleDragOver(DragEvent event) {
+//        if (event.getGestureSource() != dropZone && event.getDragboard().hasFiles()) {
+//            for (File file : event.getDragboard().getFiles()) {
+//                String name = file.getName().toLowerCase();
+//                if (name.endsWith(".xlsx") || name.endsWith(".csv") || name.endsWith(".txt")) {
+//                    event.acceptTransferModes(TransferMode.COPY);
+//                    break;
+//                }
+//            }
+//        }
+//        event.consume();
+//    }
+//
+//    @FXML public void handleDragExited(DragEvent event) { event.consume(); }
+//
+//    @FXML
+//    public void handleDragDropped(DragEvent event) {
+//        boolean success = false;
+//        if (event.getDragboard().hasFiles()) {
+//            for (File file : event.getDragboard().getFiles()) {
+//                String name = file.getName().toLowerCase();
+//                if (name.endsWith(".xlsx") || name.endsWith(".csv") || name.endsWith(".txt")) {
+//                    selectedExcelFile = file;
+//                    if (txtExcelPath != null) txtExcelPath.setText(file.getAbsolutePath());
+//                    success = true;
+//                    Platform.runLater(this::handleImportExcel);
+//                    break;
+//                }
+//            }
+//        }
+//        event.setDropCompleted(success);
+//        event.consume();
+//    }
 
-    @FXML
-    public void handleDragOver(DragEvent event) {
-        if (event.getGestureSource() != dropZone && event.getDragboard().hasFiles()) {
-            for (File file : event.getDragboard().getFiles()) {
-                String name = file.getName().toLowerCase();
-                if (name.endsWith(".xlsx") || name.endsWith(".csv") || name.endsWith(".txt")) {
-                    event.acceptTransferModes(TransferMode.COPY);
-                    break;
-                }
-            }
-        }
-        event.consume();
-    }
-
-    @FXML public void handleDragExited(DragEvent event) { event.consume(); }
-
-    @FXML
-    public void handleDragDropped(DragEvent event) {
-        boolean success = false;
-        if (event.getDragboard().hasFiles()) {
-            for (File file : event.getDragboard().getFiles()) {
-                String name = file.getName().toLowerCase();
-                if (name.endsWith(".xlsx") || name.endsWith(".csv") || name.endsWith(".txt")) {
-                    selectedExcelFile = file;
-                    if (txtExcelPath != null) txtExcelPath.setText(file.getAbsolutePath());
-                    success = true;
-                    Platform.runLater(this::handleImportExcel);
-                    break;
-                }
-            }
-        }
-        event.setDropCompleted(success);
-        event.consume();
-    }
-
-    @FXML
-    public void handleImportExcel() {
-        if (selectedExcelFile == null || !selectedExcelFile.exists()) {
-            showAlert("No File Selected", "Please browse or drag and drop a valid Excel or CSV file first.", Alert.AlertType.WARNING);
-            return;
-        }
-        try {
-            List<Teacher> teachers = selectedExcelFile.getName().toLowerCase().endsWith(".csv")
-                    ? parseCsvTeachers(selectedExcelFile) : parseXlsxTeachers(selectedExcelFile);
-            if (teachers.isEmpty()) {
-                showAlert("Import Notice", "No teacher records found.", Alert.AlertType.WARNING);
-                return;
-            }
-            if (teachers.size() == 1) populateFormWithTeacher(teachers.get(0));
-            else openSingleTeacherPickerDialog(teachers);
-        } catch (Exception e) {
-            showAlert("Import Error", "Failed to parse spreadsheet: " + e.getMessage(), Alert.AlertType.ERROR);
-        }
-    }
+//    @FXML
+//    public void handleImportExcel() {
+//        if (selectedExcelFile == null || !selectedExcelFile.exists()) {
+//            showAlert("No File Selected", "Please browse or drag and drop a valid Excel or CSV file first.", Alert.AlertType.WARNING);
+//            return;
+//        }
+//        try {
+//            List<Teacher> teachers = selectedExcelFile.getName().toLowerCase().endsWith(".csv")
+//                    ? parseCsvTeachers(selectedExcelFile) : parseXlsxTeachers(selectedExcelFile);
+//            if (teachers.isEmpty()) {
+//                showAlert("Import Notice", "No teacher records found.", Alert.AlertType.WARNING);
+//                return;
+//            }
+//            if (teachers.size() == 1) populateFormWithTeacher(teachers.get(0));
+//            else openSingleTeacherPickerDialog(teachers);
+//        } catch (Exception e) {
+//            showAlert("Import Error", "Failed to parse spreadsheet: " + e.getMessage(), Alert.AlertType.ERROR);
+//        }
+//    }
 
     private void openSingleTeacherPickerDialog(List<Teacher> teachers) {
         Dialog<Teacher> dialog = new Dialog<>();
@@ -569,11 +569,14 @@ public class TeacherModifyController {
     private void loadImage(String path) {
         if (passportImageView == null || path == null || path.trim().isEmpty()) return;
         try {
-            passportImageView.setImage(
-                (path.startsWith("file:") || path.startsWith("http:"))
-                    ? new Image(path, 86, 110, false, true)
-                    : new Image(getClass().getResourceAsStream(path))
-            );
+            Image img = (path.startsWith("file:") || path.startsWith("http:") || path.startsWith("https:"))
+                    ? new Image(path, 86, 111, false, true)
+                    : new Image(getClass().getResourceAsStream(path), 86, 111, false, true);
+
+            passportImageView.setImage(img);
+            passportImageView.setFitWidth(86.0);
+            passportImageView.setFitHeight(111.0);
+            passportImageView.setPreserveRatio(false);
         } catch (Exception e) {}
     }
 

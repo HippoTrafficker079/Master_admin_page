@@ -569,7 +569,10 @@ public class StudentModifyController {
                         ? new Image(path, 86, 110, false, true)
                         : new Image(getClass().getResourceAsStream(path));
                 if (img != null) {
-                    passportImageView.setImage(img);
+                	passportImageView.setImage(img);
+                	passportImageView.setFitWidth(86.0);
+                	passportImageView.setFitHeight(111.0);
+                	passportImageView.setPreserveRatio(false);
                 }
             } catch (Exception e) {}
         }

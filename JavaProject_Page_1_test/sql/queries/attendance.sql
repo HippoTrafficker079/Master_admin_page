@@ -230,6 +230,23 @@ AND COALESCE(a.status, 'Present') = ?
 --Append dyamically when period is filtered
 AND cs.period = ?
 
+--DashBoard
+--Today Overall Attendance Percentage Across All Classes
+SELECT COUNT(
+        CASE
+            WHEN COALESCE(a.status, 'Present') IN ('EXCUSED', 'Present') THEN 1
+        END
+    ) AS present_count, COUNT(*) AS total_count
+FROM
+    class_session cs
+    JOIN course_offering co ON cs.offering_id = co.offering_id
+    JOIN course_enrollment ce ON co.offering_id = ce.offering_id
+    LEFT JOIN attendance a ON cs.session_id = a.session_id
+    AND ce.enrollment_id = a.enrollment_id
+WHERE
+    cs.session_date = CURDATE()
+    AND ce.status = 'ENROLLED';
+
 --IF attendance status is edited,
 --MARK ALL PRESENT QUERY
 DELETE FROM attendance a
