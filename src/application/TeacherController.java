@@ -2,16 +2,20 @@ package application;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import application.dao.TeacherDAO;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -30,6 +34,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.util.Duration;
 
 public class TeacherController {
 
@@ -56,9 +61,12 @@ public class TeacherController {
     private ComboBox<String> deptHeaderCombo;
     private ComboBox<String> posHeaderCombo;
 
+    private Timeline liveSyncTimeline;
+    private String lastDataSignature = "";
+
     public static void refreshLive() {
         if (instance != null) {
-            Platform.runLater(() -> instance.refreshDataFromDatabase());
+            Platform.runLater(() -> instance.syncFromDatabaseSilently());
         }
     }
 
@@ -70,6 +78,12 @@ public class TeacherController {
             rootPane.setOnMouseClicked(event -> {
                 teacherTable.getSelectionModel().clearSelection();
                 rootPane.requestFocus();
+            });
+
+            rootPane.parentProperty().addListener((obs, oldParent, newParent) -> {
+                if (newParent != null) {
+                    syncFromDatabaseSilently();
+                }
             });
         }
 
@@ -124,11 +138,99 @@ public class TeacherController {
             col.setSortable(false);
             col.setReorderable(false);
         }
+
+        startLiveDatabaseSync();
+    }
+
+    private void startLiveDatabaseSync() {
+        if (liveSyncTimeline != null) {
+            liveSyncTimeline.stop();
+        }
+        liveSyncTimeline = new Timeline(new KeyFrame(Duration.seconds(3), event -> {
+            if (rootPane != null && rootPane.getScene() != null && rootPane.getParent() != null) {
+                syncFromDatabaseSilently();
+            }
+        }));
+        liveSyncTimeline.setCycleCount(Timeline.INDEFINITE);
+        liveSyncTimeline.play();
+    }
+
+    private void syncFromDatabaseSilently() {
+        String searchText = (searchField != null && searchField.getText() != null) ? searchField.getText().trim() : "";
+        String selectedDept = deptHeaderCombo != null ? deptHeaderCombo.getValue() : "All Departments";
+        String selectedPos = posHeaderCombo != null ? posHeaderCombo.getValue() : "All Positions";
+
+        Task<List<Teacher>> fetchTask = new Task<>() {
+            @Override
+            protected List<Teacher> call() {
+                TeacherDAO teacherDAO = new TeacherDAO();
+                return teacherDAO.getFilteredTeachers(searchText, selectedDept, selectedPos);
+            }
+        };
+
+        fetchTask.setOnSucceeded(e -> {
+            List<Teacher> latestList = fetchTask.getValue();
+            if (latestList == null) return;
+
+            String newSignature = buildTeacherSignature(latestList);
+            if (!newSignature.equals(lastDataSignature)) {
+                lastDataSignature = newSignature;
+
+                List<Integer> selectedIds = teacherTable.getSelectionModel().getSelectedItems().stream()
+                        .filter(Objects::nonNull)
+                        .map(Teacher::getTeacherId)
+                        .collect(Collectors.toList());
+                int focusedIndex = teacherTable.getFocusModel().getFocusedIndex();
+
+                masterData = FXCollections.observableArrayList(latestList);
+                setupTableData();
+
+                if (!selectedIds.isEmpty()) {
+                    int firstMatchedRow = -1;
+                    for (int i = 0; i < teacherTable.getItems().size(); i++) {
+                        if (selectedIds.contains(teacherTable.getItems().get(i).getTeacherId())) {
+                            teacherTable.getSelectionModel().select(i);
+                            if (firstMatchedRow == -1) firstMatchedRow = i;
+                        }
+                    }
+                    if (firstMatchedRow >= 0) {
+                        teacherTable.scrollTo(Math.max(0, firstMatchedRow - 2));
+                    }
+                } else if (focusedIndex >= 0 && focusedIndex < teacherTable.getItems().size()) {
+                    teacherTable.scrollTo(focusedIndex);
+                }
+
+                DashboardController.refreshDashboard();
+            }
+        });
+
+        Thread bgThread = new Thread(fetchTask, "TeacherLiveSyncThread");
+        bgThread.setDaemon(true);
+        bgThread.start();
+    }
+
+    private String buildTeacherSignature(List<Teacher> list) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(list.size()).append("|");
+        for (Teacher t : list) {
+            sb.append(t.getTeacherId()).append(":")
+              .append(t.getTeacherCode()).append(":")
+              .append(t.getName()).append(":")
+              .append(t.getDepartment()).append(":")
+              .append(t.getPosition()).append(":")
+              .append(t.getPhoneNo()).append(";");
+        }
+        return sb.toString();
     }
 
     public void refreshDataFromDatabase() {
+        String searchText = (searchField != null && searchField.getText() != null) ? searchField.getText().trim() : "";
+        String selectedDept = deptHeaderCombo != null ? deptHeaderCombo.getValue() : "All Departments";
+        String selectedPos = posHeaderCombo != null ? posHeaderCombo.getValue() : "All Positions";
+
         TeacherDAO teacherDAO = new TeacherDAO();
-        List<Teacher> list = teacherDAO.getAllTeacher();
+        List<Teacher> list = teacherDAO.getFilteredTeachers(searchText, selectedDept, selectedPos);
+        lastDataSignature = buildTeacherSignature(list);
         masterData = FXCollections.observableArrayList(list);
         setupTableData();
         DashboardController.refreshDashboard();
@@ -243,7 +345,7 @@ public class TeacherController {
 
             confirmAlert.getDialogPane().setMinWidth(450);
             confirmAlert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-            
+
             AlertHelper.styleAlert(confirmAlert, true);
             Optional<ButtonType> result = confirmAlert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -309,6 +411,7 @@ public class TeacherController {
 
         TeacherDAO teacherDAO = new TeacherDAO();
         List<Teacher> list = teacherDAO.getFilteredTeachers(searchText, selectedDept, selectedPos);
+        lastDataSignature = buildTeacherSignature(list);
 
         masterData = FXCollections.observableArrayList(list);
         setupTableData();
@@ -328,5 +431,18 @@ public class TeacherController {
         Window owner = (teacherTable != null && teacherTable.getScene() != null)
                 ? teacherTable.getScene().getWindow() : null;
         AlertHelper.show(owner, type, title, null, message);
+    }
+
+    public static Parent getView() {
+        if (instance != null && instance.rootPane != null) {
+            instance.syncFromDatabaseSilently(); // Keeps filters, scroll position & selection intact!
+            return instance.rootPane;
+        }
+        try {
+            return FXMLLoader.load(TeacherController.class.getResource("TeacherContents.fxml"));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

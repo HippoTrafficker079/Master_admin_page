@@ -199,7 +199,7 @@ public class DashboardController {
     }
 
     private void setupDataRefreshListeners() {
-        // Automatically refresh whenever Dashboard is switched into view
+        // Refresh ONLY when switching to the Dashboard tab
         if (rootScrollPane != null) {
             rootScrollPane.parentProperty().addListener((obs, oldParent, newParent) -> {
                 if (newParent != null) {
@@ -207,26 +207,12 @@ public class DashboardController {
                 }
             });
         }
-
-        // Listen for real-time changes in Student master data if loaded
-        if (StudentController.masterData != null) {
-            StudentController.masterData
-                    .addListener((javafx.collections.ListChangeListener.Change<? extends Student> c) -> {
-                        updateDashboardMetricsAndCharts();
-                    });
-        }
-
-        // Listen for real-time changes in Teacher master data if loaded
-        if (TeacherController.masterData != null) {
-            TeacherController.masterData
-                    .addListener((javafx.collections.ListChangeListener.Change<? extends Teacher> c) -> {
-                        updateDashboardMetricsAndCharts();
-                    });
-        }
     }
 
     public static void refreshDashboard() {
-        if (instance != null) {
+        if (instance != null && instance.rootScrollPane != null
+                && instance.rootScrollPane.getScene() != null
+                && instance.rootScrollPane.getParent() != null) {
             Platform.runLater(() -> instance.updateDashboardMetricsAndCharts());
         }
     }

@@ -24,7 +24,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
@@ -45,7 +44,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -892,32 +890,29 @@ public class TeacherAddController {
 
     @FXML
     public void handleNrcHelp() {
-        Alert helpAlert = new Alert(Alert.AlertType.INFORMATION);
-        helpAlert.setTitle("NRC Selection Guide");
-        helpAlert.setHeaderText("How to fill out the NRC Field");
-        helpAlert.setContentText(
+        javafx.stage.Window owner = (txtTeacherId != null && txtTeacherId.getScene() != null)
+                ? txtTeacherId.getScene().getWindow() : null;
+        AlertHelper.showInfo(owner, "NRC Selection Guide", "How to fill out the NRC Field",
             "• State / Region Code (1-14): Selects the regional prefix.\n\n" +
             "• Township ComboBox: You can type any township name globally across all states! Selecting a township will automatically update the State code and number prefix for you.\n\n" +
             "• NRC Number: Enter the remaining 6-digit identification number."
         );
-        helpAlert.getDialogPane().setMinWidth(450);
-        helpAlert.showAndWait();
     }
 
     @FXML
     private void handleReturn() {
         Session.clear();
-        try {
-            Parent view = FXMLLoader.load(getClass().getResource("TeacherContents.fxml"));
+        if (txtTeacherId == null || txtTeacherId.getScene() == null) {
+            return;
+        }
+        Parent teacherView = TeacherController.getView();
+        if (teacherView != null) {
             BorderPane mainLayout = (BorderPane) txtTeacherId.getScene().lookup("#mainBorderPane");
             if (mainLayout != null) {
-                mainLayout.setCenter(view);
-            } else {
-                Parent root = txtTeacherId.getScene().getRoot();
-                if (root instanceof BorderPane) ((BorderPane) root).setCenter(view);
+                mainLayout.setCenter(teacherView);
+            } else if (txtTeacherId.getScene().getRoot() instanceof BorderPane) {
+                ((BorderPane) txtTeacherId.getScene().getRoot()).setCenter(teacherView);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

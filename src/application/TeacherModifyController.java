@@ -15,8 +15,8 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
@@ -28,13 +28,10 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.DragEvent;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
-import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -694,17 +691,20 @@ public class TeacherModifyController {
 
     @FXML
     private void handleReturn() {
-        try {
-            Parent view = FXMLLoader.load(getClass().getResource("TeacherContents.fxml"));
-            BorderPane mainLayout = (BorderPane) (topActionBar != null ? topActionBar.getScene() : txtTeacherId.getScene()).lookup("#mainBorderPane");
+        Scene scene = (topActionBar != null && topActionBar.getScene() != null)
+                ? topActionBar.getScene()
+                : (txtTeacherId != null ? txtTeacherId.getScene() : null);
+        if (scene == null) {
+            return;
+        }
+        Parent view = TeacherController.getView();
+        if (view != null) {
+            BorderPane mainLayout = (BorderPane) scene.lookup("#mainBorderPane");
             if (mainLayout != null) {
                 mainLayout.setCenter(view);
-            } else {
-                Parent root = txtTeacherId.getScene().getRoot();
-                if (root instanceof BorderPane) ((BorderPane) root).setCenter(view);
+            } else if (scene.getRoot() instanceof BorderPane) {
+                ((BorderPane) scene.getRoot()).setCenter(view);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

@@ -112,13 +112,16 @@ public class AttendanceController {
     private final int rowsPerPage = 6;
     private int currentPaginationWindow = 1;
     private static AttendanceController instance;
-
+    
+    private javafx.animation.Timeline liveAttendanceSyncTimeline;
+    private String lastAttendanceSignature = "";
     // =========================================================================
     // 3. INITIALIZATION & TABLE SETUP
     // =========================================================================
 
     @FXML
     public void initialize() {
+        instance = this;
         setupRootFocusAndTables();
         setupResponsiveFilterBar();
         setupDatePickers();
@@ -129,6 +132,7 @@ public class AttendanceController {
         setupTableRowAndCellFactories();
 
         applyFilters();
+        startLiveAttendanceSync();
     }
 
     private void setupRootFocusAndTables() {
@@ -1570,6 +1574,126 @@ public class AttendanceController {
                     instance.refreshSelectedStudentDashboard();
                 }
             });
+        }
+    }
+    
+    private void startLiveAttendanceSync() {
+        if (liveAttendanceSyncTimeline != null) {
+            liveAttendanceSyncTimeline.stop();
+        }
+        liveAttendanceSyncTimeline = new javafx.animation.Timeline(
+            new javafx.animation.KeyFrame(javafx.util.Duration.seconds(3), event -> {
+                if (rootPane != null && rootPane.getScene() != null && rootPane.getParent() != null
+                        && modifiedDailyRecords.isEmpty()) {
+                    syncAttendanceSilently();
+                }
+            })
+        );
+        liveAttendanceSyncTimeline.setCycleCount(javafx.animation.Timeline.INDEFINITE);
+        liveAttendanceSyncTimeline.play();
+    }
+
+    private void syncAttendanceSilently() {
+        final boolean inDailyLog = isClassViewActive && !isMatrixMode;
+        final boolean inMatrix = isClassViewActive && isMatrixMode;
+
+        if (inDailyLog) {
+            final LocalDate selectedDate = (dailyDatePicker != null && dailyDatePicker.getValue() != null)
+                    ? dailyDatePicker.getValue() : LocalDate.now();
+            final String selectedPeriod = dailyPeriodCombo != null ? dailyPeriodCombo.getValue() : "All Periods";
+            final String searchText = (dailySearchField != null && dailySearchField.getText() != null)
+                    ? dailySearchField.getText().trim() : "";
+            final boolean pChecked = chkPresent != null && chkPresent.isSelected();
+            final boolean aChecked = chkAbsent != null && chkAbsent.isSelected();
+            final boolean eChecked = chkExcuse != null && chkExcuse.isSelected();
+
+            javafx.concurrent.Task<List<AttendanceRecord>> dailyTask = new javafx.concurrent.Task<>() {
+                @Override
+                protected List<AttendanceRecord> call() {
+                    return attendanceDAO.dailyLog(selectedDate, selectedPeriod, searchText, pChecked, aChecked, eChecked);
+                }
+            };
+
+            dailyTask.setOnSucceeded(e -> {
+                List<AttendanceRecord> logs = dailyTask.getValue();
+                if (logs == null || !modifiedDailyRecords.isEmpty()) return;
+
+                StringBuilder sb = new StringBuilder("DAILY|").append(logs.size()).append("|");
+                for (AttendanceRecord r : logs) {
+                    sb.append(r.getEnrollmentId()).append(":")
+                      .append(r.getSessionId()).append(":")
+                      .append(r.getStatus()).append(":")
+                      .append(r.getRemarks()).append(";");
+                }
+                String newSig = sb.toString();
+
+                if (!newSig.equals(lastAttendanceSignature)) {
+                    lastAttendanceSignature = newSig;
+                    dailyLogData.setAll(logs);
+                    filteredDailyData.setPredicate(b -> true);
+                    dailyLogTable.setItems(filteredDailyData);
+                    dailyLogTable.refresh();
+                    DashboardController.refreshDashboard();
+                }
+            });
+
+            Thread t = new Thread(dailyTask, "DailyAttendanceSyncThread");
+            t.setDaemon(true);
+            t.start();
+
+        } else if (inMatrix) {
+            final String searchText = (searchField != null && searchField.getText() != null) ? searchField.getText().trim() : "";
+            final String selectedDept = comboDepartment != null ? comboDepartment.getValue() : null;
+            final String selectedYear = comboYear != null ? comboYear.getValue() : null;
+            final String selectedSubject = comboSubject != null ? comboSubject.getValue() : null;
+            final LocalDate startDate = startDatePicker != null ? startDatePicker.getValue() : null;
+            final LocalDate endDate = (endDatePicker != null && endDatePicker.getValue() != null)
+                    ? endDatePicker.getValue() : LocalDate.now();
+            final boolean lowOnly = chkLowAttendance != null && chkLowAttendance.isSelected();
+
+            final String deptParam = (selectedDept == null || selectedDept.equals("All Departments")) ? null : selectedDept;
+            final String yearParam = (selectedYear == null || selectedYear.equals("All Years")) ? null : selectedYear;
+
+            javafx.concurrent.Task<List<AttendanceRecord>> matrixTask = new javafx.concurrent.Task<>() {
+                @Override
+                protected List<AttendanceRecord> call() {
+                    if (selectedSubject != null && !selectedSubject.trim().isEmpty()
+                            && !selectedSubject.equalsIgnoreCase("All Subjects")) {
+                        return attendanceDAO.SubjectFilterMatrixSummary(
+                                searchText, deptParam, yearParam, selectedSubject.trim(), startDate, endDate, lowOnly, selectedSubject.trim());
+                    } else {
+                        return attendanceDAO.AtteandanceMatrixSummary(
+                                searchText, deptParam, yearParam, null, startDate, endDate, lowOnly);
+                    }
+                }
+            };
+
+            matrixTask.setOnSucceeded(e -> {
+                List<AttendanceRecord> results = matrixTask.getValue();
+                if (results == null) return;
+
+                StringBuilder sb = new StringBuilder("MATRIX|").append(results.size()).append("|");
+                for (AttendanceRecord r : results) {
+                	sb.append(r.getRollNo()).append(":")
+                	  .append(r.getAttendedTotal()).append(":")
+                	  .append(r.getPercentage()).append(";");
+                }
+                String newSig = sb.toString();
+
+                if (!newSig.equals(lastAttendanceSignature)) {
+                    lastAttendanceSignature = newSig;
+                    matrixData.setAll(results);
+                    filteredMatrixData.setPredicate(b -> true);
+                    DashboardController.refreshDashboard();
+                }
+            });
+
+            Thread t = new Thread(matrixTask, "MatrixAttendanceSyncThread");
+            t.setDaemon(true);
+            t.start();
+
+        } else if (isStudentLocked && selectedStudentId > 0) {
+            refreshSelectedStudentDashboard();
         }
     }
     

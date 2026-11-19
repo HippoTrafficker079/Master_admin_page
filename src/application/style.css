@@ -959,3 +959,18 @@
     -fx-font-weight: normal;
     -fx-font-size: 13.5px;
 }
+
+
+.indiv-field-label {
+    -fx-text-fill: #395d87 !important;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-weight: bold;
+    -fx-font-size: 13.5px;
+}
+
+.indiv-colon {
+    -fx-text-fill: #64748b !important;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-weight: bold;
+    -fx-font-size: 13.5px;
+}

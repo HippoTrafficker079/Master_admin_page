@@ -1,8 +1,6 @@
 package application;
 
-import java.io.IOException;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -77,12 +75,17 @@ public class TeacherDetailController {
 
     @FXML
     private void handleReturn() {
-        try {
-            Parent teacherView = FXMLLoader.load(getClass().getResource("TeacherContents.fxml"));
-            BorderPane mainLayout = (BorderPane) contentContainer.getScene().getRoot();
-            mainLayout.setCenter(teacherView);
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (contentContainer == null || contentContainer.getScene() == null) {
+            return;
+        }
+        Parent teacherView = TeacherController.getView();
+        if (teacherView != null) {
+            BorderPane mainLayout = (BorderPane) contentContainer.getScene().lookup("#mainBorderPane");
+            if (mainLayout != null) {
+                mainLayout.setCenter(teacherView);
+            } else if (contentContainer.getScene().getRoot() instanceof BorderPane) {
+                ((BorderPane) contentContainer.getScene().getRoot()).setCenter(teacherView);
+            }
         }
     }
     

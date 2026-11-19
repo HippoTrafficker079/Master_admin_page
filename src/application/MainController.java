@@ -55,55 +55,48 @@ public class MainController {
     public void showTeacherView(ActionEvent event) {
         mainBorderPane.setCenter(teacherView);
         setActiveButton(btnManageTeacher);
+        TeacherController.refreshLive();
     }
 
     @FXML
     public void showStudentView(ActionEvent event) {
         mainBorderPane.setCenter(studentView);
         setActiveButton(btnManageStudent);
+        StudentController.refreshLive();
     }
 
     @FXML
     public void showAttendanceView(ActionEvent event) {
         mainBorderPane.setCenter(attendanceView);
         setActiveButton(btnAttendance);
+        AttendanceController.refreshLive();
     }
 
-    // Cleans up active class swapping while preserving hover/pressed CSS rules across all sidebar buttons
     private void setActiveButton(Button activeBtn) {
-        // Reset Dashboard button style
         if (btnDashboard != null) {
             btnDashboard.getStyleClass().remove("sidebar-button-active");
             if (!btnDashboard.getStyleClass().contains("sidebar-button")) {
                 btnDashboard.getStyleClass().add("sidebar-button");
             }
         }
-
-        // Reset Teacher button style
         if (btnManageTeacher != null) {
             btnManageTeacher.getStyleClass().remove("sidebar-button-active");
             if (!btnManageTeacher.getStyleClass().contains("sidebar-button")) {
                 btnManageTeacher.getStyleClass().add("sidebar-button");
             }
         }
-
-        // Reset Student button style
         if (btnManageStudent != null) {
             btnManageStudent.getStyleClass().remove("sidebar-button-active");
             if (!btnManageStudent.getStyleClass().contains("sidebar-button")) {
                 btnManageStudent.getStyleClass().add("sidebar-button");
             }
         }
-
-        // Reset Attendance button style
         if (btnAttendance != null) {
             btnAttendance.getStyleClass().remove("sidebar-button-active");
             if (!btnAttendance.getStyleClass().contains("sidebar-button")) {
                 btnAttendance.getStyleClass().add("sidebar-button");
             }
         }
-
-        // Set the active style on the currently clicked button
         if (activeBtn != null) {
             activeBtn.getStyleClass().remove("sidebar-button");
             if (!activeBtn.getStyleClass().contains("sidebar-button-active")) {

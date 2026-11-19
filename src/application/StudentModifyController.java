@@ -1,16 +1,13 @@
 package application;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import application.dao.StudentDAO;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Alert;
@@ -22,14 +19,13 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 public class StudentModifyController {
     @FXML private TextField txtRollNo, txtName, txtNationality;
-    
+
     // Structured NRC Fields
     @FXML private ComboBox<String> comboNrcState;
     @FXML private ComboBox<String> comboNrcTownship;
@@ -86,7 +82,7 @@ public class StudentModifyController {
         if (comboNrcState != null) {
             comboNrcState.valueProperty().addListener((obs, oldVal, newVal) -> {
                 if (isUpdating) return;
-                
+
                 if (newVal != null && !newVal.equals(oldVal)) {
                     isUpdating = true;
                     try {
@@ -100,7 +96,7 @@ public class StudentModifyController {
                                 comboNrcTownship.setItems(filteredTownships);
                             }
                         }
-                        
+
                         isTownshipLocked[0] = false;
                         filteredTownships.setPredicate(s -> true);
                         comboNrcTownship.getSelectionModel().clearSelection();
@@ -145,7 +141,7 @@ public class StudentModifyController {
 
             comboNrcTownship.valueProperty().addListener((obs, oldVal, newVal) -> {
                 if (isUpdating) return;
-                
+
                 if (newVal != null && !newVal.trim().isEmpty()) {
                     isTownshipLocked[0] = true;
                     if (comboNrcTownship.getEditor() != null && !comboNrcTownship.getEditor().getText().equals(newVal)) {
@@ -196,7 +192,7 @@ public class StudentModifyController {
                             isTownshipLocked[0] = false;
                             comboNrcTownship.setValue(null);
                             comboNrcTownship.getEditor().clear();
-                            
+
                             if (comboNrcState != null && comboNrcState.getValue() != null) {
                                 ObservableList<String> stateTownships = NrcData.getTownshipsForState(comboNrcState.getValue());
                                 if (currentTownshipOptions != null) {
@@ -261,7 +257,7 @@ public class StudentModifyController {
             String[] parts = fullNrc.split("/");
             if (parts.length >= 2) {
                 String state = parts[0].trim();
-                
+
                 if (comboNrcState != null) {
                     if (!comboNrcState.getItems().contains(state)) {
                         comboNrcState.getItems().add(state);
@@ -273,7 +269,7 @@ public class StudentModifyController {
                 int typeIndex = remainder.indexOf("(");
                 if (typeIndex != -1) {
                     String township = remainder.substring(0, typeIndex).trim();
-                    
+
                     if (comboNrcTownship != null) {
                         if (currentTownshipOptions != null && !currentTownshipOptions.contains(township)) {
                             currentTownshipOptions.add(township);
@@ -287,7 +283,7 @@ public class StudentModifyController {
                     int closingIndex = remainder.indexOf(")");
                     if (closingIndex != -1) {
                         String type = remainder.substring(typeIndex, closingIndex + 1).trim();
-                        
+
                         if (comboNrcType != null) {
                             if (!comboNrcType.getItems().contains(type)) {
                                 comboNrcType.getItems().add(type);
@@ -651,13 +647,7 @@ public class StudentModifyController {
                     showAlert("Database Error", "Failed to update student record in the database. Please ensure the Roll No and NRC are unique and valid.", Alert.AlertType.ERROR);
                 }
             }
-            
-            StudentController.refreshLive();
-            AttendanceController.refreshLive();
-            DashboardController.refreshDashboard();
         }
-        
-        handleReturn();
     }
 
     @FXML
@@ -670,7 +660,7 @@ public class StudentModifyController {
             } else {
                 currentStudent.resetToOriginal();
             }
-            
+
             initData(currentStudent);
 
             if (currentStudent.getNrc() != null && !currentStudent.getNrc().isEmpty()) {
@@ -711,18 +701,16 @@ public class StudentModifyController {
     @FXML
     private void handleReturn() {
         if (txtRollNo == null || txtRollNo.getScene() == null) {
-            return; // View was already switched by refreshLive()
+            return;
         }
-        try {
-            Parent studentView = FXMLLoader.load(getClass().getResource("StudentContent.fxml"));
+        Parent studentView = StudentController.getView();
+        if (studentView != null) {
             BorderPane mainLayout = (BorderPane) txtRollNo.getScene().lookup("#mainBorderPane");
             if (mainLayout != null) {
                 mainLayout.setCenter(studentView);
             } else if (txtRollNo.getScene().getRoot() instanceof BorderPane) {
                 ((BorderPane) txtRollNo.getScene().getRoot()).setCenter(studentView);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 
@@ -731,7 +719,7 @@ public class StudentModifyController {
                 ? txtRollNo.getScene().getWindow() : null;
         AlertHelper.show(owner, type, title, null, message);
     }
-    
+
     @FXML
     private void handleNrcHelp() {
         javafx.stage.Window owner = (txtRollNo != null && txtRollNo.getScene() != null)

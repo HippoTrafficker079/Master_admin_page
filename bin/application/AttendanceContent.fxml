@@ -202,139 +202,156 @@
                   <!-- ========================================================================= -->
                   <!-- INDIVIDUAL STUDENT VIEW FULL DASHBOARD -->
                   <!-- ========================================================================= -->
-                  <VBox fx:id="individualDashboardContainer" managed="false" visible="false" spacing="14.0">
-                     <children>
-                        <!-- Top Student Details Header Banner -->
-                        <Label fx:id="studentHeaderLabel" text="👤  Student Details: III-CEIT-1 – Mg Mg" style="-fx-text-fill: #1e40af; -fx-font-weight: bold; -fx-font-size: 15px;" />
-
-                        <!-- SECTION 1: UNIVERSITY STUDENT PROFILE & METRICS -->
-                        <VBox spacing="0.0" style="-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
-                           <children>
-                              <!-- Section Header Bar -->
-                              <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #dbeafe; -fx-padding: 8 15; -fx-background-radius: 7 7 0 0; -fx-border-color: #cbd5e1; -fx-border-width: 0 0 1 0;">
-                                 <children>
-                                    <Label text="👤  University Student Profile" style="-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 13.5px;" />
-                                 </children>
-                              </HBox>
-
-                              <!-- Profile & Metrics Split Content -->
-                              <HBox spacing="15.0" style="-fx-padding: 14;">
-                                 <children>
-                                    <!-- Left Card: Student Bio & Photo -->
-                                    <HBox spacing="12.0" alignment="CENTER_LEFT" style="-fx-background-color: white; -fx-padding: 10; -fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;" prefWidth="340.0">
-                                       <children>
-                                          <VBox alignment="CENTER"
-										      minWidth="90.0" prefWidth="90.0" maxWidth="90.0"
-										      minHeight="115.0" prefHeight="115.0" maxHeight="115.0"
-										      style="-fx-background-color: #f8fafc; -fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;">
-										   <children>
-										      <ImageView fx:id="indivProfileImage" fitHeight="111.0" fitWidth="86.0" pickOnBounds="true" preserveRatio="false" />
-										   </children>
-										</VBox>
-                                          <VBox spacing="4.0" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
-                                             <children>
-                                                <Label fx:id="lblIndivName" text="Mg Mg" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 15px;" />
-                                                
-                                                <GridPane hgap="8.0" vgap="4.0">
-												   <columnConstraints>
-												      <ColumnConstraints minWidth="80.0" prefWidth="85.0" />
-												      <ColumnConstraints minWidth="10.0" prefWidth="10.0" />
-												      <ColumnConstraints minWidth="160.0" prefWidth="210.0" />
-												   </columnConstraints>
-												   <rowConstraints>
-												      <RowConstraints minHeight="20.0" prefHeight="20.0" />
-												      <RowConstraints minHeight="20.0" prefHeight="20.0" />
-												      <RowConstraints minHeight="20.0" prefHeight="20.0" />
-												      <RowConstraints minHeight="22.0" prefHeight="22.0" />
-												   </rowConstraints>
-												   <children>
-												      <Label text="Student ID" textFill="#334155" /><Label text=":" textFill="#334155" GridPane.columnIndex="1" />
-												      <Label fx:id="lblIndivStudentId" text="21-CEIT-0482" textFill="#0f172a" GridPane.columnIndex="2"><font><Font name="System Bold" size="12.0" /></font></Label>
-												
-												      <Label text="Department" textFill="#334155" GridPane.rowIndex="1" /><Label text=":" textFill="#334155" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-												      <Label fx:id="lblIndivDept" text="College of Engineering and IT (CEIT)" textFill="#0f172a" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-												
-												      <Label text="Year / Section" textFill="#334155" GridPane.rowIndex="2" /><Label text=":" textFill="#334155" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-												      <Label fx:id="lblIndivYearSec" text="III – CEIT – 1" textFill="#0f172a" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-												
-												      <Label text="Status" textFill="#334155" GridPane.rowIndex="3" /><Label text=":" textFill="#334155" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-												      <Label fx:id="lblIndivStatusBadge" style="-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-padding: 2 10; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;" text="Active" GridPane.columnIndex="2" GridPane.rowIndex="3" />
-												   </children>
-												</GridPane>
-                                             </children>
-                                          </VBox>
-                                       </children>
-                                    </HBox>
-
-                                    <!-- Right Card: Overall University Attendance Metrics -->
-                                    <VBox spacing="0.0" style="-fx-background-color: white; -fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;" HBox.hgrow="ALWAYS">
-                                       <children>
-                                          <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #f8fafc; -fx-padding: 6 12; -fx-background-radius: 5 5 0 0; -fx-border-color: #cbd5e1; -fx-border-width: 0 0 1 0;">
-                                             <children>
-                                                <Label text="📊  Overall University Attendance Metrics" style="-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 12.5px;" />
-                                             </children>
-                                          </HBox>
-                                          <HBox spacing="15.0" alignment="CENTER_LEFT" style="-fx-padding: 12 16;" VBox.vgrow="ALWAYS">
-                                             <children>
-                                                <GridPane hgap="8.0" vgap="10.0" alignment="CENTER_LEFT">
-                                                   <columnConstraints>
-                                                      <ColumnConstraints minWidth="125.0" prefWidth="135.0" />
-                                                      <ColumnConstraints minWidth="8.0" prefWidth="10.0" />
-                                                      <ColumnConstraints minWidth="80.0" prefWidth="90.0" />
-                                                   </columnConstraints>
-                                                   <rowConstraints>
-                                                      <RowConstraints minHeight="24.0" prefHeight="24.0" />
-                                                      <RowConstraints minHeight="24.0" prefHeight="24.0" />
-                                                      <RowConstraints minHeight="26.0" prefHeight="26.0" />
-                                                   </rowConstraints>
-                                                   <children>
-                                                      <Label text="☑  Total Attended" style="-fx-text-fill: #334155; -fx-font-size: 12px;" />
-                                                      <Label text=":" style="-fx-text-fill: #334155;" GridPane.columnIndex="1" />
-                                                      <Label fx:id="lblTotalAttended" text="138" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;" GridPane.columnIndex="2" />
-
-                                                      <Label text="📅  Total Classes" style="-fx-text-fill: #334155; -fx-font-size: 12px;" GridPane.rowIndex="1" />
-                                                      <Label text=":" style="-fx-text-fill: #334155;" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-                                                      <Label fx:id="lblTotalClasses" text="160" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-
-                                                      <Label text="🏅  Academic Standing" style="-fx-text-fill: #334155; -fx-font-size: 12px;" GridPane.rowIndex="2" />
-                                                      <Label text=":" style="-fx-text-fill: #334155;" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-                                                      <Label fx:id="lblAcademicStanding" style="-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-padding: 2 10; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;" text="Good" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-                                                   </children>
-                                                </GridPane>
-
-                                                <Separator orientation="VERTICAL" />
-
-                                                <VBox spacing="7.0" alignment="CENTER_LEFT" prefWidth="280.0" HBox.hgrow="ALWAYS">
-                                                   <children>
-                                                      <Label text="📞  Contact Summary" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 12.5px;" />
-                                                      <HBox spacing="8.0" alignment="CENTER_LEFT">
-                                                         <children>
-                                                            <Label text="✉" style="-fx-text-fill: #1e3a8a;" />
-                                                            <Label fx:id="lblIndivEmail" text="mgmg@student.ytu.edu.mm" style="-fx-text-fill: #0f172a; -fx-font-size: 12px;" />
-                                                         </children>
-                                                      </HBox>
-                                                      <HBox spacing="8.0" alignment="CENTER_LEFT">
-                                                         <children>
-                                                            <Label text="📞" style="-fx-text-fill: #1e3a8a;" />
-                                                            <Label fx:id="lblIndivPhone" text="09-111111111" style="-fx-text-fill: #0f172a; -fx-font-size: 12px;" />
-                                                         </children>
-                                                      </HBox>
-                                                      <HBox spacing="8.0" alignment="CENTER_LEFT">
-                                                         <children>
-                                                            <Label text="📍" style="-fx-text-fill: #1e3a8a;" />
-                                                            <Label fx:id="lblIndivAddress" text="Hlaing Township, Yangon" style="-fx-text-fill: #0f172a; -fx-font-size: 12px;" />
-                                                         </children>
-                                                      </HBox>
-                                                   </children>
-                                                </VBox>
-                                             </children>
-                                          </HBox>
-                                       </children>
-                                    </VBox>
-                                 </children>
-                              </HBox>
-                           </children>
-                        </VBox>
+                  <VBox fx:id="individualDashboardContainer" spacing="14.0" visible="false" managed="false" VBox.vgrow="ALWAYS">
+			         <children>
+			            <!-- Top Student Details Header Banner -->
+			            <Label fx:id="studentHeaderLabel" text="👤  Student Details: III-CEIT-1 – Mg Mg"
+			                   style="-fx-text-fill: #1e3a8a; -fx-font-family: 'Segoe UI', sans-serif; -fx-font-weight: bold; -fx-font-size: 16px;" />
+			
+			            <!-- SECTION 1: UNIVERSITY STUDENT PROFILE & METRICS -->
+			            <VBox spacing="0.0" style="-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
+			               <children>
+			                  <!-- Section Header Bar -->
+			                  <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #dbeafe; -fx-padding: 9 16; -fx-background-radius: 7 7 0 0; -fx-border-color: #cbd5e1; -fx-border-width: 0 0 1 0;">
+			                     <children>
+			                        <Label text="👤  University Student Profile"
+			                               style="-fx-text-fill: #1e3a8a; -fx-font-family: 'Segoe UI', sans-serif; -fx-font-weight: bold; -fx-font-size: 14px;" />
+			                     </children>
+			                  </HBox>
+			
+			                  <!-- Profile & Metrics Split Content -->
+			                  <HBox spacing="15.0" style="-fx-padding: 14;">
+			                     <children>
+			                        <!-- Left Card: Student Bio & Photo -->
+			                        <HBox spacing="16.0" alignment="CENTER_LEFT"
+			                              style="-fx-background-color: white; -fx-padding: 12 14; -fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;"
+			                              prefWidth="395.0" minWidth="375.0">
+			                           <children>
+			                              <VBox alignment="CENTER"
+			                                    minWidth="90.0" prefWidth="90.0" maxWidth="90.0"
+			                                    minHeight="115.0" prefHeight="115.0" maxHeight="115.0"
+			                                    style="-fx-border-color: #395d87; -fx-border-width: 1.5; -fx-background-color: #f8fafc; -fx-border-radius: 6; -fx-background-radius: 6;">
+			                                 <children>
+			                                    <ImageView fx:id="indivProfileImage" fitHeight="109.0" fitWidth="84.0" pickOnBounds="true" preserveRatio="false" />
+			                                 </children>
+			                              </VBox>
+			                              <VBox spacing="6.0" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+			                                 <children>
+			                                    <Label fx:id="lblIndivName" text="Mg Mg"
+			                                           style="-fx-text-fill: #1e3a8a; -fx-font-family: 'Segoe UI', sans-serif; -fx-font-weight: bold; -fx-font-size: 16.5px;" />
+			
+			                                    <GridPane hgap="8.0" vgap="5.0">
+			                                       <columnConstraints>
+			                                          <ColumnConstraints minWidth="98.0" prefWidth="104.0" />
+			                                          <ColumnConstraints minWidth="10.0" prefWidth="12.0" />
+			                                          <ColumnConstraints hgrow="ALWAYS" minWidth="130.0" />
+			                                       </columnConstraints>
+			                                       <rowConstraints>
+			                                          <RowConstraints minHeight="22.0" prefHeight="22.0" />
+			                                          <RowConstraints minHeight="22.0" prefHeight="22.0" />
+			                                          <RowConstraints minHeight="22.0" prefHeight="22.0" />
+			                                          <RowConstraints minHeight="24.0" prefHeight="24.0" />
+			                                       </rowConstraints>
+			                                       <children>
+			                                          <Label text="Student ID" styleClass="indiv-field-label" />
+			                                          <Label text=":" styleClass="indiv-colon" GridPane.columnIndex="1" />
+			                                          <Label fx:id="lblIndivStudentId" text="21-CEIT-01" styleClass="detail-field-value" GridPane.columnIndex="2" />
+			
+			                                          <Label text="Department" styleClass="indiv-field-label" GridPane.rowIndex="1" />
+			                                          <Label text=":" styleClass="indiv-colon" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+			                                          <Label fx:id="lblIndivDept" text="Department of CEIT" styleClass="detail-field-value" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+			
+			                                          <Label text="Year / Section" styleClass="indiv-field-label" GridPane.rowIndex="2" />
+			                                          <Label text=":" styleClass="indiv-colon" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+			                                          <Label fx:id="lblIndivYearSec" text="III-CEIT-1" styleClass="detail-field-value" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+			
+			                                          <Label text="Status" styleClass="indiv-field-label" GridPane.rowIndex="3" />
+			                                          <Label text=":" styleClass="indiv-colon" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+			                                          <Label fx:id="lblIndivStatusBadge"
+			                                                 style="-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-padding: 2 12; -fx-background-radius: 10; -fx-font-family: 'Segoe UI', sans-serif; -fx-font-weight: bold; -fx-font-size: 11.5px;"
+			                                                 text="Active" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+			                                       </children>
+			                                    </GridPane>
+			                                 </children>
+			                              </VBox>
+			                           </children>
+			                        </HBox>
+			
+			                        <!-- Right Card: Overall University Attendance Metrics & Contact Summary -->
+			                        <VBox spacing="0.0" style="-fx-background-color: white; -fx-background-radius: 6; -fx-border-color: #cbd5e1; -fx-border-radius: 6;" HBox.hgrow="ALWAYS">
+			                           <children>
+			                              <HBox alignment="CENTER_LEFT" spacing="8.0" style="-fx-background-color: #f8fafc; -fx-padding: 7 14; -fx-background-radius: 5 5 0 0; -fx-border-color: #cbd5e1; -fx-border-width: 0 0 1 0;">
+			                                 <children>
+			                                    <Label text="📊  Overall University Attendance Metrics"
+			                                           style="-fx-text-fill: #1e3a8a; -fx-font-family: 'Segoe UI', sans-serif; -fx-font-weight: bold; -fx-font-size: 13.5px;" />
+			                                 </children>
+			                              </HBox>
+			                              <HBox spacing="20.0" alignment="CENTER_LEFT" style="-fx-padding: 12 18;" VBox.vgrow="ALWAYS">
+			                                 <children>
+			                                    <!-- Metrics Grid -->
+			                                    <GridPane hgap="10.0" vgap="10.0" alignment="CENTER_LEFT">
+			                                       <columnConstraints>
+			                                          <ColumnConstraints minWidth="150.0" prefWidth="158.0" />
+			                                          <ColumnConstraints minWidth="10.0" prefWidth="12.0" />
+			                                          <ColumnConstraints minWidth="85.0" prefWidth="100.0" />
+			                                       </columnConstraints>
+			                                       <rowConstraints>
+			                                          <RowConstraints minHeight="24.0" prefHeight="24.0" />
+			                                          <RowConstraints minHeight="24.0" prefHeight="24.0" />
+			                                          <RowConstraints minHeight="26.0" prefHeight="26.0" />
+			                                       </rowConstraints>
+			                                       <children>
+			                                          <Label text="☑  Total Attended" styleClass="indiv-field-label" />
+			                                          <Label text=":" styleClass="indiv-colon" GridPane.columnIndex="1" />
+			                                          <Label fx:id="lblTotalAttended" text="10" styleClass="detail-field-value" GridPane.columnIndex="2" />
+			
+			                                          <Label text="📅  Total Classes" styleClass="indiv-field-label" GridPane.rowIndex="1" />
+			                                          <Label text=":" styleClass="indiv-colon" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+			                                          <Label fx:id="lblTotalClasses" text="12" styleClass="detail-field-value" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+			
+			                                          <Label text="🏅  Academic Standing" styleClass="indiv-field-label" GridPane.rowIndex="2" />
+			                                          <Label text=":" styleClass="indiv-colon" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+			                                          <Label fx:id="lblAcademicStanding"
+			                                                 style="-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-padding: 2 12; -fx-background-radius: 10; -fx-font-family: 'Segoe UI', sans-serif; -fx-font-weight: bold; -fx-font-size: 11.5px;"
+			                                                 text="Good" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+			                                       </children>
+			                                    </GridPane>
+			
+			                                    <Separator orientation="VERTICAL" />
+			
+			                                    <!-- Contact Summary -->
+			                                    <VBox spacing="7.0" alignment="CENTER_LEFT" prefWidth="250.0" HBox.hgrow="ALWAYS">
+			                                       <children>
+			                                          <Label text="📞  Contact Summary"
+			                                                 style="-fx-text-fill: #1e3a8a; -fx-font-family: 'Segoe UI', sans-serif; -fx-font-weight: bold; -fx-font-size: 13.5px;" />
+			                                          <HBox spacing="8.0" alignment="CENTER_LEFT">
+			                                             <children>
+			                                                <Label text="✉" style="-fx-text-fill: #395d87; -fx-font-size: 13px;" />
+			                                                <Label fx:id="lblIndivEmail" text="aungaung@student.ytu.edu.mm" styleClass="detail-field-value" />
+			                                             </children>
+			                                          </HBox>
+			                                          <HBox spacing="8.0" alignment="CENTER_LEFT">
+			                                             <children>
+			                                                <Label text="📞" style="-fx-text-fill: #395d87; -fx-font-size: 13px;" />
+			                                                <Label fx:id="lblIndivPhone" text="09-333333333" styleClass="detail-field-value" />
+			                                             </children>
+			                                          </HBox>
+			                                          <HBox spacing="8.0" alignment="CENTER_LEFT">
+			                                             <children>
+			                                                <Label text="📍" style="-fx-text-fill: #395d87; -fx-font-size: 13px;" />
+			                                                <Label fx:id="lblIndivAddress" text="Mayangone Township, Yangon" styleClass="detail-field-value" />
+			                                             </children>
+			                                          </HBox>
+			                                       </children>
+			                                    </VBox>
+			                                 </children>
+			                              </HBox>
+			                           </children>
+			                        </VBox>
+			                     </children>
+			                  </HBox>
+			               </children>
+			            </VBox>
 
                         <!-- SECTION 2: DEPARTMENT SUBJECT BREAKDOWN TABLE -->
                         <VBox spacing="0.0" style="-fx-background-color: white; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">

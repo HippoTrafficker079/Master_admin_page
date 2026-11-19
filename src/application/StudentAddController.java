@@ -1256,15 +1256,17 @@ public class StudentAddController {
     @FXML
     private void handleReturn() {
         Session.clear();
-        try {
-            Parent root = txtRollNo.getScene().getRoot();
-            if (root instanceof BorderPane) {
-                BorderPane mainLayout = (BorderPane) root;
-                Parent studentView = FXMLLoader.load(getClass().getResource("StudentContent.fxml"));
+        if (txtRollNo == null || txtRollNo.getScene() == null) {
+            return;
+        }
+        Parent studentView = StudentController.getView();
+        if (studentView != null) {
+            BorderPane mainLayout = (BorderPane) txtRollNo.getScene().lookup("#mainBorderPane");
+            if (mainLayout != null) {
                 mainLayout.setCenter(studentView);
+            } else if (txtRollNo.getScene().getRoot() instanceof BorderPane) {
+                ((BorderPane) txtRollNo.getScene().getRoot()).setCenter(studentView);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

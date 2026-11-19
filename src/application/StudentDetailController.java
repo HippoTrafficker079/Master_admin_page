@@ -1,10 +1,6 @@
 package application;
 
-import java.io.IOException;
-
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
@@ -36,7 +32,6 @@ public class StudentDetailController {
                 bannerBox.setStyle(
                         "-fx-background-color: #dbeafe; -fx-border-color: #2563eb; -fx-border-width: 1.5; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 12 18;");
 
-                // FIX: Use student.getNo() for UI display row index (e.g. 8) instead of database ID (e.g. 19)
                 String bannerText = String.format("⭐     %d     |     %s     |     %s     |     %s     |     %s",
                         student.getDisplayNo(),
                         safe(student.getRollNo()),
@@ -82,7 +77,6 @@ public class StudentDetailController {
             if (lblAdditionalInfo != null) lblAdditionalInfo.setText(safe(student.getAdditionalInfo()));
 
             loadPhoto(student.getPhotoPath());
-            
         }
     }
 
@@ -119,19 +113,18 @@ public class StudentDetailController {
         }
         return val.trim();
     }
-    
+
     @FXML
     private void handleReturn() {
-        try {
-            // Find the root border pane and switch back to the main student list view
-            Parent root = contentContainer.getScene().getRoot();
-            if (root instanceof BorderPane) {
-                BorderPane mainLayout = (BorderPane) root;
-                Parent studentView = FXMLLoader.load(getClass().getResource("StudentContent.fxml"));
+        if (contentContainer == null || contentContainer.getScene() == null) return;
+        Parent studentView = StudentController.getView();
+        if (studentView != null) {
+            BorderPane mainLayout = (BorderPane) contentContainer.getScene().lookup("#mainBorderPane");
+            if (mainLayout != null) {
                 mainLayout.setCenter(studentView);
+            } else if (contentContainer.getScene().getRoot() instanceof BorderPane) {
+                ((BorderPane) contentContainer.getScene().getRoot()).setCenter(studentView);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 }

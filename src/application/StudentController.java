@@ -2,16 +2,20 @@ package application;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import application.dao.StudentDAO;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.collections.transformation.SortedList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -30,37 +34,26 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import javafx.util.Duration;
 
 public class StudentController {
 
-    @FXML
-    private VBox rootPane;
-    @FXML
-    private TableView<Student> studentTable;
-    @FXML
-    private TableColumn<Student, Integer> colNo;
-    @FXML
-    private TableColumn<Student, String> colRollNo;
-    @FXML
-    private TableColumn<Student, String> colName;
-    @FXML
-    private TableColumn<Student, String> colMajor;
-    @FXML
-    private TableColumn<Student, String> colYear;
-    @FXML
-    private TableColumn<Student, String> colSemester;
-    @FXML
-    private TableColumn<Student, String> colPhone;
+    @FXML private VBox rootPane;
+    @FXML private TableView<Student> studentTable;
+    @FXML private TableColumn<Student, Integer> colNo;
+    @FXML private TableColumn<Student, String> colRollNo;
+    @FXML private TableColumn<Student, String> colName;
+    @FXML private TableColumn<Student, String> colMajor;
+    @FXML private TableColumn<Student, String> colYear;
+    @FXML private TableColumn<Student, String> colSemester;
+    @FXML private TableColumn<Student, String> colPhone;
 
-    @FXML
-    private Button modify;
-    @FXML
-    private Button add;
-    @FXML
-    private Button remove;
+    @FXML private Button modify;
+    @FXML private Button add;
+    @FXML private Button remove;
+    @FXML private Button restore;
 
-    @FXML
-    private TextField searchField;
+    @FXML private TextField searchField;
 
     private static StudentController instance;
     public static ObservableList<Student> masterData = null;
@@ -70,9 +63,12 @@ public class StudentController {
     private ComboBox<String> yearHeaderCombo;
     private ComboBox<String> semesterHeaderCombo;
 
+    private Timeline liveSyncTimeline;
+    private String lastDataSignature = "";
+
     public static void refreshLive() {
         if (instance != null) {
-            Platform.runLater(() -> instance.refreshDataFromDatabase());
+            Platform.runLater(() -> instance.syncFromDatabaseSilently());
         }
     }
 
@@ -84,6 +80,13 @@ public class StudentController {
             rootPane.setOnMouseClicked(event -> {
                 studentTable.getSelectionModel().clearSelection();
                 rootPane.requestFocus();
+            });
+
+            // Immediately sync whenever Manage Student tab becomes visible
+            rootPane.parentProperty().addListener((obs, oldParent, newParent) -> {
+                if (newParent != null) {
+                    syncFromDatabaseSilently();
+                }
             });
         }
 
@@ -100,7 +103,7 @@ public class StudentController {
         colPhone.setCellValueFactory(cellData -> cellData.getValue().phoneNoProperty());
 
         ObservableList<String> majorOptions = FXCollections.observableArrayList(
-                "All Majors", "Pending", "CE", "ME", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex",
+                "All Majors", "Pending", "C", "Mech", "EC", "EP", "CEIT", "MC", "ChE", "Arch", "PE", "MnE", "Met", "Tex",
                 "FE");
 
         ObservableList<String> yearOptions = FXCollections.observableArrayList(
@@ -145,11 +148,104 @@ public class StudentController {
         }
 
         studentTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+
+        startLiveDatabaseSync();
+    }
+
+    private void startLiveDatabaseSync() {
+        if (liveSyncTimeline != null) {
+            liveSyncTimeline.stop();
+        }
+        liveSyncTimeline = new Timeline(new KeyFrame(Duration.seconds(3), event -> {
+            if (rootPane != null && rootPane.getScene() != null && rootPane.getParent() != null) {
+                syncFromDatabaseSilently();
+            }
+        }));
+        liveSyncTimeline.setCycleCount(Timeline.INDEFINITE);
+        liveSyncTimeline.play();
+    }
+
+    private void syncFromDatabaseSilently() {
+        String searchText = (searchField != null && searchField.getText() != null) ? searchField.getText().trim() : "";
+        String selectedMajor = majorHeaderCombo != null ? majorHeaderCombo.getValue() : "All Majors";
+        String selectedYear = yearHeaderCombo != null ? yearHeaderCombo.getValue() : "All Years";
+        String selectedSemester = semesterHeaderCombo != null ? semesterHeaderCombo.getValue() : "All Semesters";
+
+        Task<List<Student>> fetchTask = new Task<>() {
+            @Override
+            protected List<Student> call() {
+                StudentDAO studentDAO = new StudentDAO();
+                return studentDAO.getFilteredStudents(searchText, selectedMajor, selectedYear, selectedSemester);
+            }
+        };
+
+        fetchTask.setOnSucceeded(e -> {
+            List<Student> latestList = fetchTask.getValue();
+            if (latestList == null) return;
+
+            String newSignature = buildStudentSignature(latestList);
+            if (!newSignature.equals(lastDataSignature)) {
+                lastDataSignature = newSignature;
+
+                // Preserve currently selected student IDs & focused row index
+                List<Integer> selectedIds = studentTable.getSelectionModel().getSelectedItems().stream()
+                        .filter(Objects::nonNull)
+                        .map(Student::getNo)
+                        .collect(Collectors.toList());
+                int focusedIndex = studentTable.getFocusModel().getFocusedIndex();
+
+                masterData = FXCollections.observableArrayList(latestList);
+                setupTableData();
+
+                // Restore selection and scroll position if rows still exist
+                if (!selectedIds.isEmpty()) {
+                    int firstMatchedRow = -1;
+                    for (int i = 0; i < studentTable.getItems().size(); i++) {
+                        if (selectedIds.contains(studentTable.getItems().get(i).getNo())) {
+                            studentTable.getSelectionModel().select(i);
+                            if (firstMatchedRow == -1) firstMatchedRow = i;
+                        }
+                    }
+                    if (firstMatchedRow >= 0) {
+                        studentTable.scrollTo(Math.max(0, firstMatchedRow - 2));
+                    }
+                } else if (focusedIndex >= 0 && focusedIndex < studentTable.getItems().size()) {
+                    studentTable.scrollTo(focusedIndex);
+                }
+
+                DashboardController.refreshDashboard();
+            }
+        });
+
+        Thread bgThread = new Thread(fetchTask, "StudentLiveSyncThread");
+        bgThread.setDaemon(true);
+        bgThread.start();
+    }
+
+    private String buildStudentSignature(List<Student> list) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(list.size()).append("|");
+        for (Student s : list) {
+            sb.append(s.getNo()).append(":")
+              .append(s.getRollNo()).append(":")
+              .append(s.getName()).append(":")
+              .append(s.getMajor()).append(":")
+              .append(s.getYear()).append(":")
+              .append(s.getSemester()).append(":")
+              .append(s.getPhoneNo()).append(";");
+        }
+        return sb.toString();
     }
 
     public void refreshDataFromDatabase() {
+        String searchText = (searchField != null && searchField.getText() != null) ? searchField.getText().trim() : "";
+        String selectedMajor = majorHeaderCombo != null ? majorHeaderCombo.getValue() : "All Majors";
+        String selectedYear = yearHeaderCombo != null ? yearHeaderCombo.getValue() : "All Years";
+        String selectedSemester = semesterHeaderCombo != null ? semesterHeaderCombo.getValue() : "All Semesters";
+
         StudentDAO studentDAO = new StudentDAO();
-        List<Student> list = studentDAO.getAllStudent();
+        List<Student> list = studentDAO.getFilteredStudents(searchText, selectedMajor, selectedYear, selectedSemester);
+        lastDataSignature = buildStudentSignature(list);
         masterData = FXCollections.observableArrayList(list);
         setupTableData();
         DashboardController.refreshDashboard();
@@ -266,7 +362,7 @@ public class StudentController {
 
             confirmAlert.getDialogPane().setMinWidth(450);
             confirmAlert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-            
+
             AlertHelper.styleAlert(confirmAlert, true);
             Optional<ButtonType> result = confirmAlert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -333,6 +429,7 @@ public class StudentController {
 
         StudentDAO studentDAO = new StudentDAO();
         List<Student> list = studentDAO.getFilteredStudents(searchText, selectedMajor, selectedYear, selectedSemester);
+        lastDataSignature = buildStudentSignature(list);
 
         masterData = FXCollections.observableArrayList(list);
         setupTableData();
@@ -362,5 +459,17 @@ public class StudentController {
             col.setReorderable(false);
         }
     }
-    
+
+    public static Parent getView() {
+        if (instance != null && instance.rootPane != null) {
+            instance.syncFromDatabaseSilently(); // Keeps filters, scroll position & selection intact!
+            return instance.rootPane;
+        }
+        try {
+            return FXMLLoader.load(StudentController.class.getResource("StudentContent.fxml"));
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }
