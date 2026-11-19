@@ -85,27 +85,27 @@ public class DashboardDAO {
     public List<AttendanceTrendRecord> getDailyAttendance(String deptCode) {
         List<AttendanceTrendRecord> records = new ArrayList<>();
 
-        // Base SQL query
-        StringBuilder sql = new StringBuilder(
-                "SELECT cs.period, (" +
-                        "    COUNT(DISTINCT ce.enrollment_id) - COUNT(a.attendance_id)" +
-                        ") * 100.0 / NULLIF(" +
-                        "    COUNT(DISTINCT ce.enrollment_id), 0" +
-                        ") AS attendance_percentage " +
-                        "FROM class_session cs " +
-                        "JOIN course_offering co ON cs.offering_id = co.offering_id " +
-                        "JOIN course c ON co.course_id = c.course_id ");
+        boolean hasDeptFilter = (deptCode != null && !deptCode.trim().isEmpty()
+                && !deptCode.equalsIgnoreCase("All Majors")
+                && !deptCode.equalsIgnoreCase("ALL"));
 
-        boolean hasDeptFilter = (deptCode != null && !deptCode.isEmpty() && !deptCode.equals("All Majors"));
+        StringBuilder sql = new StringBuilder(
+                "SELECT cs.period, " +
+                "    (COUNT(*) - COUNT(a.attendance_id)) AS present_count, " +
+                "    COUNT(*) AS total_count, " +
+                "    (COUNT(*) - COUNT(a.attendance_id)) * 100.0 / " +
+                "    NULLIF(COUNT(*), 0) AS attendance_percentage " +
+                "FROM class_session cs " +
+                "JOIN course_enrollment ce ON cs.offering_id = ce.offering_id AND ce.status = 'ENROLLED' " +
+                "JOIN student s ON ce.student_id = s.student_id ");
+
         if (hasDeptFilter) {
-            sql.append("JOIN department d ON c.dept_id = d.dept_id ");
+            sql.append("JOIN department d ON s.dept_id = d.dept_id ");
         }
 
         sql.append(
-                "JOIN course_enrollment ce ON cs.offering_id = ce.offering_id AND ce.status = 'ENROLLED' " +
-                        "LEFT JOIN attendance a ON cs.session_id = a.session_id AND a.enrollment_id = ce.enrollment_id "
-                        +
-                        "WHERE cs.is_cancelled = FALSE AND cs.session_date = CURDATE() ");
+                "LEFT JOIN attendance a ON cs.session_id = a.session_id AND a.enrollment_id = ce.enrollment_id " +
+                "WHERE cs.is_cancelled = FALSE AND cs.session_date = CURDATE() ");
 
         if (hasDeptFilter) {
             sql.append("AND d.dept_code = ? ");
@@ -117,14 +117,16 @@ public class DashboardDAO {
                 PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
 
             if (hasDeptFilter) {
-                pstmt.setString(1, deptCode);
+                pstmt.setString(1, deptCode.trim());
             }
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    int period = rs.getInt("period");
-                    double percentage = rs.getDouble("attendance_percentage");
-                    records.add(new AttendanceTrendRecord(period, percentage));
+                    records.add(new AttendanceTrendRecord(
+                            rs.getInt("period"),
+                            rs.getDouble("attendance_percentage"),
+                            rs.getInt("present_count"),
+                            rs.getInt("total_count")));
                 }
             }
         } catch (SQLException e) {
@@ -137,28 +139,28 @@ public class DashboardDAO {
     public List<AttendanceTrendRecord> getWeeklyAttendance(LocalDate startDate, LocalDate endDate, String deptCode) {
         List<AttendanceTrendRecord> records = new ArrayList<>();
 
-        StringBuilder sql = new StringBuilder(
-                "SELECT cs.session_date, (" +
-                        "    COUNT(DISTINCT ce.enrollment_id) - COUNT(a.attendance_id)" +
-                        ") * 100.0 / NULLIF(" +
-                        "    COUNT(DISTINCT ce.enrollment_id), 0" +
-                        ") AS attendance_percentage " +
-                        "FROM class_session cs " +
-                        "JOIN course_offering co ON cs.offering_id = co.offering_id " +
-                        "JOIN course c ON co.course_id = c.course_id ");
+        boolean hasDeptFilter = (deptCode != null && !deptCode.trim().isEmpty()
+                && !deptCode.equalsIgnoreCase("All Majors")
+                && !deptCode.equalsIgnoreCase("ALL"));
 
-        // Dynamically append the department join if a filter is active
-        boolean hasDeptFilter = (deptCode != null && !deptCode.isEmpty() && !deptCode.equals("All Majors"));
+        StringBuilder sql = new StringBuilder(
+                "SELECT cs.session_date, " +
+                "    (COUNT(*) - COUNT(a.attendance_id)) AS present_count, " +
+                "    COUNT(*) AS total_count, " +
+                "    (COUNT(*) - COUNT(a.attendance_id)) * 100.0 / " +
+                "    NULLIF(COUNT(*), 0) AS attendance_percentage " +
+                "FROM class_session cs " +
+                "JOIN course_enrollment ce ON cs.offering_id = ce.offering_id AND ce.status = 'ENROLLED' " +
+                "JOIN student s ON ce.student_id = s.student_id ");
+
         if (hasDeptFilter) {
-            sql.append("JOIN department d ON c.dept_id = d.dept_id ");
+            sql.append("JOIN department d ON s.dept_id = d.dept_id ");
         }
 
         sql.append(
-                "JOIN course_enrollment ce ON cs.offering_id = ce.offering_id AND ce.status = 'ENROLLED' " +
-                        "LEFT JOIN attendance a ON cs.session_id = a.session_id AND a.enrollment_id = ce.enrollment_id "
-                        +
-                        "WHERE cs.is_cancelled = FALSE " +
-                        "AND cs.session_date BETWEEN ? AND LEAST(?, CURDATE()) ");
+                "LEFT JOIN attendance a ON cs.session_id = a.session_id AND a.enrollment_id = ce.enrollment_id " +
+                "WHERE cs.is_cancelled = FALSE " +
+                "AND cs.session_date BETWEEN ? AND LEAST(?, CURDATE()) ");
 
         if (hasDeptFilter) {
             sql.append("AND d.dept_code = ? ");
@@ -169,22 +171,22 @@ public class DashboardDAO {
         try (Connection conn = DatabaseConnector.getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
 
-            // Bind parameters safely in sequence
             pstmt.setDate(1, java.sql.Date.valueOf(startDate));
             pstmt.setDate(2, java.sql.Date.valueOf(endDate));
 
             if (hasDeptFilter) {
-                pstmt.setString(3, deptCode);
+                pstmt.setString(3, deptCode.trim());
             }
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    LocalDate sessionDate = rs.getDate("session_date").toLocalDate();
-                    double percentage = rs.getDouble("attendance_percentage");
-                    records.add(new AttendanceTrendRecord(sessionDate, percentage));
+                    records.add(new AttendanceTrendRecord(
+                            rs.getDate("session_date").toLocalDate(),
+                            rs.getDouble("attendance_percentage"),
+                            rs.getInt("present_count"),
+                            rs.getInt("total_count")));
                 }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -195,33 +197,31 @@ public class DashboardDAO {
     public List<AttendanceTrendRecord> getMonthlyAttendanceTrend(String deptCode) {
         List<AttendanceTrendRecord> records = new ArrayList<>();
 
-        // Base SQL query using StringBuilder
+        boolean hasDeptFilter = (deptCode != null && !deptCode.trim().isEmpty()
+                && !deptCode.equalsIgnoreCase("All Majors")
+                && !deptCode.equalsIgnoreCase("ALL"));
+
         StringBuilder sql = new StringBuilder(
                 "SELECT " +
-                		"    FLOOR((DAYOFMONTH(cs.session_date) - 1) / 7) + 1 AS week_number, " +
-                        "    (" +
-                        "        COUNT(DISTINCT ce.enrollment_id) - COUNT(a.attendance_id)" +
-                        "    ) * 100.0 / NULLIF(" +
-                        "        COUNT(DISTINCT ce.enrollment_id)," +
-                        "        0" +
-                        "    ) AS attendance_percentage " +
-                        "FROM class_session cs " +
-                        "JOIN course_offering co ON cs.offering_id = co.offering_id " +
-                        "JOIN course c ON co.course_id = c.course_id ");
+                "    LEAST(4, FLOOR((DAYOFMONTH(cs.session_date) - 1) / 7) + 1) AS week_number, " + 
+                "    (COUNT(*) - COUNT(a.attendance_id)) AS present_count, " +
+                "    COUNT(*) AS total_count, " +
+                "    (COUNT(*) - COUNT(a.attendance_id)) * 100.0 / " +
+                "    NULLIF(COUNT(*), 0) AS attendance_percentage " +
+                "FROM class_session cs " +
+                "JOIN course_enrollment ce ON cs.offering_id = ce.offering_id AND ce.status = 'ENROLLED' " +
+                "JOIN student s ON ce.student_id = s.student_id ");
 
-        boolean hasDeptFilter = (deptCode != null && !deptCode.isEmpty() && !deptCode.equals("ALL") && !deptCode.equals("All Majors"));
         if (hasDeptFilter) {
-            sql.append("JOIN department d ON c.dept_id = d.dept_id ");
+            sql.append("JOIN department d ON s.dept_id = d.dept_id ");
         }
 
         sql.append(
-                "JOIN course_enrollment ce ON cs.offering_id = ce.offering_id AND ce.status = 'ENROLLED' " +
-                        "LEFT JOIN attendance a ON cs.session_id = a.session_id AND a.enrollment_id = ce.enrollment_id "
-                        +
-                        "WHERE cs.is_cancelled = FALSE " +
-                        "AND YEAR(cs.session_date) = YEAR(CURDATE()) " +
-                        "AND MONTH(cs.session_date) = MONTH(CURDATE()) " +
-                        "AND cs.session_date <= CURDATE() ");
+                "LEFT JOIN attendance a ON cs.session_id = a.session_id AND a.enrollment_id = ce.enrollment_id " +
+                "WHERE cs.is_cancelled = FALSE " +
+                "AND YEAR(cs.session_date) = YEAR(CURDATE()) " +
+                "AND MONTH(cs.session_date) = MONTH(CURDATE()) " +
+                "AND cs.session_date <= CURDATE() ");
 
         if (hasDeptFilter) {
             sql.append("AND d.dept_code = ? ");
@@ -233,17 +233,19 @@ public class DashboardDAO {
                 PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
 
             if (hasDeptFilter) {
-                pstmt.setString(1, deptCode);
+                pstmt.setString(1, deptCode.trim());
             }
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
-                    int weekNum = rs.getInt("week_number");
-                    double attendance = rs.getDouble("attendance_percentage");
-                    records.add(new AttendanceTrendRecord(weekNum, attendance, true));
+                    records.add(new AttendanceTrendRecord(
+                            rs.getInt("week_number"),
+                            rs.getDouble("attendance_percentage"),
+                            true,
+                            rs.getInt("present_count"),
+                            rs.getInt("total_count")));
                 }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }

@@ -15,7 +15,7 @@ public class Main extends Application {
 			Parent root = FXMLLoader.load(getClass().getResource("MainLayout.fxml"));
 
 			// Default window size on launch
-			double defaultWidth = 1060;
+			double defaultWidth = 1067;
 			double defaultHeight = 700;
 
 			Scene scene = new Scene(root, defaultWidth, defaultHeight);

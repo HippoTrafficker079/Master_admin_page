@@ -401,7 +401,7 @@ public class StudentModifyController {
                 Label bannerLabel = new Label(bannerText);
                 bannerLabel.setStyle("-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 15px;");
                 bannerBox.getChildren().add(bannerLabel);
-                contentContainer.getChildren().add(0, bannerBox);
+                contentContainer.getChildren().add(1, bannerBox);
             }
 
             isUpdating = true;
@@ -625,15 +625,31 @@ public class StudentModifyController {
             currentStudent.setYearCompleted(yearCompInput);
             if (txtAdditionalInfo != null) currentStudent.setAdditionalInfo(txtAdditionalInfo.getText().trim());
 
-            if (updatedPhotoPath != null) {
-                currentStudent.setPhotoPath(updatedPhotoPath);
+            if (updatedPhotoPath != null) currentStudent.setPhotoPath(updatedPhotoPath);
+
+            Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+            confirmAlert.setTitle("Confirm Update");
+            confirmAlert.setHeaderText("Save Changes");
+            confirmAlert.setContentText("Are you sure you want to update this student's record?");
+            if (txtRollNo != null && txtRollNo.getScene() != null) {
+                confirmAlert.initOwner(txtRollNo.getScene().getWindow());
             }
-            StudentDAO studentDAO = new StudentDAO();
-            boolean success = studentDAO.modifyStudent(currentStudent);
-            
-            if (!success) {
-                showAlert("Database Error", "Failed to save changes to the database", Alert.AlertType.ERROR);
-                return;
+            AlertHelper.styleAlert(confirmAlert, false);
+            java.util.Optional<javafx.scene.control.ButtonType> result = confirmAlert.showAndWait();
+
+            if (result.isPresent() && result.get() == javafx.scene.control.ButtonType.OK) {
+                StudentDAO studentDAO = new StudentDAO();
+                boolean success = studentDAO.modifyStudent(currentStudent);
+
+                if (success) {
+                    StudentController.refreshLive();
+                    AttendanceController.refreshLive();
+                    DashboardController.refreshDashboard();
+                    showAlert("Success", "Student record for '" + currentStudent.getName() + "' has been updated in the database.", Alert.AlertType.INFORMATION);
+                    handleReturn();
+                } else {
+                    showAlert("Database Error", "Failed to update student record in the database. Please ensure the Roll No and NRC are unique and valid.", Alert.AlertType.ERROR);
+                }
             }
             
             StudentController.refreshLive();
@@ -687,19 +703,23 @@ public class StudentModifyController {
                 }
             }
 
-            showAlert("Data Reset", "This student's record has been reset to its database state.",
+            showAlert("Data Reset", "Form reset to original database record data.",
                     Alert.AlertType.INFORMATION);
         }
     }
 
     @FXML
     private void handleReturn() {
+        if (txtRollNo == null || txtRollNo.getScene() == null) {
+            return; // View was already switched by refreshLive()
+        }
         try {
-            Parent root = txtRollNo.getScene().getRoot();
-            if (root instanceof BorderPane) {
-                BorderPane mainLayout = (BorderPane) root;
-                Parent studentView = FXMLLoader.load(getClass().getResource("StudentContent.fxml"));
+            Parent studentView = FXMLLoader.load(getClass().getResource("StudentContent.fxml"));
+            BorderPane mainLayout = (BorderPane) txtRollNo.getScene().lookup("#mainBorderPane");
+            if (mainLayout != null) {
                 mainLayout.setCenter(studentView);
+            } else if (txtRollNo.getScene().getRoot() instanceof BorderPane) {
+                ((BorderPane) txtRollNo.getScene().getRoot()).setCenter(studentView);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -707,26 +727,16 @@ public class StudentModifyController {
     }
 
     private void showAlert(String title, String message, Alert.AlertType type) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.getDialogPane().setMinWidth(520);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-        alert.showAndWait();
+        javafx.stage.Window owner = (txtRollNo != null && txtRollNo.getScene() != null)
+                ? txtRollNo.getScene().getWindow() : null;
+        AlertHelper.show(owner, type, title, null, message);
     }
     
     @FXML
-    public void handleNrcHelp() {
-        Alert helpAlert = new Alert(Alert.AlertType.INFORMATION);
-        helpAlert.setTitle("NRC Selection Guide");
-        helpAlert.setHeaderText("How to fill out the NRC Field");
-        helpAlert.setContentText(
-            "• State / Region Code (1-14): Selects the regional prefix.\n\n" +
-            "• Township ComboBox: You can type any township name globally across all states! Selecting a township will automatically update the State code and number prefix for you.\n\n" +
-            "• NRC Number: Enter the remaining 6-digit identification number."
-        );
-        helpAlert.getDialogPane().setMinWidth(450);
-        helpAlert.showAndWait();
+    private void handleNrcHelp() {
+        javafx.stage.Window owner = (txtRollNo != null && txtRollNo.getScene() != null)
+                ? txtRollNo.getScene().getWindow() : null;
+        AlertHelper.showInfo(owner, "NRC Help",
+                "Please select the State code, Township, Type, and enter the 6-digit NRC number.");
     }
 }

@@ -504,7 +504,8 @@ public class StudentAddController {
             cancelBtn.setPrefHeight(34);
             cancelBtn.setPrefWidth(95);
         }
-
+        
+        AlertHelper.styleAlert(choiceAlert, false);
         Optional<ButtonType> result = choiceAlert.showAndWait();
         if (result.isPresent()) {
             if (result.get() == btnSelectOne) {
@@ -1150,8 +1151,10 @@ public class StudentAddController {
         confirmAlert.setTitle("Confirm Addition");
         confirmAlert.setHeaderText("Add New Student");
         confirmAlert.setContentText("Are you sure you want to add this new student to the system?");
-        confirmAlert.getDialogPane().setMinWidth(480);
-
+        if (txtRollNo != null && txtRollNo.getScene() != null) {
+            confirmAlert.initOwner(txtRollNo.getScene().getWindow());
+        }
+        AlertHelper.styleAlert(confirmAlert, false);
         Optional<ButtonType> result = confirmAlert.showAndWait();
         if (result.isEmpty() || result.get() != ButtonType.OK)
             return;
@@ -1246,7 +1249,7 @@ public class StudentAddController {
         } finally {
             isUpdating = false;
         }
-
+        
         showAlert("Data Reset", "Form inputs have been cleared.", Alert.AlertType.INFORMATION);
     }
 
@@ -1266,13 +1269,9 @@ public class StudentAddController {
     }
 
     private void showAlert(String title, String message, Alert.AlertType type) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.getDialogPane().setMinWidth(520);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-        alert.showAndWait();
+        javafx.stage.Window owner = (txtRollNo != null && txtRollNo.getScene() != null)
+                ? txtRollNo.getScene().getWindow() : null;
+        AlertHelper.show(owner, type, title, null, message);
     }
     
     @FXML
@@ -1320,4 +1319,5 @@ public class StudentAddController {
 
         return cleaned;
     }
+    
 }

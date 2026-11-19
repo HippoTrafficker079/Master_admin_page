@@ -320,7 +320,7 @@ public class TeacherModifyController {
             Label bannerLabel = new Label(bannerText);
             bannerLabel.setStyle("-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 15px;");
             bannerBox.getChildren().add(bannerLabel);
-            contentContainer.getChildren().add(0, bannerBox);
+            contentContainer.getChildren().add(1, bannerBox);
         }
 
         isUpdating = true;
@@ -643,17 +643,29 @@ public class TeacherModifyController {
         currentTeacher.setEmergencyContact(rawEmergency);
         if (updatedPhotoPath != null) currentTeacher.setPhotoPath(updatedPhotoPath);
 
-        TeacherDAO teacherDAO = new TeacherDAO();
-        boolean success = teacherDAO.modifyTeacher(currentTeacher);
+        Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmAlert.setTitle("Confirm Update");
+        confirmAlert.setHeaderText("Save Changes");
+        confirmAlert.setContentText("Are you sure you want to update this teacher's record?");
+        if (txtTeacherId != null && txtTeacherId.getScene() != null) {
+            confirmAlert.initOwner(txtTeacherId.getScene().getWindow());
+        }
+        AlertHelper.styleAlert(confirmAlert, false);
+        java.util.Optional<javafx.scene.control.ButtonType> result = confirmAlert.showAndWait();
 
-        if (success) {
-            TeacherController.refreshLive();
-            AttendanceController.refreshLive();
-            DashboardController.refreshDashboard();
-            showAlert("Success", "Faculty record for '" + rawName + "' has been updated in the database.", Alert.AlertType.INFORMATION);
-            handleReturn();
-        } else {
-            showAlert("Database Error", "Failed to update faculty record in the database. Please ensure the NRC is unique and valid.", Alert.AlertType.ERROR);
+        if (result.isPresent() && result.get() == javafx.scene.control.ButtonType.OK) {
+            TeacherDAO teacherDAO = new TeacherDAO();
+            boolean success = teacherDAO.modifyTeacher(currentTeacher);
+
+            if (success) {
+                TeacherController.refreshLive();
+                AttendanceController.refreshLive();
+                DashboardController.refreshDashboard();
+                showAlert("Success", "Faculty record for '" + rawName + "' has been updated in the database.", Alert.AlertType.INFORMATION);
+                handleReturn();
+            } else {
+                showAlert("Database Error", "Failed to update faculty record in the database. Please ensure the NRC is unique and valid.", Alert.AlertType.ERROR);
+            }
         }
     }
 
@@ -673,17 +685,11 @@ public class TeacherModifyController {
     }
 
     @FXML
-    public void handleNrcHelp() {
-        Alert helpAlert = new Alert(Alert.AlertType.INFORMATION);
-        helpAlert.setTitle("NRC Selection Guide");
-        helpAlert.setHeaderText("How to fill out the NRC Field");
-        helpAlert.setContentText(
-            "• State / Region Code (1-14): Selects the regional prefix.\n\n" +
-            "• Township ComboBox: You can type any township name globally across all states! Selecting a township will automatically update the State code and number prefix for you.\n\n" +
-            "• NRC Number: Enter the remaining 6-digit identification number."
-        );
-        helpAlert.getDialogPane().setMinWidth(450);
-        helpAlert.showAndWait();
+    private void handleNrcHelp() {
+        javafx.stage.Window owner = (topActionBar != null && topActionBar.getScene() != null)
+                ? topActionBar.getScene().getWindow() : null;
+        AlertHelper.showInfo(owner, "NRC Help",
+                "Please select the State code, Township, Type, and enter the 6-digit NRC number.");
     }
 
     @FXML
@@ -703,15 +709,8 @@ public class TeacherModifyController {
     }
 
     private void showAlert(String title, String message, Alert.AlertType type) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.getDialogPane().setMinWidth(520);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-        if (txtTeacherId != null && txtTeacherId.getScene() != null) {
-            alert.initOwner(txtTeacherId.getScene().getWindow());
-        }
-        alert.showAndWait();
+        javafx.stage.Window owner = (topActionBar != null && topActionBar.getScene() != null)
+                ? topActionBar.getScene().getWindow() : null;
+        AlertHelper.show(owner, type, title, null, message);
     }
 }

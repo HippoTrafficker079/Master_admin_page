@@ -29,7 +29,7 @@ public class TeacherDetailController {
                 		displayRowNo, teacher.getTeacherCode(), teacher.getName(), teacher.getDepartment(), teacher.getPosition()));
                 bannerLabel.setStyle("-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 15px;");
                 banner.getChildren().add(bannerLabel);
-                contentContainer.getChildren().add(0, banner);
+                contentContainer.getChildren().add(1, banner);
             }
 
             lblTeacherId.setText(teacher.getTeacherCode());
@@ -52,15 +52,25 @@ public class TeacherDetailController {
             lblSpecialization.setText(teacher.getSpecialization());
             lblEmergency.setText(teacher.getEmergencyContact());
 
-            if (teacher.getPhotoPath() != null) {
+            if (teacher.getPhotoPath() != null && !teacher.getPhotoPath().trim().isEmpty()) {
                 try {
-                    String path = teacher.getPhotoPath();
-                    Image img = path.startsWith("file:") ? new Image(path, 86, 110, false, true) : new Image(getClass().getResourceAsStream(path));
-                    passportImageView.setImage(img);
-                    passportImageView.setFitWidth(86.0);
-                    passportImageView.setFitHeight(111.0);
-                    passportImageView.setPreserveRatio(false);
-                } catch (Exception e) {}
+                    String path = teacher.getPhotoPath().trim();
+                    Image img = (path.startsWith("file:") || path.startsWith("http:"))
+                            ? new Image(path, 86, 110, false, true)
+                            : new Image(getClass().getResourceAsStream(path));
+                    if (img != null && !img.isError()) {
+                        passportImageView.setImage(img);
+                        passportImageView.setFitWidth(86.0);
+                        passportImageView.setFitHeight(111.0);
+                        passportImageView.setPreserveRatio(false);
+                    } else {
+                        passportImageView.setImage(null);
+                    }
+                } catch (Exception e) {
+                    passportImageView.setImage(null);
+                }
+            } else {
+                passportImageView.setImage(null);
             }
         }
     }

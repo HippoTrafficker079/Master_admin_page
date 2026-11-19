@@ -458,7 +458,8 @@ public class TeacherAddController {
             cancelBtn.setPrefHeight(34);
             cancelBtn.setPrefWidth(95);
         }
-
+        
+        AlertHelper.styleAlert(choiceAlert, false);
         Optional<ButtonType> result = choiceAlert.showAndWait();
         if (result.isPresent()) {
             if (result.get() == btnSelectOne) {
@@ -809,10 +810,12 @@ public class TeacherAddController {
 
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
         confirmAlert.setTitle("Confirm Addition");
-        confirmAlert.setHeaderText("Add New Faculty Member");
-        confirmAlert.setContentText("Are you sure you want to register " + rawName + " into the database?");
-        confirmAlert.getDialogPane().setMinWidth(480);
-
+        confirmAlert.setHeaderText("Add New Teacher");
+        confirmAlert.setContentText("Are you sure you want to add this new teacher to the system?");
+        if (txtTeacherId != null && txtTeacherId.getScene() != null) {
+            confirmAlert.initOwner(txtTeacherId.getScene().getWindow());
+        }
+        AlertHelper.styleAlert(confirmAlert, false);
         Optional<ButtonType> result = confirmAlert.showAndWait();
         if (result.isEmpty() || result.get() != ButtonType.OK) return;
 
@@ -919,16 +922,9 @@ public class TeacherAddController {
     }
 
     private void showAlert(String title, String message, Alert.AlertType type) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.getDialogPane().setMinWidth(520);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-        if (txtTeacherId != null && txtTeacherId.getScene() != null) {
-            alert.initOwner(txtTeacherId.getScene().getWindow());
-        }
-        alert.showAndWait();
+        javafx.stage.Window owner = (txtTeacherId != null && txtTeacherId.getScene() != null)
+                ? txtTeacherId.getScene().getWindow() : null;
+        AlertHelper.show(owner, type, title, null, message);
     }
     
     private String normalizeDateToYMD(String rawDate) {

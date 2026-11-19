@@ -19,186 +19,175 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<ScrollPane fitToWidth="true" style="-fx-background-color: transparent;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.TeacherModifyController">
+<ScrollPane fitToWidth="true" style="-fx-background: #f4f6f9; -fx-background-color: #f4f6f9;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.TeacherModifyController">
    <content>
-      <VBox fx:id="contentContainer" spacing="16.0" style="-fx-background-color: #f1f5f9; -fx-padding: 24;">
+      <VBox fx:id="contentContainer" spacing="14.0" style="-fx-background-color: #f4f6f9; -fx-padding: 20 24;">
          <children>
             <!-- Top Action Bar -->
             <HBox fx:id="topActionBar" alignment="CENTER_LEFT" spacing="12.0">
                <children>
-                  <Button mnemonicParsing="false" onAction="#handleReturn" prefHeight="35.0" prefWidth="100.0" styleClass="reset-button" text="← Return" />
+                  <Button mnemonicParsing="false" onAction="#handleReturn" prefHeight="34.0" prefWidth="105.0" styleClass="reset-button" text="← Return" />
                   <Pane HBox.hgrow="ALWAYS" />
-                  <Button fx:id="btnReset" mnemonicParsing="false" onAction="#handleResetData" prefHeight="35.0" prefWidth="110.0" styleClass="reset-button" text="Reset Data" />
+                  <Button fx:id="btnReset" mnemonicParsing="false" onAction="#handleResetData" prefHeight="34.0" prefWidth="110.0" styleClass="reset-button" text="Reset Data" />
                </children>
             </HBox>
 
-
             <!-- Main Form Sheet Container -->
-            <VBox spacing="14.0" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 8; -fx-border-color: #cbd5e1; -fx-border-radius: 8;">
+            <VBox spacing="14.0" styleClass="section-card">
                <children>
                   <HBox alignment="CENTER_LEFT" spacing="10.0">
                      <children>
-                        <VBox spacing="2.5">
+                        <VBox spacing="3.0">
                            <children>
-                              <Label fx:id="lblFormTitle" text="FACULTY / TEACHER INFORMATION FORM (MODIFY)" textFill="#1e3a8a"><font><Font name="System Bold" size="17.0" /></font></Label>
-                              <Label text="EXCELLENCE  •  RESEARCH  •  INSTRUCTION" textFill="#d97706"><font><Font name="System Bold" size="10.0" /></font></Label>
+                              <Label fx:id="lblFormTitle" style="-fx-text-fill: #1e3a8a; -fx-font-family: 'Segoe UI', 'Arial', sans-serif; -fx-font-weight: bold; -fx-font-size: 18px;" text="FACULTY / TEACHER INFORMATION FORM (MODIFY)" />
+                              <Label style="-fx-text-fill: #d97706; -fx-font-family: 'Segoe UI', 'Arial', sans-serif; -fx-font-weight: bold; -fx-font-size: 11px;" text="EXCELLENCE  •  RESEARCH  •  INSTRUCTION" />
                            </children>
                         </VBox>
                         <Pane HBox.hgrow="ALWAYS" />
                         <VBox alignment="CENTER" spacing="4.0">
                            <children>
                               <VBox fx:id="photoContainer" alignment="CENTER" onMouseClicked="#handleUploadPhoto"
-							      minWidth="90.0" prefWidth="90.0" maxWidth="90.0"
-							      minHeight="115.0" prefHeight="115.0" maxHeight="115.0"
-							      style="-fx-border-color: #1e3a8a; -fx-border-width: 1.5; -fx-background-color: #f8fafc; -fx-border-radius: 4; -fx-cursor: hand;">
-							   <children>
-							      <ImageView fx:id="passportImageView" fitHeight="111.0" fitWidth="86.0" pickOnBounds="true" preserveRatio="false" />
-							   </children>
-							</VBox>
-                              <Label fx:id="lblPhotoAction" onMouseClicked="#handleUploadPhoto" style="-fx-cursor: hand; -fx-font-size: 10px; -fx-font-weight: bold;" text="📷 Change Photo" textFill="#2563eb" />
+                                    minWidth="90.0" prefWidth="90.0" maxWidth="90.0"
+                                    minHeight="115.0" prefHeight="115.0" maxHeight="115.0"
+                                    style="-fx-border-color: #395d87; -fx-border-width: 1.5; -fx-background-color: #f8fafc; -fx-border-radius: 6; -fx-background-radius: 6; -fx-cursor: hand;">
+                                 <children>
+                                    <ImageView fx:id="passportImageView" fitHeight="109.0" fitWidth="84.0" pickOnBounds="true" preserveRatio="false" />
+                                 </children>
+                              </VBox>
+                              <Label fx:id="lblPhotoAction" onMouseClicked="#handleUploadPhoto" style="-fx-text-fill: #2563eb; -fx-cursor: hand; -fx-font-family: 'Segoe UI', 'Arial', sans-serif; -fx-font-size: 10.5px; -fx-font-weight: bold;" text="📷 Change Photo" />
                            </children>
                         </VBox>
                      </children>
                   </HBox>
 
                   <!-- 1. Teacher Details -->
-                  <Label style="-fx-background-color: #1e3a8a; -fx-text-fill: white; -fx-padding: 5 18; -fx-background-radius: 15;" text="1. Teacher Details">
-                     <font><Font name="System Bold" size="11.5" /></font>
-                  </Label>
-                  <GridPane hgap="12.0" vgap="10.0">
-					  <columnConstraints>
-					    <ColumnConstraints hgrow="SOMETIMES" maxWidth="130.0" minWidth="100.0" prefWidth="120.0" />
-					    <ColumnConstraints hgrow="SOMETIMES" maxWidth="15.0" minWidth="15.0" prefWidth="15.0" />
-					    <ColumnConstraints hgrow="SOMETIMES" maxWidth="210.0" minWidth="140.0" prefWidth="195.0" />
-					    <ColumnConstraints hgrow="SOMETIMES" maxWidth="130.0" minWidth="100.0" prefWidth="120.0" />
-					    <ColumnConstraints hgrow="SOMETIMES" maxWidth="15.0" minWidth="15.0" prefWidth="15.0" />
-					    <ColumnConstraints hgrow="SOMETIMES" maxWidth="210.0" minWidth="140.0" prefWidth="195.0" />
-					  </columnConstraints>
-					  <rowConstraints>
-					    <RowConstraints minHeight="28.0" prefHeight="30.0" />
-					    <RowConstraints minHeight="28.0" prefHeight="30.0" />
-					    <RowConstraints minHeight="28.0" prefHeight="30.0" />
-					    <RowConstraints minHeight="28.0" prefHeight="30.0" />
-					    <RowConstraints minHeight="28.0" prefHeight="30.0" /> <!-- Dedicated Full-Width NRC Row -->
-					  </rowConstraints>
-					   <children>
-					      <!-- Row 0 -->
-					      <Label text="Teacher ID" /><Label text=":" GridPane.columnIndex="1" /><TextField fx:id="txtTeacherId" promptText="e.g. TCH-CEIT-101" GridPane.columnIndex="2" />
-					      <Label text="Date of Birth" GridPane.columnIndex="3" /><Label text=":" GridPane.columnIndex="4" /><TextField fx:id="txtDob" promptText="YYYY-MM-DD" GridPane.columnIndex="5" />
-					
-					      <!-- Row 1 -->
-					      <Label text="Full Name" GridPane.rowIndex="1" /><Label text=":" GridPane.columnIndex="1" GridPane.rowIndex="1" /><TextField fx:id="txtName" promptText="Faculty Name" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-					      <Label text="Gender" GridPane.columnIndex="3" GridPane.rowIndex="1" /><Label text=":" GridPane.columnIndex="4" GridPane.rowIndex="1" />
-					      <ComboBox fx:id="comboGender" maxWidth="1.7976931348623157E308" GridPane.columnIndex="5" GridPane.rowIndex="1">
-					         <items>
-					            <FXCollections fx:factory="observableArrayList">
-					               <String fx:value="Male" />
-					               <String fx:value="Female" />
-					            </FXCollections>
-					         </items>
-					      </ComboBox>
-					
-					      <!-- Row 2 -->
-					      <Label text="Department" GridPane.rowIndex="2" /><Label text=":" GridPane.columnIndex="1" GridPane.rowIndex="2" />
-					      <ComboBox fx:id="comboDept" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.rowIndex="2">
-					         <items>
-					            <FXCollections fx:factory="observableArrayList">
-					               <String fx:value="C" /><String fx:value="Mech" /><String fx:value="EC" /><String fx:value="CEIT" /><String fx:value="EP" /><String fx:value="McE" /><String fx:value="ChE" /><String fx:value="Tex" /><String fx:value="Mn" /><String fx:value="PE" /><String fx:value="Arch" /><String fx:value="Tele" /><String fx:value="Met" /><String fx:value="FE" />
-					            </FXCollections>
-					         </items>
-					      </ComboBox>
-					      <Label text="Nationality" GridPane.columnIndex="3" GridPane.rowIndex="2" /><Label text=":" GridPane.columnIndex="4" GridPane.rowIndex="2" /><TextField fx:id="txtNationality" promptText="Myanmar" GridPane.columnIndex="5" GridPane.rowIndex="2" />
-					
-					      <!-- Row 3 -->
-					      <Label text="Position" GridPane.rowIndex="3" /><Label text=":" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-					      <ComboBox fx:id="comboPosition" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.rowIndex="3">
-					         <items>
-					            <FXCollections fx:factory="observableArrayList">
-					               <String fx:value="Professor &amp; Head" /><String fx:value="Professor" /><String fx:value="Associate Professor" /><String fx:value="Lecturer" /><String fx:value="Assistant Lecturer" /><String fx:value="Tutor" />
-					            </FXCollections>
-					         </items>
-					      </ComboBox>
-					
-					      <!-- Row 4: Dedicated Full-Width NRC Row directly below Position -->
-					      <HBox alignment="CENTER_LEFT" spacing="4.0" GridPane.rowIndex="4">
-					         <children>
-					            <Label text="NRC / ID No." />
-					            <Pane HBox.hgrow="ALWAYS" />
-					            <Button mnemonicParsing="false" onAction="#handleNrcHelp"
-					                    style="-fx-background-color: #f97316; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 10px; -fx-background-radius: 10; -fx-min-width: 18px; -fx-min-height: 18px; -fx-max-width: 18px; -fx-max-height: 18px; -fx-padding: 0; -fx-cursor: hand;"
-					                    text="!" />
-					         </children>
-					      </HBox>
-					      <Label text=":" GridPane.columnIndex="1" GridPane.rowIndex="4" />
-					
-					      <HBox alignment="CENTER_LEFT" spacing="8.0" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.rowIndex="4">
-							   <children>
-							      <ComboBox fx:id="comboNrcState" minWidth="92.0" prefHeight="34.0" prefWidth="92.0" promptText="State" />
-							      <Label text="/">
-							         <font><Font name="System Bold" size="15.0" /></font>
-							      </Label>
-							      <ComboBox fx:id="comboNrcTownship" editable="true" minWidth="165.0" prefHeight="34.0" prefWidth="175.0" promptText="Township" />
-							      <ComboBox fx:id="comboNrcType" minWidth="78.0" prefHeight="34.0" prefWidth="78.0" promptText="(N)" />
-							      <TextField fx:id="txtNrcNumber" minWidth="115.0" prefHeight="34.0" prefWidth="125.0" promptText="111111" />
-							   </children>
-						   </HBox>
-					   </children>
-					</GridPane>
-
-                  <!-- 2. Contact Information -->
-                  <Label style="-fx-background-color: #1e3a8a; -fx-text-fill: white; -fx-padding: 5 18; -fx-background-radius: 15;" text="2. Contact Information">
-                     <font><Font name="System Bold" size="11.5" /></font>
-                  </Label>
+                  <Label styleClass="detail-section-pill" text="1. Teacher Details" />
                   <GridPane hgap="12.0" vgap="10.0">
                      <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="130.0" minWidth="100.0" prefWidth="120.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="15.0" minWidth="15.0" prefWidth="15.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="110.0" prefWidth="128.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="14.0" minWidth="14.0" prefWidth="14.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="215.0" minWidth="140.0" prefWidth="195.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="125.0" minWidth="100.0" prefWidth="115.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="14.0" minWidth="14.0" prefWidth="14.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="215.0" minWidth="140.0" prefWidth="195.0" />
+                     </columnConstraints>
+                     <rowConstraints>
+                        <RowConstraints minHeight="30.0" prefHeight="32.0" />
+                        <RowConstraints minHeight="30.0" prefHeight="32.0" />
+                        <RowConstraints minHeight="30.0" prefHeight="32.0" />
+                        <RowConstraints minHeight="30.0" prefHeight="32.0" />
+                        <RowConstraints minHeight="34.0" prefHeight="36.0" />
+                     </rowConstraints>
+                     <children>
+                        <!-- Row 0 -->
+                        <Label styleClass="detail-field-label" text="Teacher ID" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" /><TextField fx:id="txtTeacherId" promptText="e.g. TCH-CEIT-101" GridPane.columnIndex="2" />
+                        <Label styleClass="detail-field-label" text="Date of Birth" GridPane.columnIndex="3" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="4" /><TextField fx:id="txtDob" promptText="YYYY-MM-DD" GridPane.columnIndex="5" />
+
+                        <!-- Row 1 -->
+                        <Label styleClass="detail-field-label" text="Full Name" GridPane.rowIndex="1" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" GridPane.rowIndex="1" /><TextField fx:id="txtName" promptText="Faculty Name" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                        <Label styleClass="detail-field-label" text="Gender" GridPane.columnIndex="3" GridPane.rowIndex="1" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="4" GridPane.rowIndex="1" />
+                        <ComboBox fx:id="comboGender" maxWidth="1.7976931348623157E308" GridPane.columnIndex="5" GridPane.rowIndex="1">
+                           <items>
+                              <FXCollections fx:factory="observableArrayList">
+                                 <String fx:value="Male" />
+                                 <String fx:value="Female" />
+                              </FXCollections>
+                           </items>
+                        </ComboBox>
+
+                        <!-- Row 2 -->
+                        <Label styleClass="detail-field-label" text="Department" GridPane.rowIndex="2" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                        <ComboBox fx:id="comboDept" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.rowIndex="2">
+                           <items>
+                              <FXCollections fx:factory="observableArrayList">
+                                 <String fx:value="C" /><String fx:value="Mech" /><String fx:value="EC" /><String fx:value="CEIT" /><String fx:value="EP" /><String fx:value="McE" /><String fx:value="ChE" /><String fx:value="Tex" /><String fx:value="Mn" /><String fx:value="PE" /><String fx:value="Arch" /><String fx:value="Tele" /><String fx:value="Met" /><String fx:value="FE" />
+                              </FXCollections>
+                           </items>
+                        </ComboBox>
+                        <Label styleClass="detail-field-label" text="Nationality" GridPane.columnIndex="3" GridPane.rowIndex="2" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="4" GridPane.rowIndex="2" /><TextField fx:id="txtNationality" promptText="Myanmar" GridPane.columnIndex="5" GridPane.rowIndex="2" />
+
+                        <!-- Row 3 -->
+                        <Label styleClass="detail-field-label" text="Position" GridPane.rowIndex="3" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                        <ComboBox fx:id="comboPosition" maxWidth="1.7976931348623157E308" GridPane.columnIndex="2" GridPane.rowIndex="3">
+                           <items>
+                              <FXCollections fx:factory="observableArrayList">
+                                 <String fx:value="Professor &amp; Head" /><String fx:value="Professor" /><String fx:value="Associate Professor" /><String fx:value="Lecturer" /><String fx:value="Assistant Lecturer" /><String fx:value="Tutor" />
+                              </FXCollections>
+                           </items>
+                        </ComboBox>
+
+                        <!-- Row 4: Dedicated Full-Width NRC Row directly below Position -->
+                        <HBox alignment="CENTER_LEFT" spacing="4.0" GridPane.rowIndex="4">
+                           <children>
+                              <Label styleClass="detail-field-label" text="NRC / ID No." />
+                              <Pane HBox.hgrow="ALWAYS" />
+                              <Button mnemonicParsing="false" onAction="#handleNrcHelp" styleClass="nrc-help-button" text="!" />
+                           </children>
+                        </HBox>
+                        <Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+
+                        <HBox alignment="CENTER_LEFT" spacing="8.0" GridPane.columnIndex="2" GridPane.columnSpan="4" GridPane.rowIndex="4">
+                           <children>
+                              <ComboBox fx:id="comboNrcState" minWidth="92.0" prefHeight="34.0" prefWidth="92.0" promptText="State" />
+                              <Label style="-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 15px;" text="/" />
+                              <ComboBox fx:id="comboNrcTownship" editable="true" minWidth="165.0" prefHeight="34.0" prefWidth="175.0" promptText="Township" />
+                              <ComboBox fx:id="comboNrcType" minWidth="78.0" prefHeight="34.0" prefWidth="78.0" promptText="(N)" />
+                              <TextField fx:id="txtNrcNumber" minWidth="115.0" prefHeight="34.0" prefWidth="125.0" promptText="111111" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </GridPane>
+
+                  <!-- 2. Contact Information -->
+                  <Label styleClass="detail-section-pill" text="2. Contact Information" />
+                  <GridPane hgap="12.0" vgap="10.0">
+                     <columnConstraints>
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="135.0" minWidth="110.0" prefWidth="128.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="14.0" minWidth="14.0" prefWidth="14.0" />
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="450.0" prefWidth="535.0" />
                      </columnConstraints>
                      <rowConstraints>
-                        <RowConstraints minHeight="28.0" prefHeight="30.0" />
-                        <RowConstraints minHeight="28.0" prefHeight="30.0" />
-                        <RowConstraints minHeight="28.0" prefHeight="30.0" />
-                        <RowConstraints minHeight="28.0" prefHeight="30.0" />
+                        <RowConstraints minHeight="30.0" prefHeight="32.0" />
+                        <RowConstraints minHeight="30.0" prefHeight="32.0" />
+                        <RowConstraints minHeight="30.0" prefHeight="32.0" />
+                        <RowConstraints minHeight="30.0" prefHeight="32.0" />
                      </rowConstraints>
                      <children>
-                        <Label text="Phone Number" /><Label text=":" GridPane.columnIndex="1" /><TextField fx:id="txtPhone" GridPane.columnIndex="2" />
-                        <Label text="Email Address" GridPane.rowIndex="1" /><Label text=":" GridPane.columnIndex="1" GridPane.rowIndex="1" /><TextField fx:id="txtEmail" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                        <Label text="Current Address" GridPane.rowIndex="2" /><Label text=":" GridPane.columnIndex="1" GridPane.rowIndex="2" /><TextField fx:id="txtCurrentAddress" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-                        <Label text="Permanent Address" GridPane.rowIndex="3" /><Label text=":" GridPane.columnIndex="1" GridPane.rowIndex="3" /><TextField fx:id="txtPermanentAddress" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+                        <Label styleClass="detail-field-label" text="Phone Number" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" /><TextField fx:id="txtPhone" GridPane.columnIndex="2" />
+                        <Label styleClass="detail-field-label" text="Email Address" GridPane.rowIndex="1" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" GridPane.rowIndex="1" /><TextField fx:id="txtEmail" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                        <Label styleClass="detail-field-label" text="Current Address" GridPane.rowIndex="2" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" GridPane.rowIndex="2" /><TextField fx:id="txtCurrentAddress" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                        <Label styleClass="detail-field-label" text="Permanent Address" GridPane.rowIndex="3" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" GridPane.rowIndex="3" /><TextField fx:id="txtPermanentAddress" GridPane.columnIndex="2" GridPane.rowIndex="3" />
                      </children>
                   </GridPane>
 
                   <!-- 3. Academic & Professional Background -->
-                  <Label style="-fx-background-color: #1e3a8a; -fx-text-fill: white; -fx-padding: 5 18; -fx-background-radius: 15;" text="3. Academic &amp; Professional Background">
-                     <font><Font name="System Bold" size="11.5" /></font>
-                  </Label>
+                  <Label styleClass="detail-section-pill" text="3. Academic &amp; Professional Background" />
                   <GridPane hgap="12.0" vgap="10.0">
                      <columnConstraints>
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="155.0" minWidth="130.0" prefWidth="145.0" />
-                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="15.0" minWidth="15.0" prefWidth="15.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="160.0" minWidth="135.0" prefWidth="152.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" maxWidth="14.0" minWidth="14.0" prefWidth="14.0" />
                         <ColumnConstraints hgrow="SOMETIMES" minWidth="450.0" prefWidth="510.0" />
                      </columnConstraints>
                      <rowConstraints>
-                        <RowConstraints minHeight="28.0" prefHeight="30.0" />
-                        <RowConstraints minHeight="28.0" prefHeight="30.0" />
-                        <RowConstraints minHeight="28.0" prefHeight="30.0" />
-                        <RowConstraints minHeight="28.0" prefHeight="30.0" />
-                        <RowConstraints minHeight="28.0" prefHeight="30.0" />
+                        <RowConstraints minHeight="30.0" prefHeight="32.0" />
+                        <RowConstraints minHeight="30.0" prefHeight="32.0" />
+                        <RowConstraints minHeight="30.0" prefHeight="32.0" />
+                        <RowConstraints minHeight="30.0" prefHeight="32.0" />
+                        <RowConstraints minHeight="30.0" prefHeight="32.0" />
                      </rowConstraints>
                      <children>
-                        <Label text="Highest Degree" /><Label text=":" GridPane.columnIndex="1" /><TextField fx:id="txtDegree" GridPane.columnIndex="2" />
-                        <Label text="University / Institution" GridPane.rowIndex="1" /><Label text=":" GridPane.columnIndex="1" GridPane.rowIndex="1" /><TextField fx:id="txtUniversity" GridPane.columnIndex="2" GridPane.rowIndex="1" />
-                        <Label text="Year Completed" GridPane.rowIndex="2" /><Label text=":" GridPane.columnIndex="1" GridPane.rowIndex="2" /><TextField fx:id="txtYearCompleted" GridPane.columnIndex="2" GridPane.rowIndex="2" />
-                        <Label text="Specialization / Area" GridPane.rowIndex="3" /><Label text=":" GridPane.columnIndex="1" GridPane.rowIndex="3" /><TextField fx:id="txtSpecialization" GridPane.columnIndex="2" GridPane.rowIndex="3" />
-                        <Label text="Emergency Contact" GridPane.rowIndex="4" /><Label text=":" GridPane.columnIndex="1" GridPane.rowIndex="4" /><TextField fx:id="txtEmergency" GridPane.columnIndex="2" GridPane.rowIndex="4" />
+                        <Label styleClass="detail-field-label" text="Highest Degree" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" /><TextField fx:id="txtDegree" GridPane.columnIndex="2" />
+                        <Label styleClass="detail-field-label" text="University / Institution" GridPane.rowIndex="1" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" GridPane.rowIndex="1" /><TextField fx:id="txtUniversity" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                        <Label styleClass="detail-field-label" text="Year Completed" GridPane.rowIndex="2" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" GridPane.rowIndex="2" /><TextField fx:id="txtYearCompleted" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                        <Label styleClass="detail-field-label" text="Specialization / Area" GridPane.rowIndex="3" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" GridPane.rowIndex="3" /><TextField fx:id="txtSpecialization" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+                        <Label styleClass="detail-field-label" text="Emergency Contact" GridPane.rowIndex="4" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" GridPane.rowIndex="4" /><TextField fx:id="txtEmergency" GridPane.columnIndex="2" GridPane.rowIndex="4" />
                      </children>
                   </GridPane>
                </children>
             </VBox>
 
             <!-- Bottom Action Button Bar -->
-            <HBox fx:id="bottomActionBar" alignment="CENTER" prefHeight="55.0" style="-fx-padding: 10 0 15 0;">
+            <HBox fx:id="bottomActionBar" alignment="CENTER" prefHeight="55.0" style="-fx-padding: 8 0 14 0;">
                <children>
                   <Button fx:id="btnSave" mnemonicParsing="false" onAction="#handleSave" prefHeight="45.0" prefWidth="240.0" styleClass="rounded-button" text="Save Changes">
                      <font><Font size="14.0" /></font>

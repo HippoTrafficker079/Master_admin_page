@@ -29,6 +29,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 public class StudentController {
 
@@ -265,7 +266,8 @@ public class StudentController {
 
             confirmAlert.getDialogPane().setMinWidth(450);
             confirmAlert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-
+            
+            AlertHelper.styleAlert(confirmAlert, true);
             Optional<ButtonType> result = confirmAlert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 StudentDAO studentDAO = new StudentDAO();
@@ -348,16 +350,9 @@ public class StudentController {
     }
 
     private void showAlert(String title, String message, Alert.AlertType type) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.getDialogPane().setMinWidth(520);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-        if (studentTable != null && studentTable.getScene() != null) {
-            alert.initOwner(studentTable.getScene().getWindow());
-        }
-        alert.showAndWait();
+        Window owner = (studentTable != null && studentTable.getScene() != null)
+                ? studentTable.getScene().getWindow() : null;
+        AlertHelper.show(owner, type, title, null, message);
     }
 
     private void disableTableSortingAndReordering(TableView<?> table) {

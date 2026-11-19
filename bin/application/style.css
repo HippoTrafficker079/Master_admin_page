@@ -249,6 +249,99 @@
     -fx-background-insets: 0;
 }
 
+/* =========================================================================
+   CUSTOM APPLICATION DIALOGS & ALERTS (Matches YTU SIMS Palette)
+   ========================================================================= */
+.custom-alert-pane {
+    -fx-background-color: #f8fafc;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 1px;
+    -fx-padding: 6px;
+}
+
+.custom-alert-pane > .content.label {
+    -fx-text-fill: #334155;
+    -fx-font-size: 13.5px;
+    -fx-line-spacing: 3px;
+    -fx-padding: 12px 16px 14px 16px;
+}
+
+.custom-alert-pane:header .header-panel {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #e2e8f0 transparent;
+    -fx-border-width: 1px;
+    -fx-padding: 14px 18px;
+}
+
+.custom-alert-pane:header .header-panel .label {
+    -fx-text-fill: #0f172a;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+}
+
+.custom-alert-pane > .button-bar > .container {
+    -fx-background-color: #f1f5f9;
+    -fx-border-color: #e2e8f0 transparent transparent transparent;
+    -fx-border-width: 1px;
+    -fx-padding: 10px 16px;
+}
+
+/* Primary Dialog Button (OK / Yes / Confirm) */
+.dialog-btn-primary {
+    -fx-background-color: #395d87;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 12.5px;
+    -fx-background-radius: 6px;
+    -fx-padding: 7px 20px;
+    -fx-min-width: 84px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(15, 23, 42, 0.12), 4, 0, 0, 1);
+}
+.dialog-btn-primary:hover {
+    -fx-background-color: #4a78ab;
+}
+.dialog-btn-primary:pressed {
+    -fx-background-color: #2c4a6e;
+}
+
+/* Danger Dialog Button (Delete / Remove) */
+.dialog-btn-danger {
+    -fx-background-color: #e11d48;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-font-size: 12.5px;
+    -fx-background-radius: 6px;
+    -fx-padding: 7px 20px;
+    -fx-min-width: 84px;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(225, 29, 72, 0.2), 4, 0, 0, 1);
+}
+.dialog-btn-danger:hover {
+    -fx-background-color: #f43f5e;
+}
+.dialog-btn-danger:pressed {
+    -fx-background-color: #be123c;
+}
+
+/* Secondary Dialog Button (Cancel / No) */
+.dialog-btn-secondary {
+    -fx-background-color: #e2e8f0;
+    -fx-text-fill: #334155;
+    -fx-font-weight: bold;
+    -fx-font-size: 12.5px;
+    -fx-background-radius: 6px;
+    -fx-padding: 7px 18px;
+    -fx-min-width: 84px;
+    -fx-cursor: hand;
+}
+.dialog-btn-secondary:hover {
+    -fx-background-color: #cbd5e1;
+}
+.dialog-btn-secondary:pressed {
+    -fx-background-color: #94a3b8;
+}
+
 /* --- Header Filter Dropdowns (Option 3: Semi-Translucent Ghost - Centered) --- */
 .table-view .column-header .combo-box {
     -fx-background-color: rgba(255, 255, 255, 0.22);
@@ -441,6 +534,21 @@
 .table-row-cell.row-excused:filled:selected .table-cell .text {
     -fx-text-fill: #78350f !important;
     -fx-fill: #78350f !important;
+}
+
+.table-view .table-cell.chrono-present,
+.table-row-cell:hover .table-cell.chrono-present,
+.table-row-cell:filled:selected .table-cell.chrono-present,
+.table-row-cell:filled:selected:hover .table-cell.chrono-present {
+    -fx-text-fill: #15803d !important;
+    -fx-font-weight: bold;
+}
+
+.table-view .table-cell.chrono-present .text,
+.table-row-cell:hover .table-cell.chrono-present .text,
+.table-row-cell:filled:selected .table-cell.chrono-present .text,
+.table-row-cell:filled:selected:hover .table-cell.chrono-present .text {
+    -fx-fill: #15803d !important;
 }
 /* ------------------------------------------------------------------ */
 
@@ -766,4 +874,88 @@
     -fx-max-width: 0px;
     -fx-opacity: 0;
     -fx-padding: 0;
+}
+
+/* --- Browse Button (Matches Slate Neutral Palette) --- */
+.browse-button {
+    -fx-background-color: #e2e8f0;
+    -fx-text-fill: #1e293b;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-border-color: #cbd5e1;
+    -fx-border-width: 1px;
+    -fx-cursor: hand;
+}
+
+.browse-button:hover {
+    -fx-background-color: #cbd5e1;
+    -fx-border-color: #94a3b8;
+}
+
+.browse-button:pressed {
+    -fx-background-color: #94a3b8;
+    -fx-text-fill: #0f172a;
+}
+
+/* --- Import Data Button (Matches Emerald / Teal Action Palette) --- */
+.import-button {
+    -fx-background-color: #0f766e;
+    -fx-text-fill: #ffffff;
+    -fx-font-weight: bold;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-cursor: hand;
+}
+
+.import-button:hover {
+    -fx-background-color: #115e59;
+}
+
+.import-button:pressed {
+    -fx-background-color: #134e4a;
+}
+
+/* =========================================================================
+   STUDENT & TEACHER DETAIL VIEW (Clean Navy & Slate Typography, No Underlines)
+   ========================================================================= */
+.detail-section-pill {
+    -fx-background-color: #1e3a8a;
+    -fx-text-fill: #ffffff !important;
+    -fx-font-family: "Segoe UI", system-ui, sans-serif;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+    -fx-padding: 7px 22px;
+    -fx-background-radius: 20px;
+}
+
+.detail-section-pill-sm {
+    -fx-background-color: #1e3a8a;
+    -fx-text-fill: #ffffff !important;
+    -fx-font-family: "Segoe UI", system-ui, sans-serif;
+    -fx-font-weight: bold;
+    -fx-font-size: 12.5px;
+    -fx-padding: 6px 18px;
+    -fx-background-radius: 18px;
+}
+
+.detail-field-label {
+    -fx-text-fill: #1e3a8a !important;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+}
+
+.detail-colon {
+    -fx-text-fill: #64748b !important;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-weight: bold;
+    -fx-font-size: 13px;
+}
+
+.detail-field-value {
+    -fx-text-fill: #0f172a !important;
+    -fx-font-family: "Segoe UI", "Arial", sans-serif;
+    -fx-font-weight: normal;
+    -fx-font-size: 13.5px;
 }

@@ -47,7 +47,9 @@ public class StudentDetailController {
                 Label bannerLabel = new Label(bannerText);
                 bannerLabel.setStyle("-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 15px;");
                 bannerBox.getChildren().add(bannerLabel);
-                contentContainer.getChildren().add(0, bannerBox);
+
+                int insertIndex = contentContainer.getChildren().isEmpty() ? 0 : 1;
+                contentContainer.getChildren().add(insertIndex, bannerBox);
             }
 
             if (lblRollNo != null) lblRollNo.setText(safe(student.getRollNo()));
@@ -80,6 +82,7 @@ public class StudentDetailController {
             if (lblAdditionalInfo != null) lblAdditionalInfo.setText(safe(student.getAdditionalInfo()));
 
             loadPhoto(student.getPhotoPath());
+            
         }
     }
 
@@ -90,13 +93,19 @@ public class StudentDetailController {
                 Image img = (path.startsWith("file:") || path.startsWith("http:"))
                         ? new Image(path, 86, 110, false, true)
                         : new Image(getClass().getResourceAsStream(path));
-                if (img != null) {
-                	passportImageView.setImage(img);
-                	passportImageView.setFitWidth(86.0);
-                	passportImageView.setFitHeight(111.0);
-                	passportImageView.setPreserveRatio(false);
+                if (img != null && !img.isError()) {
+                    passportImageView.setImage(img);
+                    passportImageView.setFitWidth(86.0);
+                    passportImageView.setFitHeight(111.0);
+                    passportImageView.setPreserveRatio(false);
+                } else {
+                    passportImageView.setImage(null);
                 }
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                passportImageView.setImage(null);
+            }
+        } else {
+            passportImageView.setImage(null);
         }
     }
 

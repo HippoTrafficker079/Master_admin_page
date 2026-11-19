@@ -727,14 +727,17 @@ public class DashboardController {
         String[] categories;
         String[] popupTitles;
         double[] rawValues;
+        int[] presentCounts;
+        int[] totalCounts;
         String xAxisTitle;
         String dateRangeText;
 
         if ("Daily".equals(currentAttendancePeriod)) {
             categories = new String[] { "P-1", "P-2", "P-3", "P-4", "P-5", "P-6", "P-7", "P-8", "P-9" };
 
-            // 1. Default unscheduled periods (P-4..P-9) to 0.0 instead of 100.0
             rawValues = new double[9];
+            presentCounts = new int[9];
+            totalCounts = new int[9];
             Arrays.fill(rawValues, 0.0);
 
             DashboardDAO dashboardDAO = new DashboardDAO();
@@ -744,6 +747,8 @@ public class DashboardController {
                 int index = record.getPeriod() - 1;
                 if (index >= 0 && index < rawValues.length) {
                     rawValues[index] = record.getAttendancePercentage();
+                    presentCounts[index] = record.getPresentCount();
+                    totalCounts[index] = record.getTotalCount();
                 }
             }
 
@@ -756,13 +761,12 @@ public class DashboardController {
             }
         } else if ("Monthly".equals(currentAttendancePeriod)) {
             DashboardDAO dashboardDAO = new DashboardDAO();
-            // 2. DashboardDAO.getMonthlyAttendanceTrend expects "ALL" for all majors
             String monthlyDeptParam = "All Majors".equals(selectedMajor) ? "ALL" : selectedMajor;
             List<AttendanceTrendRecord> monthlyRecords = dashboardDAO.getMonthlyAttendanceTrend(monthlyDeptParam);
 
-            Map<Integer, Double> weekMap = new HashMap<>();
+            Map<Integer, AttendanceTrendRecord> weekMap = new HashMap<>();
             for (AttendanceTrendRecord record : monthlyRecords) {
-                weekMap.put(record.getWeekNumber(), record.getAttendancePercentage());
+                weekMap.put(record.getWeekNumber(), record);
             }
 
             LocalDate today = LocalDate.now();
@@ -770,6 +774,8 @@ public class DashboardController {
 
             List<String> validCategories = new ArrayList<>();
             List<Double> validValues = new ArrayList<>();
+            List<Integer> validPresents = new ArrayList<>();
+            List<Integer> validTotals = new ArrayList<>();
             List<String> validPopupTitles = new ArrayList<>();
 
             String monthStr = today.format(DateTimeFormatter.ofPattern("MMMM yyyy"));
@@ -779,13 +785,18 @@ public class DashboardController {
                     break;
                 }
 
+                AttendanceTrendRecord rec = weekMap.get(weekNum);
                 validCategories.add("Week " + weekNum);
-                validValues.add(weekMap.getOrDefault(weekNum, 0.0));
+                validValues.add(rec != null ? rec.getAttendancePercentage() : 0.0);
+                validPresents.add(rec != null ? rec.getPresentCount() : 0);
+                validTotals.add(rec != null ? rec.getTotalCount() : 0);
                 validPopupTitles.add("Week " + weekNum + " • " + monthStr);
             }
 
             categories = validCategories.toArray(new String[0]);
             rawValues = validValues.stream().mapToDouble(Double::doubleValue).toArray();
+            presentCounts = validPresents.stream().mapToInt(Integer::intValue).toArray();
+            totalCounts = validTotals.stream().mapToInt(Integer::intValue).toArray();
             popupTitles = validPopupTitles.toArray(new String[0]);
 
             xAxisTitle = "Weeks of Month";
@@ -800,13 +811,15 @@ public class DashboardController {
             List<AttendanceTrendRecord> weeklyRecords = dashboardDAO.getWeeklyAttendance(monday, saturday,
                     selectedMajor);
 
-            Map<LocalDate, Double> attendanceMap = new HashMap<>();
+            Map<LocalDate, AttendanceTrendRecord> attendanceMap = new HashMap<>();
             for (AttendanceTrendRecord record : weeklyRecords) {
-                attendanceMap.put(record.getSessionDate(), record.getAttendancePercentage());
+                attendanceMap.put(record.getSessionDate(), record);
             }
 
             List<String> validCategories = new ArrayList<>();
             List<Double> validValues = new ArrayList<>();
+            List<Integer> validPresents = new ArrayList<>();
+            List<Integer> validTotals = new ArrayList<>();
             List<String> validPopupTitles = new ArrayList<>();
 
             // Loop through the 6 days (Mon through Sat)
@@ -818,22 +831,25 @@ public class DashboardController {
                 }
 
                 String dayName = currentDay.format(DateTimeFormatter.ofPattern("EEE"));
+                AttendanceTrendRecord rec = attendanceMap.get(currentDay);
+
                 validCategories.add(dayName);
-
-                validValues.add(attendanceMap.getOrDefault(currentDay, 0.0));
-
+                validValues.add(rec != null ? rec.getAttendancePercentage() : 0.0);
+                validPresents.add(rec != null ? rec.getPresentCount() : 0);
+                validTotals.add(rec != null ? rec.getTotalCount() : 0);
                 validPopupTitles.add(currentDay.format(DateTimeFormatter.ofPattern("EEEE, MMM d")));
             }
 
             categories = validCategories.toArray(new String[0]);
             rawValues = validValues.stream().mapToDouble(Double::doubleValue).toArray();
+            presentCounts = validPresents.stream().mapToInt(Integer::intValue).toArray();
+            totalCounts = validTotals.stream().mapToInt(Integer::intValue).toArray();
             popupTitles = validPopupTitles.toArray(new String[0]);
 
             dateRangeText = "📅  " + monday.format(DateTimeFormatter.ofPattern("EEE d")) + " – "
                     + saturday.format(DateTimeFormatter.ofPattern("EEE d MMM"));
         }
 
-        // 3. Use exact rounded DB percentages without artificial 80.5–99.5 clamping
         double[] targetValues = new double[categories.length];
         double sum = 0.0;
         int activeCount = 0;
@@ -852,7 +868,6 @@ public class DashboardController {
             lblAttendanceDateRange.setText(dateRangeText);
         }
 
-        // 4. Average only across periods/days that actually had classes
         if (lblWeeklyAttendanceAvg != null) {
             double avg = activeCount > 0 ? (sum / activeCount) : 0.0;
             lblWeeklyAttendanceAvg.setText(String.format("%s Avg: %.1f%%", currentAttendancePeriod, avg));
@@ -878,6 +893,9 @@ public class DashboardController {
         if (sameStructure) {
             // Major filter changed: morph smoothly from current Y values to target Y values
             series = attendanceAreaChart.getData().get(0);
+            for (int i = 0; i < series.getData().size(); i++) {
+                series.getData().get(i).setExtraValue(new int[] { presentCounts[i], totalCounts[i] });
+            }
         } else {
             // Timeframe changed (Daily / Weekly / Monthly): rebuild categories & rise from baseline
             lastRenderedPeriod = currentAttendancePeriod;
@@ -890,8 +908,10 @@ public class DashboardController {
             attendanceAreaChart.getData().clear();
             series = new XYChart.Series<>();
             series.setName("Attendance");
-            for (String cat : categories) {
-                series.getData().add(new XYChart.Data<>(cat, baseLowerBound));
+            for (int i = 0; i < categories.length; i++) {
+                XYChart.Data<String, Number> point = new XYChart.Data<>(categories[i], baseLowerBound);
+                point.setExtraValue(new int[] { presentCounts[i], totalCounts[i] });
+                series.getData().add(point);
             }
             attendanceAreaChart.getData().add(series);
             attendanceAreaChart.setLegendVisible(false);
@@ -1002,10 +1022,18 @@ public class DashboardController {
             // Hover tooltip reads live YValue so it always displays the exact current value
             dotNode.setOnMouseEntered(event -> {
                 double livePct = data.getYValue().doubleValue();
-                int livePresent = (int) Math.round((livePct / 100.0) * cachedTotalStudents);
+                int livePresent = 0;
+                int liveTotal = 0;
+                if (data.getExtraValue() instanceof int[] counts) {
+                    livePresent = counts[0];
+                    liveTotal = counts[1];
+                }
 
-                dotNode.setStyle(
-                        "-fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(37, 99, 235, 0.65), 12, 0.5, 0, 0);");
+                String presentText = (liveTotal > 0)
+                        ? livePresent + " / " + liveTotal + " Stud. Present"
+                        : livePresent + " Stud. Present";
+
+                dotNode.setStyle("-fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(37, 99, 235, 0.65), 12, 0.5, 0, 0);");
 
                 activePopup.getChildren().clear();
                 activePopup.setAlignment(Pos.CENTER);
@@ -1014,8 +1042,7 @@ public class DashboardController {
                 arrow.setFill(Color.web("#0f172a"));
 
                 VBox card = new VBox(5.0);
-                card.setStyle(
-                        "-fx-background-color: #0f172a; -fx-background-radius: 8; -fx-padding: 10 14; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.35), 10, 0, 0, 4);");
+                card.setStyle("-fx-background-color: #0f172a; -fx-background-radius: 8; -fx-padding: 10 14; -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.35), 10, 0, 0, 4);");
 
                 Label lblTitle = new Label(headerTitle);
                 lblTitle.setStyle("-fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px;");
@@ -1025,7 +1052,7 @@ public class DashboardController {
                 row1.setAlignment(Pos.CENTER_LEFT);
 
                 HBox row2 = new HBox(7.0, new Circle(3.5, Color.web("#60a5fa")),
-                        styledBrightLabel(livePresent + " Stud. Present"));
+                        styledBrightLabel(presentText));
                 row2.setAlignment(Pos.CENTER_LEFT);
 
                 card.getChildren().addAll(lblTitle, row1, row2);

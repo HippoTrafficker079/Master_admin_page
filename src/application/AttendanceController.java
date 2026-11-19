@@ -304,16 +304,23 @@ public class AttendanceController {
         colMarkedByLog.setCellValueFactory(cell -> cell.getValue().markedByProperty());
         colRemarksLog.setCellValueFactory(cell -> cell.getValue().remarksProperty());
 
+     // Individual Table 1: Department Subject Breakdown columns
         colNoIndiv.setCellValueFactory(cell -> cell.getValue().noProperty().asObject());
         colSubjIndiv.setCellValueFactory(cell -> cell.getValue().subjectProperty());
         if (colCourseCodeIndiv != null) {
             colCourseCodeIndiv.setCellValueFactory(cell -> cell.getValue().courseCodeProperty());
         }
         colAttendedIndiv.setCellValueFactory(cell -> cell.getValue().attendedTotalProperty());
+        colAttendedIndiv.setStyle("-fx-alignment: CENTER;");
+
         colPercentageIndiv.setCellValueFactory(cell -> cell.getValue().percentageProperty().asString("%.1f%%"));
+        colPercentageIndiv.setStyle("-fx-alignment: CENTER;");
+
         colRemarksIndiv.setCellValueFactory(cell -> cell.getValue().remarksProperty());
+        colRemarksIndiv.setStyle("-fx-alignment: CENTER;");
         setupStandingBadgeCellFactory(colRemarksIndiv);
 
+        
         if (chronologicalLogTable != null) {
             colNoChrono.setCellValueFactory(cell -> cell.getValue().noProperty().asObject());
             colDateChrono.setCellValueFactory(cell -> {
@@ -495,7 +502,44 @@ public class AttendanceController {
         dailyLogTable.setEditable(true);
 
         colStatusLog.setCellValueFactory(cell -> cell.getValue().statusProperty());
-        colStatusLog.setEditable(false);
+        colStatusLog.setCellFactory(tc -> new TableCell<AttendanceRecord, String>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                getStyleClass().removeAll("chrono-present", "chrono-absent", "chrono-excused");
+                setGraphic(null);
+
+                if (empty || item == null || item.trim().isEmpty()) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    String trimmed = item.trim();
+                    setAlignment(Pos.CENTER_LEFT);
+
+                    if (trimmed.equalsIgnoreCase("Present")) {
+                        setText("✔  Present");
+                        getStyleClass().add("chrono-present");
+                        setTextFill(javafx.scene.paint.Color.web("#15803d"));
+                        setStyle("-fx-text-fill: #15803d; -fx-font-weight: bold;");
+                    } else if (trimmed.equalsIgnoreCase("Absent") || trimmed.equalsIgnoreCase("UNEXCUSED")) {
+                        setText("✖  Absent");
+                        getStyleClass().add("chrono-absent");
+                        setTextFill(javafx.scene.paint.Color.web("#b91c1c"));
+                        setStyle("-fx-text-fill: #b91c1c; -fx-font-weight: bold;");
+                    } else if (trimmed.equalsIgnoreCase("Excused") || trimmed.equalsIgnoreCase("Excuse") || trimmed.equalsIgnoreCase("EXCUSED")) {
+                        setText("●  Excused");
+                        getStyleClass().add("chrono-excused");
+                        setTextFill(javafx.scene.paint.Color.web("#92400e"));
+                        setStyle("-fx-text-fill: #92400e; -fx-font-weight: bold;");
+                    } else {
+                        setText("●  " + trimmed);
+                        getStyleClass().add("chrono-excused");
+                        setTextFill(javafx.scene.paint.Color.web("#92400e"));
+                        setStyle("-fx-text-fill: #92400e; -fx-font-weight: bold;");
+                    }
+                }
+            }
+        });
         colRemarksLog.setCellFactory(tc -> new TextFieldTableCell<AttendanceRecord, String>(new DefaultStringConverter()) {
             private boolean listenerAttached = false;
 
@@ -616,6 +660,28 @@ public class AttendanceController {
             });
             return row;
         });
+        
+        if (chronologicalLogTable != null) {
+            chronologicalLogTable.setRowFactory(tv -> new TableRow<AttendanceRecord>() {
+                @Override
+                protected void updateItem(AttendanceRecord item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setStyle("");
+                    getStyleClass().removeAll("row-present", "row-absent", "row-excused");
+
+                    if (item != null && !empty && item.getStatus() != null) {
+                        String status = item.getStatus().trim();
+                        if (status.equalsIgnoreCase("Present")) {
+                            getStyleClass().add("row-present");
+                        } else if (status.equalsIgnoreCase("Absent") || status.equalsIgnoreCase("UNEXCUSED")) {
+                            getStyleClass().add("row-absent");
+                        } else if (status.equalsIgnoreCase("Excused") || status.equalsIgnoreCase("Excuse") || status.equalsIgnoreCase("EXCUSED")) {
+                            getStyleClass().add("row-excused");
+                        }
+                    }
+                }
+            });
+        }
     }
 
     private boolean isInsideRemarksColumn(Node node) {
@@ -639,7 +705,8 @@ public class AttendanceController {
                     setText(null);
                 } else {
                     Label badge = new Label(item);
-                    if (item.equalsIgnoreCase("Excellence") || item.equalsIgnoreCase("Excellent") || item.equalsIgnoreCase("Good") || item.equalsIgnoreCase("Good Standing")) {
+                    if (item.equalsIgnoreCase("Excellence") || item.equalsIgnoreCase("Excellent")
+                            || item.equalsIgnoreCase("Good") || item.equalsIgnoreCase("Good Standing")) {
                         badge.setStyle("-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-padding: 2 12; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;");
                     } else {
                         badge.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #b91c1c; -fx-padding: 2 12; -fx-background-radius: 10; -fx-font-weight: bold; -fx-font-size: 11px;");
@@ -651,33 +718,43 @@ public class AttendanceController {
             }
         });
     }
-
+    
     private void setupChronoStatusCellFactory(TableColumn<AttendanceRecord, String> column) {
         column.setCellFactory(col -> new TableCell<AttendanceRecord, String>() {
             @Override
             protected void updateItem(String item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null || item.isEmpty()) {
-                    setGraphic(null);
+                getStyleClass().removeAll("chrono-present", "chrono-absent", "chrono-excused");
+                setGraphic(null);
+
+                if (empty || item == null || item.trim().isEmpty()) {
                     setText(null);
+                    setStyle("");
                 } else {
-                    Label statusLbl = new Label();
-                    if (item.equalsIgnoreCase("Present")) {
-                        statusLbl.setText("✔  Present");
-                        statusLbl.setStyle("-fx-text-fill: #15803d; -fx-font-weight: bold;");
-                    } else if (item.equalsIgnoreCase("Absent")) {
-                        statusLbl.setText("✖  Absent");
-                        statusLbl.setStyle("-fx-text-fill: #b91c1c; -fx-font-weight: bold;");
-                    } else if (item.equalsIgnoreCase("Excused") || item.equalsIgnoreCase("Excuse")) {
-                        statusLbl.setText("●  Excused");
-                        statusLbl.setStyle("-fx-text-fill: #d97706; -fx-font-weight: bold;");
-                    } else {
-                        statusLbl.setText("●  " + item);
-                        statusLbl.setStyle("-fx-text-fill: #d97706; -fx-font-weight: bold;");
-                    }
+                    String trimmed = item.trim();
                     setAlignment(Pos.CENTER_LEFT);
-                    setGraphic(statusLbl);
-                    setText(null);
+
+                    if (trimmed.equalsIgnoreCase("Present")) {
+                        setText("✔  Present");
+                        getStyleClass().add("chrono-present");
+                        setTextFill(javafx.scene.paint.Color.web("#15803d"));
+                        setStyle("-fx-text-fill: #15803d; -fx-font-weight: bold;");
+                    } else if (trimmed.equalsIgnoreCase("Absent") || trimmed.equalsIgnoreCase("UNEXCUSED")) {
+                        setText("✖  Absent");
+                        getStyleClass().add("chrono-absent");
+                        setTextFill(javafx.scene.paint.Color.web("#b91c1c"));
+                        setStyle("-fx-text-fill: #b91c1c; -fx-font-weight: bold;");
+                    } else if (trimmed.equalsIgnoreCase("Excused") || trimmed.equalsIgnoreCase("Excuse") || trimmed.equalsIgnoreCase("EXCUSED")) {
+                        setText("●  Excused");
+                        getStyleClass().add("chrono-excused");
+                        setTextFill(javafx.scene.paint.Color.web("#92400e"));
+                        setStyle("-fx-text-fill: #92400e; -fx-font-weight: bold;");
+                    } else {
+                        setText("●  " + trimmed);
+                        getStyleClass().add("chrono-excused");
+                        setTextFill(javafx.scene.paint.Color.web("#92400e"));
+                        setStyle("-fx-text-fill: #92400e; -fx-font-weight: bold;");
+                    }
                 }
             }
         });
@@ -711,7 +788,7 @@ public class AttendanceController {
             }
         };
     }
-
+    
 
     // =========================================================================
     // 5. VIEW SWITCHING & NAVIGATION
@@ -1402,16 +1479,14 @@ public class AttendanceController {
 
     @FXML
     private void handleToggleStatus() {
-        AttendanceRecord selected = dailyLogTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("No Row Selected");
-            alert.setHeaderText(null);
-            alert.setContentText("Please select a student row in the Daily Log table first.");
-            alert.getDialogPane().setMinWidth(400);
-            alert.showAndWait();
-            return;
-        }
+    	AttendanceRecord selected = dailyLogTable.getSelectionModel().getSelectedItem();
+    	if (selected == null) {
+    	    javafx.stage.Window owner = (dailyLogTable != null && dailyLogTable.getScene() != null)
+    	            ? dailyLogTable.getScene().getWindow() : null;
+    	    AlertHelper.showWarning(owner, "No Row Selected",
+    	            "Please select a student row in the Daily Log first before toggling status.");
+    	    return;
+    	}
 
         String currentStatus = selected.getStatus() != null ? selected.getStatus().trim() : "Present";
         String nextStatus;
@@ -1471,12 +1546,12 @@ public class AttendanceController {
         }
         modifiedDailyRecords.clear();
 
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Success");
-        alert.setHeaderText("Database Updated");
-        alert.setContentText("Attendance status modifications have been successfully saved.");
-        alert.getDialogPane().setMinWidth(380);
-        alert.showAndWait();
+        javafx.stage.Window owner = (dailyLogTable != null && dailyLogTable.getScene() != null)
+                ? dailyLogTable.getScene().getWindow() : null;
+        AlertHelper.showInfo(owner, "Success", "Database Updated",
+                "Attendance status modifications have been successfully saved.");
+
+        DashboardController.refreshDashboard();
     }
 
     @FXML

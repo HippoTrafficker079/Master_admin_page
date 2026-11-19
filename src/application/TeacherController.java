@@ -29,6 +29,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 public class TeacherController {
 
@@ -242,7 +243,8 @@ public class TeacherController {
 
             confirmAlert.getDialogPane().setMinWidth(450);
             confirmAlert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-
+            
+            AlertHelper.styleAlert(confirmAlert, true);
             Optional<ButtonType> result = confirmAlert.showAndWait();
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 TeacherDAO teacherDAO = new TeacherDAO();
@@ -323,15 +325,8 @@ public class TeacherController {
     }
 
     private void showAlert(String title, String message, Alert.AlertType type) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.getDialogPane().setMinWidth(520);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-        if (teacherTable != null && teacherTable.getScene() != null) {
-            alert.initOwner(teacherTable.getScene().getWindow());
-        }
-        alert.showAndWait();
+        Window owner = (teacherTable != null && teacherTable.getScene() != null)
+                ? teacherTable.getScene().getWindow() : null;
+        AlertHelper.show(owner, type, title, null, message);
     }
 }
