@@ -10,7 +10,7 @@ public class Main extends Application {
 
 	@Override
 	public void start(Stage primaryStage) {
-		try {
+		try { 
 			String css = this.getClass().getResource("style.css").toExternalForm();
 			Parent root = FXMLLoader.load(getClass().getResource("MainLayout.fxml"));
 

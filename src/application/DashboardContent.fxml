@@ -165,7 +165,7 @@
                               <ComboBox fx:id="comboEnrollmentFilter" prefWidth="130.0" style="-fx-background-color: #f8fafc; -fx-border-color: #cbd5e1; -fx-border-radius: 4; -fx-padding: 2;" value="Last 6 Years" />
                            </children>
                         </HBox>
-                        <BarChart fx:id="enrollmentBarChart" legendVisible="false" prefHeight="240.0">
+                        <BarChart fx:id="enrollmentBarChart" animated="false" legendVisible="false" prefHeight="240.0">
                           <xAxis>
                             <CategoryAxis fx:id="xAxisEnrollment" side="BOTTOM" />
                           </xAxis>

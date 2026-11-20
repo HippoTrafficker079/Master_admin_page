@@ -138,7 +138,8 @@ public class DashboardController {
     private Timeline activeAttendanceAnim;
     private String lastRenderedPeriod = "";
     private String currentAttendancePeriod = "Weekly";
-
+    private Timeline activeEnrollmentAnim;
+    
     // =========================================================================
     // 3. INITIALIZATION & REAL-TIME LISTENERS
     // =========================================================================
@@ -344,198 +345,253 @@ public class DashboardController {
     // =========================================================================
     // 5. STUDENT ENROLLMENT TREND BAR CHART
     // =========================================================================
-// If u want 1200 students, Open the comment of the code below and
-    
-//    private void updateEnrollmentTrend(ObservableList<Student> students) {
-//        if (enrollmentBarChart == null)
-//            return;
+ // If u want 1200 students, Open the comment of the code below and
+//  private void updateEnrollmentTrend(ObservableList<Student> students) {
+//  if (enrollmentBarChart == null)
+//      return;
 //
-//        String filter = comboEnrollmentFilter != null && comboEnrollmentFilter.getValue() != null
-//                ? comboEnrollmentFilter.getValue()
-//                : "Last 6 Years";
+//  enrollmentBarChart.setAnimated(false);
+//  if (activeEnrollmentAnim != null) {
+//      activeEnrollmentAnim.stop();
+//  }
 //
-//        int currentYear = LocalDate.now().getYear(); // 2026
-//        int numYears = 6;
-//        if (filter.equals("Last 2 Years")) {
-//            numYears = 2;
-//        } else if (filter.equals("Last 4 Years")) {
-//            numYears = 4;
-//        } else {
-//            numYears = 6;
-//        }
+//  String filter = comboEnrollmentFilter != null && comboEnrollmentFilter.getValue() != null
+//          ? comboEnrollmentFilter.getValue()
+//          : "Last 6 Years";
 //
-//        String[] years = new String[numYears];
-//        int startYear = currentYear - numYears + 1;
-//        for (int i = 0; i < numYears; i++) {
-//            years[i] = String.valueOf(startYear + i);
-//        }
+//  int currentYear = LocalDate.now().getYear(); // 2026
+//  int numYears = 6;
+//  if (filter.equals("Last 2 Years")) {
+//      numYears = 2;
+//  } else if (filter.equals("Last 4 Years")) {
+//      numYears = 4;
+//  } else {
+//      numYears = 6;
+//  }
 //
-//        ObservableList<String> categoryList = FXCollections.observableArrayList(years);
-//        if (xAxisEnrollment != null) {
-//            xAxisEnrollment.getCategories().clear();
-//            xAxisEnrollment.setCategories(categoryList);
-//        }
+//  String[] years = new String[numYears];
+//  int startYear = currentYear - numYears + 1;
+//  for (int i = 0; i < numYears; i++) {
+//      years[i] = String.valueOf(startYear + i);
+//  }
 //
-//        enrollmentBarChart.getData().clear();
-//        enrollmentBarChart.setLegendVisible(false);
+//  ObservableList<String> categoryList = FXCollections.observableArrayList(years);
+//  if (xAxisEnrollment != null) {
+//      xAxisEnrollment.getCategories().clear();
+//      xAxisEnrollment.setCategories(categoryList);
+//  }
 //
-//        XYChart.Series<String, Number> s1 = new XYChart.Series<>();
-//        s1.setName("First Year");
-//        XYChart.Series<String, Number> s2 = new XYChart.Series<>();
-//        s2.setName("Second Year");
-//        XYChart.Series<String, Number> s3 = new XYChart.Series<>();
-//        s3.setName("Third Year");
-//        XYChart.Series<String, Number> s4 = new XYChart.Series<>();
-//        s4.setName("Fourth Year");
-//        XYChart.Series<String, Number> s5 = new XYChart.Series<>();
-//        s5.setName("Fifth Year");
+//  enrollmentBarChart.getData().clear();
+//  enrollmentBarChart.setLegendVisible(false);
 //
-//        DashboardDAO dashboardDAO = new DashboardDAO();
-//        List<EnrollmentTrendRecord> dbRecords = dashboardDAO.getHistoricalTrend(numYears);
+//  XYChart.Series<String, Number> s1 = new XYChart.Series<>();
+//  s1.setName("First Year");
+//  XYChart.Series<String, Number> s2 = new XYChart.Series<>();
+//  s2.setName("Second Year");
+//  XYChart.Series<String, Number> s3 = new XYChart.Series<>();
+//  s3.setName("Third Year");
+//  XYChart.Series<String, Number> s4 = new XYChart.Series<>();
+//  s4.setName("Fourth Year");
+//  XYChart.Series<String, Number> s5 = new XYChart.Series<>();
+//  s5.setName("Fifth Year");
 //
-//        s1.getData().clear();
-//        s2.getData().clear();
-//        s3.getData().clear();
-//        s4.getData().clear();
-//        s5.getData().clear();
+//  DashboardDAO dashboardDAO = new DashboardDAO();
+//  List<EnrollmentTrendRecord> dbRecords = dashboardDAO.getHistoricalTrend(numYears);
 //
-//        for (EnrollmentTrendRecord record : dbRecords) {
-//            String yr = String.valueOf(record.getAcademicSchoolYear());
-//            int count = record.getStudentCount();
+//  s1.getData().clear();
+//  s2.getData().clear();
+//  s3.getData().clear();
+//  s4.getData().clear();
+//  s5.getData().clear();
 //
-//            switch (record.getHistoricalYearLevel()) {
-//                case 1 -> s1.getData().add(new XYChart.Data<>(yr, count));
-//                case 2 -> s2.getData().add(new XYChart.Data<>(yr, count));
-//                case 3 -> s3.getData().add(new XYChart.Data<>(yr, count));
-//                case 4 -> s4.getData().add(new XYChart.Data<>(yr, count));
-//                case 5 -> s5.getData().add(new XYChart.Data<>(yr, count));
-//            }
-//        }
-//        if (enrollmentBarChart.getData().isEmpty()) {
-//            enrollmentBarChart.getData().addAll(s1, s2, s3, s4, s5);
-//        }
+//  for (EnrollmentTrendRecord record : dbRecords) {
+//      String yr = String.valueOf(record.getAcademicSchoolYear());
+//      int count = record.getStudentCount();
 //
-//        // Lock consistent colors to each series name regardless of filter/index shifts
-//        enrollmentBarChart.applyCss();
-//        for (int i = 0; i < enrollmentBarChart.getData().size(); i++) {
-//            XYChart.Series<String, Number> series = enrollmentBarChart.getData().get(i);
-//            String colorStyle = switch (i) {
-//                case 0 -> "-fx-bar-fill: #2563eb;"; // First Year (Royal Blue)
-//                case 1 -> "-fx-bar-fill: #16a34a;"; // Second Year (Green)
-//                case 2 -> "-fx-bar-fill: #ca8a04;"; // Third Year (Amber / Gold)
-//                case 3 -> "-fx-bar-fill: #dc2626;"; // Fourth Year (Red)
-//                case 4 -> "-fx-bar-fill: #9333ea;"; // Fifth Year (Purple)
-//                default -> "-fx-bar-fill: #cbd5e1;";
-//            };
+//      switch (record.getHistoricalYearLevel()) {
+//          case 1 -> s1.getData().add(new XYChart.Data<>(yr, count));
+//          case 2 -> s2.getData().add(new XYChart.Data<>(yr, count));
+//          case 3 -> s3.getData().add(new XYChart.Data<>(yr, count));
+//          case 4 -> s4.getData().add(new XYChart.Data<>(yr, count));
+//          case 5 -> s5.getData().add(new XYChart.Data<>(yr, count));
+//      }
+//  }
+//  if (enrollmentBarChart.getData().isEmpty()) {
+//      enrollmentBarChart.getData().addAll(s1, s2, s3, s4, s5);
+//  }
 //
-//            for (XYChart.Data<String, Number> data : series.getData()) {
-//                Node bar = data.getNode();
-//                if (bar != null) {
-//                    bar.setStyle(colorStyle);
-//                }
-//            }
-//        }
+//  // Lock consistent colors to each series name regardless of filter/index shifts
+//  enrollmentBarChart.applyCss();
+//  for (int i = 0; i < enrollmentBarChart.getData().size(); i++) {
+//      XYChart.Series<String, Number> series = enrollmentBarChart.getData().get(i);
+//      String colorStyle = switch (i) {
+//          case 0 -> "-fx-bar-fill: #2563eb;"; // First Year (Royal Blue)
+//          case 1 -> "-fx-bar-fill: #16a34a;"; // Second Year (Green)
+//          case 2 -> "-fx-bar-fill: #ca8a04;"; // Third Year (Amber / Gold)
+//          case 3 -> "-fx-bar-fill: #dc2626;"; // Fourth Year (Red)
+//          case 4 -> "-fx-bar-fill: #9333ea;"; // Fifth Year (Purple)
+//          default -> "-fx-bar-fill: #cbd5e1;";
+//      };
 //
-//        Platform.runLater(() -> {
-//            if (xAxisEnrollment != null) {
-//                xAxisEnrollment.requestAxisLayout();
-//            }
-//            enrollmentBarChart.applyCss();
-//            enrollmentBarChart.requestLayout();
-//        });
-//    }
-    private void updateEnrollmentTrend(ObservableList<Student> students) {
-        if (enrollmentBarChart == null) return;
+//      for (XYChart.Data<String, Number> data : series.getData()) {
+//          Node bar = data.getNode();
+//          if (bar != null) {
+//              bar.setStyle(colorStyle);
+//          }
+//      }
+//  }
+//
+//  Platform.runLater(() -> {
+//      if (xAxisEnrollment != null) {
+//          xAxisEnrollment.requestAxisLayout();
+//      }
+//      enrollmentBarChart.applyCss();
+//      enrollmentBarChart.requestLayout();
+//      playEnrollmentBarsRiseAnimation();
+//  });
+//}
 
-        String filter = comboEnrollmentFilter != null && comboEnrollmentFilter.getValue() != null
-                ? comboEnrollmentFilter.getValue()
-                : "Last 6 Years";
+  private void updateEnrollmentTrend(ObservableList<Student> students) {
+      if (enrollmentBarChart == null)
+          return;
 
-        int numYears = 6;
-        if (filter.equals("Last 2 Years")) numYears = 2;
-        else if (filter.equals("Last 4 Years")) numYears = 4;
+      enrollmentBarChart.setAnimated(false);
+      if (activeEnrollmentAnim != null) {
+          activeEnrollmentAnim.stop();
+      }
 
-        // Match DashboardDAO: November (month >= 11) starts the next academic year (2027)
-        LocalDate now = LocalDate.now();
-        int currAcadYear = (now.getMonthValue() >= 11) ? now.getYear() + 1 : now.getYear();
-        int startYear = currAcadYear - numYears + 1;
+      String filter = comboEnrollmentFilter != null && comboEnrollmentFilter.getValue() != null
+              ? comboEnrollmentFilter.getValue()
+              : "Last 6 Years";
 
-        List<String> years = new ArrayList<>();
-        for (int i = 0; i < numYears; i++) {
-            years.add(String.valueOf(startYear + i));
-        }
+      int numYears = 6;
+      if (filter.equals("Last 2 Years")) numYears = 2;
+      else if (filter.equals("Last 4 Years")) numYears = 4;
 
-        // Query MySQL via DashboardDAO
-        DashboardDAO dao = new DashboardDAO();
-        List<EnrollmentTrendRecord> dbRecords = dao.getHistoricalTrend(numYears);
+      // Match DashboardDAO: November (month >= 11) starts the next academic year (2027)
+      LocalDate now = LocalDate.now();
+      int currAcadYear = (now.getMonthValue() >= 11) ? now.getYear() + 1 : now.getYear();
+      int startYear = currAcadYear - numYears + 1;
 
-        Map<Integer, Map<Integer, Integer>> yearMap = new HashMap<>();
-        int maxCount = 0;
-        for (EnrollmentTrendRecord rec : dbRecords) {
-            yearMap.computeIfAbsent(rec.getAcademicSchoolYear(), k -> new HashMap<>())
-                   .put(rec.getHistoricalYearLevel(), rec.getStudentCount());
-            maxCount = Math.max(maxCount, rec.getStudentCount());
-        }
+      List<String> years = new ArrayList<>();
+      for (int i = 0; i < numYears; i++) {
+          years.add(String.valueOf(startYear + i));
+      }
 
-        enrollmentBarChart.getData().clear();
-        enrollmentBarChart.setLegendVisible(false);
+      // Query MySQL via DashboardDAO
+      DashboardDAO dao = new DashboardDAO();
+      List<EnrollmentTrendRecord> dbRecords = dao.getHistoricalTrend(numYears);
 
-        if (xAxisEnrollment != null) {
-            xAxisEnrollment.getCategories().clear();
-            xAxisEnrollment.setCategories(FXCollections.observableArrayList(years));
-        }
+      Map<Integer, Map<Integer, Integer>> yearMap = new HashMap<>();
+      int maxCount = 0;
+      for (EnrollmentTrendRecord rec : dbRecords) {
+          yearMap.computeIfAbsent(rec.getAcademicSchoolYear(), k -> new HashMap<>())
+                 .put(rec.getHistoricalYearLevel(), rec.getStudentCount());
+          maxCount = Math.max(maxCount, rec.getStudentCount());
+      }
 
-        // Rescale Y-axis from 1,200 down to fit actual database counts!
-        if (yAxisEnrollment != null) {
-            yAxisEnrollment.setAutoRanging(false);
-            yAxisEnrollment.setLowerBound(0.0);
-            int upper = Math.max(5, ((maxCount / 5) + 1) * 5);
-            yAxisEnrollment.setUpperBound(upper);
-            yAxisEnrollment.setTickUnit(Math.max(1, upper / 5));
-        }
+      enrollmentBarChart.getData().clear();
+      enrollmentBarChart.setLegendVisible(false);
 
-        XYChart.Series<String, Number> s1 = new XYChart.Series<>(); s1.setName("First Year");
-        XYChart.Series<String, Number> s2 = new XYChart.Series<>(); s2.setName("Second Year");
-        XYChart.Series<String, Number> s3 = new XYChart.Series<>(); s3.setName("Third Year");
-        XYChart.Series<String, Number> s4 = new XYChart.Series<>(); s4.setName("Fourth Year");
-        XYChart.Series<String, Number> s5 = new XYChart.Series<>(); s5.setName("Fifth Year");
+      if (xAxisEnrollment != null) {
+          xAxisEnrollment.getCategories().clear();
+          xAxisEnrollment.setCategories(FXCollections.observableArrayList(years));
+      }
 
-        for (String yrStr : years) {
-            int yr = Integer.parseInt(yrStr);
-            Map<Integer, Integer> counts = yearMap.getOrDefault(yr, Map.of());
-            s1.getData().add(new XYChart.Data<>(yrStr, counts.getOrDefault(1, 0)));
-            s2.getData().add(new XYChart.Data<>(yrStr, counts.getOrDefault(2, 0)));
-            s3.getData().add(new XYChart.Data<>(yrStr, counts.getOrDefault(3, 0)));
-            s4.getData().add(new XYChart.Data<>(yrStr, counts.getOrDefault(4, 0)));
-            s5.getData().add(new XYChart.Data<>(yrStr, counts.getOrDefault(5, 0)));
-        }
+      // Rescale Y-axis from 1,200 down to fit actual database counts!
+      if (yAxisEnrollment != null) {
+          yAxisEnrollment.setAutoRanging(false);
+          yAxisEnrollment.setLowerBound(0.0);
+          int upper = Math.max(5, ((maxCount / 5) + 1) * 5);
+          yAxisEnrollment.setUpperBound(upper);
+          yAxisEnrollment.setTickUnit(Math.max(1, upper / 5));
+      }
 
-        enrollmentBarChart.getData().addAll(s1, s2, s3, s4, s5);
+      XYChart.Series<String, Number> s1 = new XYChart.Series<>(); s1.setName("First Year");
+      XYChart.Series<String, Number> s2 = new XYChart.Series<>(); s2.setName("Second Year");
+      XYChart.Series<String, Number> s3 = new XYChart.Series<>(); s3.setName("Third Year");
+      XYChart.Series<String, Number> s4 = new XYChart.Series<>(); s4.setName("Fourth Year");
+      XYChart.Series<String, Number> s5 = new XYChart.Series<>(); s5.setName("Fifth Year");
 
-        // Apply consistent blue shades to each year bar
-        enrollmentBarChart.applyCss();
-        for (XYChart.Series<String, Number> series : enrollmentBarChart.getData()) {
-            String colorStyle = switch (series.getName()) {
-                case "First Year"  -> "-fx-bar-fill: #1d4ed8;";
-                case "Second Year" -> "-fx-bar-fill: #2563eb;";
-                case "Third Year"  -> "-fx-bar-fill: #3b82f6;";
-                case "Fourth Year" -> "-fx-bar-fill: #60a5fa;";
-                case "Fifth Year"  -> "-fx-bar-fill: #93c5fd;";
-                default -> "";
-            };
-            for (XYChart.Data<String, Number> data : series.getData()) {
-                if (data.getNode() != null && !colorStyle.isEmpty()) {
-                    data.getNode().setStyle(colorStyle);
-                }
-            }
-        }
+      for (String yrStr : years) {
+          int yr = Integer.parseInt(yrStr);
+          Map<Integer, Integer> counts = yearMap.getOrDefault(yr, Map.of());
+          s1.getData().add(new XYChart.Data<>(yrStr, counts.getOrDefault(1, 0)));
+          s2.getData().add(new XYChart.Data<>(yrStr, counts.getOrDefault(2, 0)));
+          s3.getData().add(new XYChart.Data<>(yrStr, counts.getOrDefault(3, 0)));
+          s4.getData().add(new XYChart.Data<>(yrStr, counts.getOrDefault(4, 0)));
+          s5.getData().add(new XYChart.Data<>(yrStr, counts.getOrDefault(5, 0)));
+      }
 
-        Platform.runLater(() -> {
-            if (xAxisEnrollment != null) xAxisEnrollment.requestAxisLayout();
-            enrollmentBarChart.applyCss();
-            enrollmentBarChart.requestLayout();
-        });
-    }
+      enrollmentBarChart.getData().addAll(s1, s2, s3, s4, s5);
+
+      // Apply consistent blue shades to each year bar
+      enrollmentBarChart.applyCss();
+      for (XYChart.Series<String, Number> series : enrollmentBarChart.getData()) {
+          String colorStyle = switch (series.getName()) {
+              case "First Year"  -> "-fx-bar-fill: #1d4ed8;";
+              case "Second Year" -> "-fx-bar-fill: #2563eb;";
+              case "Third Year"  -> "-fx-bar-fill: #3b82f6;";
+              case "Fourth Year" -> "-fx-bar-fill: #60a5fa;";
+              case "Fifth Year"  -> "-fx-bar-fill: #93c5fd;";
+              default -> "";
+          };
+          for (XYChart.Data<String, Number> data : series.getData()) {
+              if (data.getNode() != null && !colorStyle.isEmpty()) {
+                  data.getNode().setStyle(colorStyle);
+              }
+          }
+      }
+
+      Platform.runLater(() -> {
+          if (xAxisEnrollment != null) xAxisEnrollment.requestAxisLayout();
+          enrollmentBarChart.applyCss();
+          enrollmentBarChart.requestLayout();
+          playEnrollmentBarsRiseAnimation();
+      });
+  }
+
+  private void playEnrollmentBarsRiseAnimation() {
+      if (enrollmentBarChart == null) return;
+
+      activeEnrollmentAnim = new Timeline();
+
+      for (int sIdx = 0; sIdx < enrollmentBarChart.getData().size(); sIdx++) {
+          XYChart.Series<String, Number> series = enrollmentBarChart.getData().get(sIdx);
+          for (int dIdx = 0; dIdx < series.getData().size(); dIdx++) {
+              XYChart.Data<String, Number> data = series.getData().get(dIdx);
+              Node bar = data.getNode();
+              if (bar == null) continue;
+
+              double val = data.getYValue() != null ? data.getYValue().doubleValue() : 0.0;
+              if (val <= 0) {
+                  bar.setOpacity(0.0);
+                  continue;
+              }
+
+              double delayMs = (dIdx * 45.0) + (sIdx * 20.0);
+              double endMs = delayMs + 420.0;
+
+              javafx.scene.transform.Scale scale = new javafx.scene.transform.Scale(1.0, 0.0);
+              scale.pivotYProperty().bind(bar.layoutBoundsProperty().map(b -> b.getMaxY()));
+              bar.getTransforms().setAll(scale);
+              bar.setOpacity(0.0);
+
+              activeEnrollmentAnim.getKeyFrames().addAll(
+                  new KeyFrame(Duration.millis(delayMs),
+                      new KeyValue(scale.yProperty(), 0.0),
+                      new KeyValue(bar.opacityProperty(), 0.0)
+                  ),
+                  new KeyFrame(Duration.millis(endMs),
+                      new KeyValue(scale.yProperty(), 1.0, Interpolator.EASE_OUT),
+                      new KeyValue(bar.opacityProperty(), 1.0, Interpolator.EASE_OUT)
+                  )
+              );
+          }
+      }
+
+      activeEnrollmentAnim.play();
+  }
     // =========================================================================
     // 6. STUDENTS BY DEPARTMENT PIE CHART
     // =========================================================================
@@ -668,7 +724,7 @@ public class DashboardController {
     // =========================================================================
     // 7. ATTENDANCE OVERVIEW AREA CHART & INTERACTIVE OVERLAY
     // =========================================================================
-
+    
     @FXML
     private void handleAttDaily() {
         currentAttendancePeriod = "Daily";
