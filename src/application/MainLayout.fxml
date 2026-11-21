@@ -8,6 +8,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.layout.Region?>
 
 <BorderPane fx:id="mainBorderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="1000.0" style="-fx-background-color: #eef2f7;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.MainController">
    
@@ -15,9 +16,9 @@
    <left>
       <VBox alignment="TOP_CENTER" prefHeight="700.0" prefWidth="240.0" style="-fx-background-color: #395d87;" BorderPane.alignment="CENTER">
          <children>
-            <ImageView fitHeight="104.0" fitWidth="165.0" pickOnBounds="true" preserveRatio="true">
+            <ImageView fitHeight="96.0" fitWidth="207.0" pickOnBounds="true" preserveRatio="true">
                <image>
-                  <Image url="@../../../../Downloads/photo_2026-10-14_21-55-21-removebg-preview.png" />
+                  <Image url="@YTU_logo.png" />
                </image>
                <VBox.margin>
                   <Insets bottom="10.0" top="25.0" />
@@ -52,12 +53,26 @@
             </Button>
             
             <!-- Attendance Nav Button -->
-            <Button fx:id="btnAttendance" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showAttendanceView" prefHeight="45.0" prefWidth="240.0" styleClass="sidebar-button" text="  📅  Attendance">
-               <font><Font size="14.0" /></font>
-               <padding><Insets left="25.0" /></padding>
-            </Button>
-         </children>
-      </VBox>
+		     <Button fx:id="btnAttendance" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showAttendanceView" prefHeight="45.0" prefWidth="240.0" styleClass="sidebar-button" text="  📅  Attendance">
+		        <font><Font size="14.0" /></font>
+		        <padding><Insets left="25.0" /></padding>
+		     </Button>
+		
+		     <!-- Flexible Spacer: pushes the YTU building flush to the bottom edge -->
+		     <Region VBox.vgrow="ALWAYS" />
+		
+		     <!-- Bottom YTU Building Graphic -->
+		     <ImageView fitWidth="240.0"
+		                mouseTransparent="true"
+		                pickOnBounds="true"
+		                preserveRatio="true"
+		                smooth="true">
+		        <image>
+		           <Image url="@YTU_building.png" />
+		        </image>
+		     </ImageView>
+		  </children>
+		</VBox>
    </left>
 
 </BorderPane>
