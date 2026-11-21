@@ -398,6 +398,7 @@ public class StudentModifyController {
                 bannerLabel.setStyle("-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 15px;");
                 bannerBox.getChildren().add(bannerLabel);
                 contentContainer.getChildren().add(1, bannerBox);
+                UIAnimator.playBannerPop(bannerBox);
             }
 
             isUpdating = true;
@@ -708,6 +709,7 @@ public class StudentModifyController {
             BorderPane mainLayout = (BorderPane) txtRollNo.getScene().lookup("#mainBorderPane");
             if (mainLayout != null) {
                 mainLayout.setCenter(studentView);
+                UIAnimator.playViewEntrance(studentView);
             } else if (txtRollNo.getScene().getRoot() instanceof BorderPane) {
                 ((BorderPane) txtRollNo.getScene().getRoot()).setCenter(studentView);
             }

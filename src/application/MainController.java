@@ -35,6 +35,7 @@ public class MainController {
 
             // Default startup view (Dashboard tab active)
             mainBorderPane.setCenter(dashboardView);
+            UIAnimator.playViewEntrance(dashboardView);
             setActiveButton(btnDashboard);
 
         } catch (IOException e) {
@@ -44,7 +45,9 @@ public class MainController {
 
     @FXML
     public void showDashboardView(ActionEvent event) {
+        UIAnimator.playTapPulse(btnDashboard);
         mainBorderPane.setCenter(dashboardView);
+        UIAnimator.playViewEntrance(dashboardView);
         setActiveButton(btnDashboard);
         if (dashboardController != null) {
             DashboardController.refreshDashboard();
@@ -53,21 +56,27 @@ public class MainController {
 
     @FXML
     public void showTeacherView(ActionEvent event) {
+        UIAnimator.playTapPulse(btnManageTeacher);
         mainBorderPane.setCenter(teacherView);
+        UIAnimator.playViewEntrance(teacherView);
         setActiveButton(btnManageTeacher);
         TeacherController.refreshLive();
     }
 
     @FXML
     public void showStudentView(ActionEvent event) {
+        UIAnimator.playTapPulse(btnManageStudent);
         mainBorderPane.setCenter(studentView);
+        UIAnimator.playViewEntrance(studentView);
         setActiveButton(btnManageStudent);
         StudentController.refreshLive();
     }
 
     @FXML
     public void showAttendanceView(ActionEvent event) {
+        UIAnimator.playTapPulse(btnAttendance);
         mainBorderPane.setCenter(attendanceView);
+        UIAnimator.playViewEntrance(attendanceView);
         setActiveButton(btnAttendance);
         AttendanceController.refreshLive();
     }

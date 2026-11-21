@@ -87,6 +87,15 @@ public class TeacherController {
             });
         }
 
+        // Attach subtle hover & focus microinteractions
+        UIAnimator.attachButtonHover(add);
+        UIAnimator.attachButtonHover(modify);
+        UIAnimator.attachButtonHover(remove);
+        UIAnimator.attachButtonHover(restore);
+        UIAnimator.attachFocusGlow(searchField);
+        UIAnimator.attachAllButtonAnimations(rootPane);
+        UIAnimator.attachTableRowHover(teacherTable);
+        
         // Enable multiple selection for batch soft-deletion
         teacherTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
 
@@ -245,17 +254,21 @@ public class TeacherController {
 
     @FXML
     public void handleAdd() {
+        UIAnimator.playTapPulse(add);
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherAdd.fxml"));
             Parent addView = loader.load();
+            UIAnimator.attachAllButtonAnimations(addView);
 
             BorderPane mainLayout = (BorderPane) teacherTable.getScene().lookup("#mainBorderPane");
             if (mainLayout != null) {
                 mainLayout.setCenter(addView);
+                UIAnimator.playViewEntrance(addView);
             } else {
                 Parent root = teacherTable.getScene().getRoot();
                 if (root instanceof BorderPane) {
                     ((BorderPane) root).setCenter(addView);
+                    UIAnimator.playViewEntrance(addView);
                 }
             }
         } catch (IOException e) {
@@ -274,6 +287,7 @@ public class TeacherController {
 
             FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherDetail.fxml"));
             Parent detailView = loader.load();
+            UIAnimator.attachAllButtonAnimations(detailView);
 
             TeacherDetailController controller = loader.getController();
             controller.initData(targetTeacher);
@@ -281,10 +295,12 @@ public class TeacherController {
             BorderPane mainLayout = (BorderPane) teacherTable.getScene().lookup("#mainBorderPane");
             if (mainLayout != null) {
                 mainLayout.setCenter(detailView);
+                UIAnimator.playViewEntrance(detailView);
             } else {
                 Parent root = teacherTable.getScene().getRoot();
                 if (root instanceof BorderPane) {
                     ((BorderPane) root).setCenter(detailView);
+                    UIAnimator.playViewEntrance(detailView);
                 }
             }
         } catch (IOException e) {
@@ -296,6 +312,7 @@ public class TeacherController {
     public void handleModify() {
         Teacher selected = teacherTable.getSelectionModel().getSelectedItem();
         if (selected != null) {
+            UIAnimator.playTapPulse(modify);
             try {
                 int uiRowNumber = teacherTable.getItems().indexOf(selected) + 1;
 
@@ -306,6 +323,7 @@ public class TeacherController {
 
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherModify.fxml"));
                 Parent modifyView = loader.load();
+                UIAnimator.attachAllButtonAnimations(modifyView);
 
                 TeacherModifyController controller = loader.getController();
                 controller.initData(targetTeacher);
@@ -313,16 +331,19 @@ public class TeacherController {
                 BorderPane mainLayout = (BorderPane) teacherTable.getScene().lookup("#mainBorderPane");
                 if (mainLayout != null) {
                     mainLayout.setCenter(modifyView);
+                    UIAnimator.playViewEntrance(modifyView);
                 } else {
                     Parent root = teacherTable.getScene().getRoot();
                     if (root instanceof BorderPane) {
                         ((BorderPane) root).setCenter(modifyView);
+                        UIAnimator.playViewEntrance(modifyView);
                     }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
         } else {
+            UIAnimator.playShake(modify);
             showAlert("No Selection", "Please select a teacher row from the table to modify.", Alert.AlertType.WARNING);
         }
     }
@@ -331,6 +352,7 @@ public class TeacherController {
     public void handleRemove() {
         ObservableList<Teacher> selectedTeachers = teacherTable.getSelectionModel().getSelectedItems();
         if (selectedTeachers != null && !selectedTeachers.isEmpty()) {
+            UIAnimator.playTapPulse(remove);
             Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
             confirmAlert.setTitle("Confirm Deletion");
 
@@ -357,6 +379,7 @@ public class TeacherController {
                 boolean success = teacherDAO.removeBatchTeacher(idsToRemove);
                 if (success) {
                     refreshDataFromDatabase();
+                    UIAnimator.playTableFilterFade(teacherTable);
                     AttendanceController.refreshLive();
                     teacherTable.getSelectionModel().clearSelection();
                     teacherTable.refresh();
@@ -365,12 +388,14 @@ public class TeacherController {
                 }
             }
         } else {
+            UIAnimator.playShake(remove);
             showAlert("No Selection", "Please select one or more teacher rows to remove.", Alert.AlertType.WARNING);
         }
     }
 
     @FXML
     public void handleRestore() {
+        UIAnimator.playTapPulse(restore);
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherRestore.fxml"));
             Parent root = loader.load();
@@ -386,10 +411,12 @@ public class TeacherController {
 
             stage.setScene(new Scene(root));
             stage.setResizable(false);
+            UIAnimator.playViewEntrance(root);
             stage.showAndWait();
 
             if (controller.isRecordRestored()) {
                 refreshDataFromDatabase();
+                UIAnimator.playTableFilterFade(teacherTable);
                 AttendanceController.refreshLive();
             }
         } catch (IOException e) {
@@ -415,6 +442,7 @@ public class TeacherController {
 
         masterData = FXCollections.observableArrayList(list);
         setupTableData();
+        UIAnimator.playTableFilterFade(teacherTable);
     }
 
     @FXML

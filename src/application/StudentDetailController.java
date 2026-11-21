@@ -45,6 +45,9 @@ public class StudentDetailController {
 
                 int insertIndex = contentContainer.getChildren().isEmpty() ? 0 : 1;
                 contentContainer.getChildren().add(insertIndex, bannerBox);
+                UIAnimator.playBannerPop(bannerBox);
+                UIAnimator.attachDetailCardHover(bannerBox);
+                UIAnimator.attachSectionCardHovers(contentContainer);
             }
 
             if (lblRollNo != null) lblRollNo.setText(safe(student.getRollNo()));
@@ -122,8 +125,10 @@ public class StudentDetailController {
             BorderPane mainLayout = (BorderPane) contentContainer.getScene().lookup("#mainBorderPane");
             if (mainLayout != null) {
                 mainLayout.setCenter(studentView);
+                UIAnimator.playViewEntrance(studentView);
             } else if (contentContainer.getScene().getRoot() instanceof BorderPane) {
                 ((BorderPane) contentContainer.getScene().getRoot()).setCenter(studentView);
+                UIAnimator.playViewEntrance(studentView);
             }
         }
     }

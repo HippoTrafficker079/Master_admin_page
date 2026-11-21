@@ -4,7 +4,6 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
@@ -12,49 +11,46 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
 <ScrollPane fitToWidth="true" style="-fx-background: #f4f6f9; -fx-background-color: #f4f6f9;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.TeacherDetailController">
    <content>
       <VBox fx:id="contentContainer" spacing="14.0" style="-fx-background-color: #f4f6f9; -fx-padding: 20 24;">
          <children>
-            <!-- Top Action Bar -->
+            <!-- Top Action Bar (Return Only) -->
             <HBox fx:id="topActionBar" alignment="CENTER_LEFT" spacing="12.0">
                <children>
                   <Button mnemonicParsing="false" onAction="#handleReturn" prefHeight="34.0" prefWidth="105.0" styleClass="reset-button" text="← Return" />
-                  <Pane HBox.hgrow="ALWAYS" />
-                  <Button fx:id="btnReset" mnemonicParsing="false" onAction="#handleResetData" prefHeight="34.0" prefWidth="110.0" styleClass="reset-button" text="Reset Data" />
                </children>
             </HBox>
 
-            <!-- Main Form Sheet Container (Read-Only Detail View) -->
-            <VBox spacing="14.0" styleClass="section-card">
+            <!-- Box 1: Header & Passport Photo Card -->
+            <VBox spacing="8.0" styleClass="section-card">
                <children>
                   <HBox alignment="CENTER_LEFT" spacing="10.0">
                      <children>
-                        <VBox spacing="3.0">
+                        <VBox spacing="4.0">
                            <children>
                               <Label fx:id="lblFormTitle" style="-fx-text-fill: #1e3a8a; -fx-font-family: 'Segoe UI', 'Arial', sans-serif; -fx-font-weight: bold; -fx-font-size: 18px;" text="FACULTY / TEACHER INFORMATION (DETAILS)" />
                               <Label style="-fx-text-fill: #d97706; -fx-font-family: 'Segoe UI', 'Arial', sans-serif; -fx-font-weight: bold; -fx-font-size: 11px;" text="EXCELLENCE  •  RESEARCH  •  INSTRUCTION" />
                            </children>
                         </VBox>
                         <Pane HBox.hgrow="ALWAYS" />
-                        <VBox alignment="CENTER" spacing="4.0">
+                        <VBox alignment="CENTER"
+                              minWidth="90.0" prefWidth="90.0" maxWidth="90.0"
+                              minHeight="115.0" prefHeight="115.0" maxHeight="115.0"
+                              style="-fx-border-color: #395d87; -fx-border-width: 1.5; -fx-background-color: #f8fafc; -fx-border-radius: 6; -fx-background-radius: 6;">
                            <children>
-                              <VBox alignment="CENTER"
-                                    minWidth="90.0" prefWidth="90.0" maxWidth="90.0"
-                                    minHeight="115.0" prefHeight="115.0" maxHeight="115.0"
-                                    style="-fx-border-color: #395d87; -fx-border-width: 1.5; -fx-background-color: #f8fafc; -fx-border-radius: 6; -fx-background-radius: 6;">
-                                 <children>
-                                    <ImageView fx:id="passportImageView" fitWidth="84.0" fitHeight="109.0" pickOnBounds="true" preserveRatio="false"/>
-                                 </children>
-                              </VBox>
+                              <ImageView fx:id="passportImageView" fitWidth="84.0" fitHeight="109.0" pickOnBounds="true" preserveRatio="false" />
                            </children>
                         </VBox>
                      </children>
                   </HBox>
+               </children>
+            </VBox>
 
-                  <!-- 1. Teacher Details -->
+            <!-- Box 2: 1. Teacher Details Card -->
+            <VBox spacing="12.0" styleClass="section-card">
+               <children>
                   <Label styleClass="detail-section-pill" text="1. Teacher Details" />
                   <GridPane hgap="10.0" vgap="8.0">
                     <columnConstraints>
@@ -85,8 +81,12 @@
                         <Label styleClass="detail-field-label" text="NRC / ID No." GridPane.columnIndex="3" GridPane.rowIndex="3" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="4" GridPane.rowIndex="3" /><Label fx:id="lblNrc" styleClass="detail-field-value" GridPane.columnIndex="5" GridPane.rowIndex="3" />
                      </children>
                   </GridPane>
+               </children>
+            </VBox>
 
-                  <!-- 2. Contact Information -->
+            <!-- Box 3: 2. Contact Information Card -->
+            <VBox spacing="12.0" styleClass="section-card">
+               <children>
                   <Label styleClass="detail-section-pill" text="2. Contact Information" />
                   <GridPane hgap="10.0" vgap="8.0">
                      <columnConstraints>
@@ -107,8 +107,12 @@
                         <Label styleClass="detail-field-label" text="Permanent Address" GridPane.rowIndex="3" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" GridPane.rowIndex="3" /><Label fx:id="lblPermanentAddress" styleClass="detail-field-value" GridPane.columnIndex="2" GridPane.rowIndex="3" />
                      </children>
                   </GridPane>
+               </children>
+            </VBox>
 
-                  <!-- 3. Academic & Professional Background -->
+            <!-- Box 4: 3. Academic & Professional Background Card -->
+            <VBox spacing="12.0" styleClass="section-card">
+               <children>
                   <Label styleClass="detail-section-pill" text="3. Academic &amp; Professional Background" />
                   <GridPane hgap="10.0" vgap="8.0">
                      <columnConstraints>

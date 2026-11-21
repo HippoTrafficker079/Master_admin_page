@@ -235,134 +235,134 @@
                   </VBox>
 
                   <!-- Students by Department Card (Side-by-side Pie Chart & Legend) -->
-                  <VBox spacing="15.0" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
-                     <children>
-                        <Label text="Students by Department" textFill="#0f172a"><font><Font name="System Bold" size="15.0" /></font></Label>
-                        
-                        <HBox alignment="CENTER_LEFT" spacing="30.0">
-                           <children>
-                              <PieChart fx:id="departmentPieChart" minHeight="420.0" minWidth="420.0" prefHeight="420.0" prefWidth="420.0" HBox.hgrow="NEVER" />
-                              
-                              <VBox fx:id="departmentLegendBox" alignment="CENTER_LEFT" spacing="12.0" HBox.hgrow="ALWAYS" style="-fx-padding: 0;">
-                                 <children>
-                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                       <children>
-                                          <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #0a192f; -fx-background-radius: 3;" />
-                                          <Label text="Architecture" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
-                                          <Pane HBox.hgrow="ALWAYS" />
-                                          <Label text="100 (8.0%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                       <children>
-                                          <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #0f2942; -fx-background-radius: 3;" />
-                                          <Label text="Chemical Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
-                                          <Pane HBox.hgrow="ALWAYS" />
-                                          <Label text="90 (7.2%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                       <children>
-                                          <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #13385c; -fx-background-radius: 3;" />
-                                          <Label text="Civil Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
-                                          <Pane HBox.hgrow="ALWAYS" />
-                                          <Label text="125 (10.0%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                       <children>
-                                          <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #1d4ed8; -fx-background-radius: 3;" />
-                                          <Label text="Computer Engineering and Information Technology" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
-                                          <Pane HBox.hgrow="ALWAYS" />
-                                          <Label text="180 (14.4%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                       <children>
-                                          <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #2563eb; -fx-background-radius: 3;" />
-                                          <Label text="Electrical Power Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
-                                          <Pane HBox.hgrow="ALWAYS" />
-                                          <Label text="130 (10.4%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                       <children>
-                                          <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #3b82f6; -fx-background-radius: 3;" />
-                                          <Label text="Electronic Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
-                                          <Pane HBox.hgrow="ALWAYS" />
-                                          <Label text="110 (8.8%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                       <children>
-                                          <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #60a5fa; -fx-background-radius: 3;" />
-                                          <Label text="Food Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
-                                          <Pane HBox.hgrow="ALWAYS" />
-                                          <Label text="45 (3.6%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                       <children>
-                                          <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #1e40af; -fx-background-radius: 3;" />
-                                          <Label text="Mechanical Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
-                                          <Pane HBox.hgrow="ALWAYS" />
-                                          <Label text="100 (8.0%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                       <children>
-                                          <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #0284c7; -fx-background-radius: 3;" />
-                                          <Label text="Mechatronic Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
-                                          <Pane HBox.hgrow="ALWAYS" />
-                                          <Label text="75 (6.0%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                       <children>
-                                          <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #0f766e; -fx-background-radius: 3;" />
-                                          <Label text="Metallurgy Engineering and Material Science" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
-                                          <Pane HBox.hgrow="ALWAYS" />
-                                          <Label text="50 (4.0%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                       <children>
-                                          <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #0d9488; -fx-background-radius: 3;" />
-                                          <Label text="Mining Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
-                                          <Pane HBox.hgrow="ALWAYS" />
-                                          <Label text="40 (3.2%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                       <children>
-                                          <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #10b981; -fx-background-radius: 3;" />
-                                          <Label text="Petroleum Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
-                                          <Pane HBox.hgrow="ALWAYS" />
-                                          <Label text="85 (6.8%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                       <children>
-                                          <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #64748b; -fx-background-radius: 3;" />
-                                          <Label text="Telecommunication Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
-                                          <Pane HBox.hgrow="ALWAYS" />
-                                          <Label text="80 (6.4%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
-                                       </children>
-                                    </HBox>
-                                    <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                       <children>
-                                          <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #94a3b8; -fx-background-radius: 3;" />
-                                          <Label text="Textile Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
-                                          <Pane HBox.hgrow="ALWAYS" />
-                                          <Label text="40 (3.2%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
-                                       </children>
-                                    </HBox>
-                                 </children>
-                              </VBox>
-                           </children>
-                        </HBox>
-                     </children>
-                  </VBox>
+					<VBox spacing="15.0" style="-fx-background-color: white; -fx-padding: 20; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
+					   <children>
+					      <Label text="Students by Department" textFill="#0f172a"><font><Font name="System Bold" size="15.0" /></font></Label>
+					      
+					      <HBox alignment="CENTER_LEFT" spacing="24.0">
+					         <children>
+					            <PieChart fx:id="departmentPieChart" minHeight="500.0" minWidth="500.0" prefHeight="500.0" prefWidth="500.0" HBox.hgrow="NEVER" />
+					            
+					            <VBox fx:id="departmentLegendBox" alignment="CENTER_LEFT" spacing="12.0" prefWidth="440.0" maxWidth="450.0" HBox.hgrow="SOMETIMES" style="-fx-padding: 0;">
+					               <children>
+					                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+					                     <children>
+					                        <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #0a192f; -fx-background-radius: 3;" />
+					                        <Label text="Architecture" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
+					                        <Pane HBox.hgrow="ALWAYS" />
+					                        <Label text="100 (8.0%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
+					                     </children>
+					                  </HBox>
+					                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+					                     <children>
+					                        <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #0f2942; -fx-background-radius: 3;" />
+					                        <Label text="Chemical Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
+					                        <Pane HBox.hgrow="ALWAYS" />
+					                        <Label text="90 (7.2%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
+					                     </children>
+					                  </HBox>
+					                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+					                     <children>
+					                        <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #13385c; -fx-background-radius: 3;" />
+					                        <Label text="Civil Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
+					                        <Pane HBox.hgrow="ALWAYS" />
+					                        <Label text="125 (10.0%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
+					                     </children>
+					                  </HBox>
+					                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+					                     <children>
+					                        <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #1d4ed8; -fx-background-radius: 3;" />
+					                        <Label text="Computer Engineering and Information Technology" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
+					                        <Pane HBox.hgrow="ALWAYS" />
+					                        <Label text="180 (14.4%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
+					                     </children>
+					                  </HBox>
+					                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+					                     <children>
+					                        <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #2563eb; -fx-background-radius: 3;" />
+					                        <Label text="Electrical Power Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
+					                        <Pane HBox.hgrow="ALWAYS" />
+					                        <Label text="130 (10.4%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
+					                     </children>
+					                  </HBox>
+					                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+					                     <children>
+					                        <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #3b82f6; -fx-background-radius: 3;" />
+					                        <Label text="Electronic Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
+					                        <Pane HBox.hgrow="ALWAYS" />
+					                        <Label text="110 (8.8%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
+					                     </children>
+					                  </HBox>
+					                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+					                     <children>
+					                        <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #60a5fa; -fx-background-radius: 3;" />
+					                        <Label text="Food Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
+					                        <Pane HBox.hgrow="ALWAYS" />
+					                        <Label text="45 (3.6%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
+					                     </children>
+					                  </HBox>
+					                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+					                     <children>
+					                        <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #1e40af; -fx-background-radius: 3;" />
+					                        <Label text="Mechanical Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
+					                        <Pane HBox.hgrow="ALWAYS" />
+					                        <Label text="100 (8.0%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
+					                     </children>
+					                  </HBox>
+					                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+					                     <children>
+					                        <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #0284c7; -fx-background-radius: 3;" />
+					                        <Label text="Mechatronic Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
+					                        <Pane HBox.hgrow="ALWAYS" />
+					                        <Label text="75 (6.0%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
+					                     </children>
+					                  </HBox>
+					                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+					                     <children>
+					                        <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #0f766e; -fx-background-radius: 3;" />
+					                        <Label text="Metallurgy Engineering and Material Science" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
+					                        <Pane HBox.hgrow="ALWAYS" />
+					                        <Label text="50 (4.0%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
+					                     </children>
+					                  </HBox>
+					                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+					                     <children>
+					                        <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #0d9488; -fx-background-radius: 3;" />
+					                        <Label text="Mining Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
+					                        <Pane HBox.hgrow="ALWAYS" />
+					                        <Label text="40 (3.2%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
+					                     </children>
+					                  </HBox>
+					                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+					                     <children>
+					                        <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #10b981; -fx-background-radius: 3;" />
+					                        <Label text="Petroleum Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
+					                        <Pane HBox.hgrow="ALWAYS" />
+					                        <Label text="85 (6.8%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
+					                     </children>
+					                  </HBox>
+					                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+					                     <children>
+					                        <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #64748b; -fx-background-radius: 3;" />
+					                        <Label text="Telecommunication Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
+					                        <Pane HBox.hgrow="ALWAYS" />
+					                        <Label text="80 (6.4%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
+					                     </children>
+					                  </HBox>
+					                  <HBox alignment="CENTER_LEFT" spacing="10.0">
+					                     <children>
+					                        <Region prefHeight="12.0" prefWidth="12.0" style="-fx-background-color: #94a3b8; -fx-background-radius: 3;" />
+					                        <Label text="Textile Engineering" textFill="#334155"><font><Font name="System Bold" size="11.5" /></font></Label>
+					                        <Pane HBox.hgrow="ALWAYS" />
+					                        <Label text="40 (3.2%)" textFill="#64748b"><font><Font size="11.5" /></font></Label>
+					                     </children>
+					                  </HBox>
+					               </children>
+					            </VBox>
+					         </children>
+					      </HBox>
+					   </children>
+					</VBox>
 
                   <!-- Attendance Overview Area Chart Card -->
               <VBox spacing="12.0" style="-fx-background-color: white; -fx-padding: 18; -fx-background-radius: 8; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">

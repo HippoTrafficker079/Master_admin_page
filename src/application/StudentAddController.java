@@ -118,6 +118,7 @@ public class StudentAddController {
 
         initializeNrcComponent();
         setupBidirectionalSync();
+        
     }
 
     private void initializeNrcComponent() {
@@ -1264,6 +1265,7 @@ public class StudentAddController {
             BorderPane mainLayout = (BorderPane) txtRollNo.getScene().lookup("#mainBorderPane");
             if (mainLayout != null) {
                 mainLayout.setCenter(studentView);
+                UIAnimator.playViewEntrance(studentView);
             } else if (txtRollNo.getScene().getRoot() instanceof BorderPane) {
                 ((BorderPane) txtRollNo.getScene().getRoot()).setCenter(studentView);
             }
