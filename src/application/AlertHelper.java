@@ -1,6 +1,8 @@
 package application;
 
 import java.util.Optional;
+
+import javafx.event.ActionEvent;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
@@ -8,9 +10,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.DialogPane;
-import javafx.scene.control.Label;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
@@ -66,7 +68,7 @@ public class AlertHelper {
     }
 
     /**
-     * Applies the application's stylesheet, modern vector badge icon, and button hover/click styles
+     * Applies the application's stylesheet, animated vector badge icon, and button hover/tap animations
      * to any JavaFX Alert instance.
      */
     public static void styleAlert(Alert alert, boolean primaryIsDanger) {
@@ -82,10 +84,12 @@ public class AlertHelper {
         pane.setMinWidth(440);
         pane.setMinHeight(Region.USE_PREF_SIZE);
 
-        // Replace default OS/JavaFX graphic with a clean matching badge icon
-        pane.setGraphic(createBadgeGraphic(alert.getAlertType()));
+        // Animated vector badge graphic
+        Node badge = createBadgeGraphic(alert.getAlertType());
+        pane.setGraphic(badge);
+        alert.setOnShown(e -> UIAnimator.playBadgePop(badge));
 
-        // Style all buttons inside the DialogPane
+        // Style & animate all buttons inside the DialogPane
         for (ButtonType bt : pane.getButtonTypes()) {
             Node node = pane.lookupButton(bt);
             if (node instanceof Button btn) {
@@ -98,6 +102,9 @@ public class AlertHelper {
                 } else {
                     btn.getStyleClass().add("dialog-btn-primary");
                 }
+
+                UIAnimator.attachButtonHover(btn);
+                btn.addEventHandler(ActionEvent.ACTION, e -> UIAnimator.playTapPulse(btn));
             }
         }
     }
@@ -113,7 +120,6 @@ public class AlertHelper {
 
         switch (type) {
             case WARNING -> {
-                // Rounded coral-red triangle
                 Polygon triangle = new Polygon(
                         24.0, 4.0,
                         44.0, 40.0,
@@ -124,7 +130,6 @@ public class AlertHelper {
                 triangle.setStrokeWidth(4.5);
                 triangle.setStrokeLineJoin(StrokeLineJoin.ROUND);
 
-                // Tapered exclamation bar + circular dot centered inside triangle
                 Polygon exBar = new Polygon(
                         -2.3, 0.0,
                          2.3, 0.0,
@@ -135,14 +140,13 @@ public class AlertHelper {
 
                 Circle exDot = new Circle(2.2, navyGlyph);
 
-                javafx.scene.layout.VBox exGlyph = new javafx.scene.layout.VBox(2.8, exBar, exDot);
+                VBox exGlyph = new VBox(2.8, exBar, exDot);
                 exGlyph.setAlignment(Pos.CENTER);
                 exGlyph.setTranslateY(4.5);
 
                 container.getChildren().addAll(triangle, exGlyph);
             }
             case ERROR -> {
-                // Rounded coral-red square with crisp navy X
                 Rectangle box = new Rectangle(38, 38);
                 box.setArcWidth(12);
                 box.setArcHeight(12);
@@ -164,7 +168,6 @@ public class AlertHelper {
                 container.getChildren().addAll(box, xPane);
             }
             case CONFIRMATION -> {
-                // Sky-blue ring with crisp navy '?'
                 Circle ring = new Circle(19.5);
                 ring.setFill(fillIce);
                 ring.setStroke(Color.web("#0284c7"));
@@ -177,7 +180,6 @@ public class AlertHelper {
                 container.getChildren().addAll(ring, qMark);
             }
             default -> { // INFORMATION
-                // Navy ring with distinct dot + stem 'i' separated via VBox
                 Circle ring = new Circle(19.5);
                 ring.setFill(fillIce);
                 ring.setStroke(Color.web("#395d87"));
@@ -189,7 +191,7 @@ public class AlertHelper {
                 iStem.setArcWidth(4.2);
                 iStem.setArcHeight(4.2);
 
-                javafx.scene.layout.VBox iGlyph = new javafx.scene.layout.VBox(3.2, iDot, iStem);
+                VBox iGlyph = new VBox(3.2, iDot, iStem);
                 iGlyph.setAlignment(Pos.CENTER);
 
                 container.getChildren().addAll(ring, iGlyph);

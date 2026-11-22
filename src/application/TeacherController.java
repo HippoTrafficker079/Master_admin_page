@@ -399,6 +399,7 @@ public class TeacherController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("TeacherRestore.fxml"));
             Parent root = loader.load();
+            UIAnimator.attachAllButtonAnimations(root);
 
             TeacherRestoreController controller = loader.getController();
 
@@ -418,6 +419,7 @@ public class TeacherController {
                 refreshDataFromDatabase();
                 UIAnimator.playTableFilterFade(teacherTable);
                 AttendanceController.refreshLive();
+                UIAnimator.showToast(rootPane, "Selected faculty record(s) restored successfully");
             }
         } catch (IOException e) {
             e.printStackTrace();

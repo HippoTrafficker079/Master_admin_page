@@ -29,9 +29,11 @@ public class TeacherDetailController {
                 bannerLabel.setStyle("-fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-font-size: 15px;");
                 banner.getChildren().add(bannerLabel);
                 contentContainer.getChildren().add(1, banner);
+
                 UIAnimator.playBannerPop(banner);
                 UIAnimator.attachDetailCardHover(banner);
                 UIAnimator.attachSectionCardHovers(contentContainer);
+                UIAnimator.playSectionCardStagger(contentContainer);
             }
 
             lblTeacherId.setText(teacher.getTeacherCode());
@@ -93,10 +95,5 @@ public class TeacherDetailController {
                 UIAnimator.playViewEntrance(teacherView);
             }
         }
-    }
-
-    @FXML
-    public void handleResetData() {
-        // Read-only detail view reset handler
     }
 }

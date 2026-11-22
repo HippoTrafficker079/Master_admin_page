@@ -209,12 +209,10 @@ public class StudentModifyController {
 
                     event.consume();
                     Platform.runLater(() -> {
-                        Alert alert = new Alert(Alert.AlertType.WARNING);
-                        alert.setTitle("Action Restricted");
-                        alert.setHeaderText(null);
-                        alert.setContentText("Please press backspace once to clear first.");
-                        alert.getDialogPane().setMinWidth(380);
-                        alert.showAndWait();
+                        UIAnimator.playShake(comboNrcTownship);
+                        javafx.stage.Window owner = (comboNrcTownship != null && comboNrcTownship.getScene() != null)
+                                ? comboNrcTownship.getScene().getWindow() : null;
+                        AlertHelper.showWarning(owner, "Action Restricted", "Please press backspace once to clear first.");
                     });
                 }
             });
@@ -573,6 +571,8 @@ public class StudentModifyController {
             String yearCompInput = txtYearCompleted != null ? txtYearCompleted.getText().trim() : "";
 
             if (!rawRollNo.matches("^[a-zA-Z]+-[a-zA-Z0-9]+-\\d+$")) {
+                UIAnimator.playShake(txtRollNo);
+                if (txtRollNo != null) txtRollNo.requestFocus();
                 showAlert("Invalid Roll No Format", "Roll No must be in valid format.", Alert.AlertType.ERROR);
                 return;
             }
@@ -580,6 +580,13 @@ public class StudentModifyController {
             String validatedMajor = findValidMajor(rawMajor);
             String validatedYear = findValidYear(rawYear);
             if (validatedMajor == null || validatedYear == null) {
+                if (validatedMajor == null) {
+                    UIAnimator.playShake(comboMajor);
+                    if (comboMajor != null) comboMajor.requestFocus();
+                } else {
+                    UIAnimator.playShake(comboYear);
+                    if (comboYear != null) comboYear.requestFocus();
+                }
                 showAlert("Invalid Major or Year", "Selected Major or Year is invalid.", Alert.AlertType.ERROR);
                 return;
             }
@@ -589,15 +596,21 @@ public class StudentModifyController {
 
             String nrcInput = getCombinedNrc();
             if (nrcInput.isEmpty()) {
+                UIAnimator.playShake(txtNrcNumber);
+                if (txtNrcNumber != null) txtNrcNumber.requestFocus();
                 showAlert("Incomplete NRC", "Please complete all structured NRC fields.", Alert.AlertType.ERROR);
                 return;
             }
 
             if (!phoneInput.matches("^09-\\d+$")) {
+                UIAnimator.playShake(txtPhone);
+                if (txtPhone != null) txtPhone.requestFocus();
                 showAlert("Invalid Phone Number", "Phone number must be in format 09-xxxxxxxx.", Alert.AlertType.ERROR);
                 return;
             }
             if (!emailInput.contains("@")) {
+                UIAnimator.playShake(txtEmail);
+                if (txtEmail != null) txtEmail.requestFocus();
                 showAlert("Invalid Email", "Email must contain '@'.", Alert.AlertType.ERROR);
                 return;
             }
@@ -624,12 +637,15 @@ public class StudentModifyController {
 
             if (updatedPhotoPath != null) currentStudent.setPhotoPath(updatedPhotoPath);
 
+            javafx.stage.Window owner = (txtRollNo != null && txtRollNo.getScene() != null)
+                    ? txtRollNo.getScene().getWindow() : null;
+
             Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
             confirmAlert.setTitle("Confirm Update");
             confirmAlert.setHeaderText("Save Changes");
             confirmAlert.setContentText("Are you sure you want to update this student's record?");
-            if (txtRollNo != null && txtRollNo.getScene() != null) {
-                confirmAlert.initOwner(txtRollNo.getScene().getWindow());
+            if (owner != null) {
+                confirmAlert.initOwner(owner);
             }
             AlertHelper.styleAlert(confirmAlert, false);
             java.util.Optional<javafx.scene.control.ButtonType> result = confirmAlert.showAndWait();
@@ -642,8 +658,8 @@ public class StudentModifyController {
                     StudentController.refreshLive();
                     AttendanceController.refreshLive();
                     DashboardController.refreshDashboard();
-                    showAlert("Success", "Student record for '" + currentStudent.getName() + "' has been updated in the database.", Alert.AlertType.INFORMATION);
                     handleReturn();
+                    UIAnimator.showToast(owner, "Student record for '" + currentStudent.getName() + "' updated");
                 } else {
                     showAlert("Database Error", "Failed to update student record in the database. Please ensure the Roll No and NRC are unique and valid.", Alert.AlertType.ERROR);
                 }
@@ -694,8 +710,7 @@ public class StudentModifyController {
                 }
             }
 
-            showAlert("Data Reset", "Form reset to original database record data.",
-                    Alert.AlertType.INFORMATION);
+            UIAnimator.showToast(contentContainer, "Form reset to original database record");
         }
     }
 

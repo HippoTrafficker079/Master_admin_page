@@ -1,29 +1,40 @@
 package application;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.ParallelTransition;
+import javafx.animation.PauseTransition;
 import javafx.animation.ScaleTransition;
+import javafx.animation.SequentialTransition;
 import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.scene.Node;
-import javafx.scene.control.Label;
-import javafx.scene.effect.DropShadow;
-import javafx.scene.paint.Color;
-import javafx.util.Duration;
 import javafx.event.ActionEvent;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
+import javafx.scene.paint.Color;
+import javafx.stage.Popup;
+import javafx.stage.Window;
+import javafx.util.Duration;
 
 public final class UIAnimator {
 
@@ -240,6 +251,35 @@ public final class UIAnimator {
     }
 
     /**
+     * Spring-scale pop (0.7 -> 1.08 -> 1.0) for AlertHelper vector badge icons.
+     */
+    public static void playBadgePop(Node badge) {
+        if (badge == null) return;
+
+        badge.setScaleX(0.7);
+        badge.setScaleY(0.7);
+        badge.setOpacity(0.0);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(140), badge);
+        fade.setFromValue(0.0);
+        fade.setToValue(1.0);
+
+        ScaleTransition overshoot = new ScaleTransition(Duration.millis(140), badge);
+        overshoot.setFromX(0.7);
+        overshoot.setFromY(0.7);
+        overshoot.setToX(1.08);
+        overshoot.setToY(1.08);
+        overshoot.setInterpolator(Interpolator.EASE_OUT);
+
+        ScaleTransition settle = new ScaleTransition(Duration.millis(90), badge);
+        settle.setToX(1.0);
+        settle.setToY(1.0);
+        settle.setInterpolator(Interpolator.EASE_BOTH);
+
+        new ParallelTransition(fade, new SequentialTransition(overshoot, settle)).play();
+    }
+
+    /**
      * Smooth integer count-up animation for KPI summary numbers.
      */
     public static Timeline animateIntCount(Label label, int target, boolean useCommas, int durationMs) {
@@ -284,11 +324,11 @@ public final class UIAnimator {
         timeline.play();
         return timeline;
     }
-    
+
     /**
      * Smoothly animates a horizontal progress bar's width from 0 to its target width.
      */
-    public static void animateBarFill(javafx.scene.layout.Region bar, double targetWidth, int delayMs, int durationMs) {
+    public static void animateBarFill(Region bar, double targetWidth, int delayMs, int durationMs) {
         if (bar == null) return;
 
         bar.setPrefWidth(0.0);
@@ -299,7 +339,7 @@ public final class UIAnimator {
         );
         timeline.play();
     }
-    
+
     /**
      * Smooth hover lift + soft blue glow for ComboBoxes, segmented toggles, and pills.
      */
@@ -355,7 +395,7 @@ public final class UIAnimator {
         row.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> {
             if (row.isEmpty() || row.getItem() == null) return;
 
-            row.toFront(); // Keeps the soft shadow visible above adjacent rows
+            row.toFront();
             TranslateTransition lift = new TranslateTransition(Duration.millis(140), row);
             lift.setToY(-1.5);
             lift.setInterpolator(Interpolator.EASE_OUT);
@@ -383,7 +423,6 @@ public final class UIAnimator {
             new ParallelTransition(drop, scale).play();
         });
 
-        // Reset immediately if JavaFX recycles the row into an empty slot while scrolling
         row.emptyProperty().addListener((obs, wasEmpty, isNowEmpty) -> {
             if (isNowEmpty) {
                 row.setTranslateY(0.0);
@@ -405,7 +444,7 @@ public final class UIAnimator {
             return row;
         });
     }
-    
+
     /**
      * KPI-style hover lift (-3px) + soft blue elevation glow tuned for wider detail section cards.
      */
@@ -467,5 +506,154 @@ public final class UIAnimator {
                 attachSectionCardHovers(child);
             }
         }
+    }
+
+    /**
+     * Plays a staggered fade + slide-up entrance across all ".section-card" boxes inside a view.
+     */
+    public static void playSectionCardStagger(Node root) {
+        if (root == null) return;
+        List<Node> cards = new ArrayList<>();
+        collectSectionCards(root, cards);
+
+        for (int i = 0; i < cards.size(); i++) {
+            Node card = cards.get(i);
+            card.setOpacity(0.0);
+            card.setTranslateY(12.0);
+
+            PauseTransition delay = new PauseTransition(Duration.millis(i * 45.0));
+
+            FadeTransition fade = new FadeTransition(Duration.millis(210), card);
+            fade.setFromValue(0.0);
+            fade.setToValue(1.0);
+            fade.setInterpolator(Interpolator.EASE_OUT);
+
+            TranslateTransition slide = new TranslateTransition(Duration.millis(210), card);
+            slide.setFromY(12.0);
+            slide.setToY(0.0);
+            slide.setInterpolator(Interpolator.EASE_OUT);
+
+            new SequentialTransition(delay, new ParallelTransition(fade, slide)).play();
+        }
+    }
+
+    private static void collectSectionCards(Node root, List<Node> out) {
+        if (root == null) return;
+        if (root.getStyleClass().contains("section-card")) {
+            out.add(root);
+            return;
+        }
+        if (root instanceof ScrollPane sp && sp.getContent() != null) {
+            collectSectionCards(sp.getContent(), out);
+        }
+        if (root instanceof Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                collectSectionCards(child, out);
+            }
+        }
+    }
+
+    /**
+     * Slides the 4px sidebar accent bar smoothly to align vertically with the active nav button.
+     */
+    public static void moveSidebarIndicator(Node indicator, Button activeBtn, boolean animate) {
+        if (indicator == null || activeBtn == null) return;
+
+        Platform.runLater(() -> {
+            double indicatorH = indicator.getLayoutBounds().getHeight() > 0
+                    ? indicator.getLayoutBounds().getHeight() : 33.0;
+            double btnH = activeBtn.getHeight() > 0 ? activeBtn.getHeight() : 45.0;
+            double targetY = activeBtn.getLayoutY() + (btnH - indicatorH) / 2.0;
+
+            if (!animate) {
+                indicator.setTranslateY(targetY);
+                return;
+            }
+
+            TranslateTransition slide = new TranslateTransition(Duration.millis(180), indicator);
+            slide.setToY(targetY);
+            slide.setInterpolator(Interpolator.EASE_BOTH);
+            slide.play();
+        });
+    }
+
+    /**
+     * Displays a non-blocking dark-navy toast notification at the bottom-right of the window.
+     */
+    public static void showToast(Node anchor, String message) {
+        if (anchor == null || anchor.getScene() == null || anchor.getScene().getWindow() == null) {
+            return;
+        }
+        showToast(anchor.getScene().getWindow(), message);
+    }
+
+    public static void showToast(Window owner, String message) {
+        if (owner == null || message == null || message.trim().isEmpty()) return;
+
+        Platform.runLater(() -> {
+            Popup popup = new Popup();
+            popup.setAutoFix(true);
+            popup.setAutoHide(false);
+            popup.setHideOnEscape(true);
+
+            Label icon = new Label("✔");
+            icon.setStyle("-fx-text-fill: #34d399; -fx-font-weight: bold; -fx-font-size: 13.5px;");
+
+            Label text = new Label(message);
+            text.setStyle("-fx-text-fill: #f8fafc; -fx-font-family: 'Segoe UI', sans-serif; -fx-font-weight: bold; -fx-font-size: 13px;");
+
+            HBox pill = new HBox(10.0, icon, text);
+            pill.setAlignment(Pos.CENTER_LEFT);
+            pill.setMouseTransparent(true);
+            pill.setStyle(
+                    "-fx-background-color: #0f172a; " +
+                    "-fx-background-radius: 8px; " +
+                    "-fx-border-color: #334155; " +
+                    "-fx-border-radius: 8px; " +
+                    "-fx-border-width: 1px; " +
+                    "-fx-padding: 11px 18px; " +
+                    "-fx-effect: dropshadow(three-pass-box, rgba(15, 23, 42, 0.35), 14, 0, 0, 5);"
+            );
+
+            popup.getContent().add(pill);
+            pill.setOpacity(0.0);
+            pill.setTranslateY(14.0);
+
+            // Show briefly to compute real width/height, then anchor at bottom-right
+            popup.show(owner);
+            double w = pill.getWidth() > 0 ? pill.getWidth() : pill.prefWidth(-1);
+            double h = pill.getHeight() > 0 ? pill.getHeight() : pill.prefHeight(-1);
+            popup.setX(owner.getX() + owner.getWidth() - w - 26.0);
+            popup.setY(owner.getY() + owner.getHeight() - h - 28.0);
+
+            FadeTransition fadeIn = new FadeTransition(Duration.millis(190), pill);
+            fadeIn.setFromValue(0.0);
+            fadeIn.setToValue(1.0);
+            fadeIn.setInterpolator(Interpolator.EASE_OUT);
+
+            TranslateTransition slideUp = new TranslateTransition(Duration.millis(190), pill);
+            slideUp.setFromY(14.0);
+            slideUp.setToY(0.0);
+            slideUp.setInterpolator(Interpolator.EASE_OUT);
+
+            PauseTransition hold = new PauseTransition(Duration.millis(2100));
+
+            FadeTransition fadeOut = new FadeTransition(Duration.millis(220), pill);
+            fadeOut.setFromValue(1.0);
+            fadeOut.setToValue(0.0);
+            fadeOut.setInterpolator(Interpolator.EASE_IN);
+
+            TranslateTransition slideDown = new TranslateTransition(Duration.millis(220), pill);
+            slideDown.setFromY(0.0);
+            slideDown.setToY(8.0);
+
+            SequentialTransition seq = new SequentialTransition(
+                    new ParallelTransition(fadeIn, slideUp),
+                    hold,
+                    new ParallelTransition(fadeOut, slideDown)
+            );
+            seq.setOnFinished(e -> popup.hide());
+            seq.play();
+        });
     }
 }

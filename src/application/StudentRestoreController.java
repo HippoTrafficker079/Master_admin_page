@@ -12,8 +12,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.layout.Region;
 import javafx.stage.Stage;
+import javafx.stage.Window;
 
 public class StudentRestoreController {
 
@@ -27,13 +27,16 @@ public class StudentRestoreController {
     @FXML private Button btnRestore;
     @FXML private Button btnCancel;
 
-    private ObservableList<Student> deletedData = FXCollections.observableArrayList();
+    private final ObservableList<Student> deletedData = FXCollections.observableArrayList();
     private boolean recordRestored = false;
 
     @FXML
     public void initialize() {
-        // Enable multiple selection (Ctrl / Shift)
         deletedTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+
+        UIAnimator.attachTableRowHover(deletedTable);
+        UIAnimator.attachButtonHover(btnRestore);
+        UIAnimator.attachButtonHover(btnCancel);
 
         colRollNo.setCellValueFactory(cellData -> cellData.getValue().rollNoProperty());
         colName.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
@@ -55,10 +58,12 @@ public class StudentRestoreController {
     private void handleRestoreSelected() {
         ObservableList<Student> selected = deletedTable.getSelectionModel().getSelectedItems();
         if (selected == null || selected.isEmpty()) {
+            UIAnimator.playShake(btnRestore);
             showAlert("No Selection", "Please select at least one student row to restore.", Alert.AlertType.WARNING);
             return;
         }
 
+        UIAnimator.playTapPulse(btnRestore);
         List<Integer> idsToRestore = selected.stream()
                 .map(Student::getNo)
                 .collect(Collectors.toList());
@@ -68,7 +73,6 @@ public class StudentRestoreController {
 
         if (success) {
             recordRestored = true;
-            showAlert("Success", selected.size() + " student record(s) have been successfully restored.", Alert.AlertType.INFORMATION);
             closeWindow();
         } else {
             showAlert("Database Error", "Failed to restore selected records.", Alert.AlertType.ERROR);
@@ -77,6 +81,7 @@ public class StudentRestoreController {
 
     @FXML
     private void handleCancel() {
+        UIAnimator.playTapPulse(btnCancel);
         closeWindow();
     }
 
@@ -90,15 +95,7 @@ public class StudentRestoreController {
     }
 
     private void showAlert(String title, String message, Alert.AlertType type) {
-        Alert alert = new Alert(type);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.getDialogPane().setMinWidth(400);
-        alert.getDialogPane().setMinHeight(Region.USE_PREF_SIZE);
-        if (deletedTable.getScene() != null && deletedTable.getScene().getWindow() != null) {
-            alert.initOwner(deletedTable.getScene().getWindow());
-        }
-        alert.showAndWait();
+        Window owner = (deletedTable.getScene() != null) ? deletedTable.getScene().getWindow() : null;
+        AlertHelper.show(owner, type, title, null, message);
     }
 }

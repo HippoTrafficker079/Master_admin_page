@@ -284,7 +284,6 @@ public class StudentController {
                 if (root instanceof BorderPane) {
                     ((BorderPane) root).setCenter(addStudentView);
                     UIAnimator.playViewEntrance(addStudentView);
-                    UIAnimator.attachAllButtonAnimations(addStudentView);
                 }
             }
         } catch (IOException e) {
@@ -418,6 +417,7 @@ public class StudentController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("StudentRestore.fxml"));
             Parent root = loader.load();
+            UIAnimator.attachAllButtonAnimations(root);
 
             StudentRestoreController controller = loader.getController();
 
@@ -437,6 +437,7 @@ public class StudentController {
                 refreshDataFromDatabase();
                 UIAnimator.playTableFilterFade(studentTable);
                 AttendanceController.refreshLive();
+                UIAnimator.showToast(rootPane, "Selected student record(s) restored successfully");
             }
         } catch (IOException e) {
             e.printStackTrace();

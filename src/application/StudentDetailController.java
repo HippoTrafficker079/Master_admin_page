@@ -45,9 +45,11 @@ public class StudentDetailController {
 
                 int insertIndex = contentContainer.getChildren().isEmpty() ? 0 : 1;
                 contentContainer.getChildren().add(insertIndex, bannerBox);
+
                 UIAnimator.playBannerPop(bannerBox);
                 UIAnimator.attachDetailCardHover(bannerBox);
                 UIAnimator.attachSectionCardHovers(contentContainer);
+                UIAnimator.playSectionCardStagger(contentContainer);
             }
 
             if (lblRollNo != null) lblRollNo.setText(safe(student.getRollNo()));

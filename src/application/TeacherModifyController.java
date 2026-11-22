@@ -196,12 +196,10 @@ public class TeacherModifyController {
 
                     event.consume();
                     Platform.runLater(() -> {
-                        Alert alert = new Alert(Alert.AlertType.WARNING);
-                        alert.setTitle("Action Restricted");
-                        alert.setHeaderText(null);
-                        alert.setContentText("Please press backspace once to clear first.");
-                        alert.getDialogPane().setMinWidth(380);
-                        alert.showAndWait();
+                        UIAnimator.playShake(comboNrcTownship);
+                        javafx.stage.Window owner = (comboNrcTownship != null && comboNrcTownship.getScene() != null)
+                                ? comboNrcTownship.getScene().getWindow() : null;
+                        AlertHelper.showWarning(owner, "Action Restricted", "Please press backspace once to clear first.");
                     });
                 }
             });
@@ -576,6 +574,8 @@ public class TeacherModifyController {
         String gender = comboGender != null && comboGender.getValue() != null ? comboGender.getValue().trim() : "Male";
 
         if (rawNrc.isEmpty()) {
+            UIAnimator.playShake(txtNrcNumber);
+            if (txtNrcNumber != null) txtNrcNumber.requestFocus();
             showAlert("Incomplete NRC", "Please complete all structured NRC fields (State, Township, Type, and 6-digit Number).", Alert.AlertType.ERROR);
             return;
         }
@@ -591,6 +591,8 @@ public class TeacherModifyController {
         }
 
         if (!rawCode.matches("^[a-zA-Z]+-[a-zA-Z0-9]+-\\d+$")) {
+            UIAnimator.playShake(txtTeacherId);
+            if (txtTeacherId != null) txtTeacherId.requestFocus();
             showAlert("Invalid Teacher ID Format", "Teacher ID must be in format: [Prefix]-[Department]-[Number] (e.g., TCH-CEIT-101).", Alert.AlertType.ERROR);
             return;
         }
@@ -599,6 +601,13 @@ public class TeacherModifyController {
         String validatedDept = findValidDepartment(rawDept);
         String validatedPos = findValidPosition(rawPos);
         if (validatedDept == null || validatedPos == null) {
+            if (validatedDept == null) {
+                UIAnimator.playShake(comboDept);
+                if (comboDept != null) comboDept.requestFocus();
+            } else {
+                UIAnimator.playShake(comboPosition);
+                if (comboPosition != null) comboPosition.requestFocus();
+            }
             showAlert("Invalid Selection", "Selected Department or Position is invalid.", Alert.AlertType.ERROR);
             return;
         }
@@ -606,18 +615,26 @@ public class TeacherModifyController {
         String standardizedCode = parts[0].trim() + "-" + validatedDept + "-" + parts[2].trim();
 
         if (!rawDob.matches("^\\d{4}-\\d{1,2}-\\d{1,2}$")) {
+            UIAnimator.playShake(txtDob);
+            if (txtDob != null) txtDob.requestFocus();
             showAlert("Invalid Date of Birth", "Date of Birth must be in YYYY-MM-DD format (e.g., 1985-05-15).", Alert.AlertType.ERROR);
             return;
         }
         if (!rawPhone.matches("^09-\\d+$")) {
+            UIAnimator.playShake(txtPhone);
+            if (txtPhone != null) txtPhone.requestFocus();
             showAlert("Invalid Phone Number", "Phone number must be in the format 09-xxxxxxxx.", Alert.AlertType.ERROR);
             return;
         }
         if (!rawEmail.contains("@")) {
+            UIAnimator.playShake(txtEmail);
+            if (txtEmail != null) txtEmail.requestFocus();
             showAlert("Invalid Email Address", "Email address must contain '@'.", Alert.AlertType.ERROR);
             return;
         }
         if (!rawYearComp.matches("^\\d{4}$")) {
+            UIAnimator.playShake(txtYearCompleted);
+            if (txtYearCompleted != null) txtYearCompleted.requestFocus();
             showAlert("Invalid Year Completed", "Year Completed must be a 4-digit year (e.g., 2012).", Alert.AlertType.ERROR);
             return;
         }
@@ -641,12 +658,15 @@ public class TeacherModifyController {
         currentTeacher.setEmergencyContact(rawEmergency);
         if (updatedPhotoPath != null) currentTeacher.setPhotoPath(updatedPhotoPath);
 
+        javafx.stage.Window owner = (txtTeacherId != null && txtTeacherId.getScene() != null)
+                ? txtTeacherId.getScene().getWindow() : null;
+
         Alert confirmAlert = new Alert(Alert.AlertType.CONFIRMATION);
         confirmAlert.setTitle("Confirm Update");
         confirmAlert.setHeaderText("Save Changes");
         confirmAlert.setContentText("Are you sure you want to update this teacher's record?");
-        if (txtTeacherId != null && txtTeacherId.getScene() != null) {
-            confirmAlert.initOwner(txtTeacherId.getScene().getWindow());
+        if (owner != null) {
+            confirmAlert.initOwner(owner);
         }
         AlertHelper.styleAlert(confirmAlert, false);
         java.util.Optional<javafx.scene.control.ButtonType> result = confirmAlert.showAndWait();
@@ -659,8 +679,8 @@ public class TeacherModifyController {
                 TeacherController.refreshLive();
                 AttendanceController.refreshLive();
                 DashboardController.refreshDashboard();
-                showAlert("Success", "Faculty record for '" + rawName + "' has been updated in the database.", Alert.AlertType.INFORMATION);
                 handleReturn();
+                UIAnimator.showToast(owner, "Faculty record for '" + rawName + "' updated");
             } else {
                 showAlert("Database Error", "Failed to update faculty record in the database. Please ensure the NRC is unique and valid.", Alert.AlertType.ERROR);
             }
@@ -678,7 +698,7 @@ public class TeacherModifyController {
                 currentTeacher = fresh;
             }
             initData(currentTeacher);
-            showAlert("Data Reset", "Form reset to original database record data.", Alert.AlertType.INFORMATION);
+            UIAnimator.showToast(contentContainer, "Form reset to original database record");
         }
     }
 

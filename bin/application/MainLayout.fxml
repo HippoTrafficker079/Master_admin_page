@@ -6,12 +6,13 @@
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
-<?import javafx.scene.layout.Region?>
 
 <BorderPane fx:id="mainBorderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="1000.0" style="-fx-background-color: #eef2f7;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.MainController">
-   
+
    <!-- Left Sidebar Navigation -->
    <left>
       <VBox alignment="TOP_CENTER" prefHeight="700.0" prefWidth="240.0" style="-fx-background-color: #395d87;" BorderPane.alignment="CENTER">
@@ -24,7 +25,7 @@
                   <Insets bottom="10.0" top="25.0" />
                </VBox.margin>
             </ImageView>
-            
+
             <Label alignment="CENTER" prefHeight="50.0" prefWidth="240.0" text="STUDENT INFORMATION&#10;MANAGEMENT" textAlignment="CENTER" textFill="WHITE">
                <font>
                   <Font name="System Bold" size="14.0" />
@@ -33,46 +34,62 @@
                   <Insets bottom="20.0" />
                </VBox.margin>
             </Label>
-            
-            <!-- Dashboard Nav Button -->
-			<Button fx:id="btnDashboard" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showDashboardView" prefHeight="45.0" prefWidth="240.0" styleClass="sidebar-button" text="  🏠  Dashboard">
-   				<font><Font size="14.0" /></font>
-   				<padding><Insets left="25.0" /></padding>
-			</Button>
-            
-            <!-- Manage Students Nav Button -->
-            <Button fx:id="btnManageStudent" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showStudentView" prefHeight="45.0" prefWidth="240.0" styleClass="sidebar-button" text="  👥  Manage Students">
-               <font><Font size="14.0" /></font>
-               <padding><Insets left="25.0" /></padding>
-            </Button>
-            
-            <!-- Manage Teacher Nav Button -->
-            <Button fx:id="btnManageTeacher" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showTeacherView" prefHeight="45.0" prefWidth="240.0" styleClass="sidebar-button" text="  👤  Manage Teacher">
-               <font><Font name="System Bold" size="14.0" /></font>
-               <padding><Insets left="25.0" /></padding>
-            </Button>
-            
-            <!-- Attendance Nav Button -->
-		     <Button fx:id="btnAttendance" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showAttendanceView" prefHeight="45.0" prefWidth="240.0" styleClass="sidebar-button" text="  📅  Attendance">
-		        <font><Font size="14.0" /></font>
-		        <padding><Insets left="25.0" /></padding>
-		     </Button>
-		
-		     <!-- Flexible Spacer: pushes the YTU building flush to the bottom edge -->
-		     <Region VBox.vgrow="ALWAYS" />
-		
-		     <!-- Bottom YTU Building Graphic -->
-		     <ImageView fitWidth="240.0"
-		                mouseTransparent="true"
-		                pickOnBounds="true"
-		                preserveRatio="true"
-		                smooth="true">
-		        <image>
-		           <Image url="@YTU_building.png" />
-		        </image>
-		     </ImageView>
-		  </children>
-		</VBox>
+
+            <!-- Nav Buttons + Sliding Active Accent Bar -->
+            <StackPane alignment="TOP_LEFT">
+               <children>
+                  <VBox>
+                     <children>
+                        <!-- Dashboard Nav Button -->
+                        <Button fx:id="btnDashboard" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showDashboardView" prefHeight="45.0" prefWidth="240.0" styleClass="sidebar-button" text="  🏠  Dashboard">
+                           <font><Font size="14.0" /></font>
+                           <padding><Insets left="25.0" /></padding>
+                        </Button>
+
+                        <!-- Manage Students Nav Button -->
+                        <Button fx:id="btnManageStudent" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showStudentView" prefHeight="45.0" prefWidth="240.0" styleClass="sidebar-button" text="  👥  Manage Students">
+                           <font><Font size="14.0" /></font>
+                           <padding><Insets left="25.0" /></padding>
+                        </Button>
+
+                        <!-- Manage Teacher Nav Button -->
+                        <Button fx:id="btnManageTeacher" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showTeacherView" prefHeight="45.0" prefWidth="240.0" styleClass="sidebar-button" text="  👤  Manage Teacher">
+                           <font><Font size="14.0" /></font>
+                           <padding><Insets left="25.0" /></padding>
+                        </Button>
+
+                        <!-- Attendance Nav Button -->
+                        <Button fx:id="btnAttendance" alignment="BASELINE_LEFT" mnemonicParsing="false" onAction="#showAttendanceView" prefHeight="45.0" prefWidth="240.0" styleClass="sidebar-button" text="  📅  Attendance">
+                           <font><Font size="14.0" /></font>
+                           <padding><Insets left="25.0" /></padding>
+                        </Button>
+                     </children>
+                  </VBox>
+
+                  <!-- Sliding 4px Sky-Blue Active Indicator -->
+                  <Region fx:id="sidebarIndicator"
+                          mouseTransparent="true"
+                          minWidth="4.0" prefWidth="4.0" maxWidth="4.0"
+                          minHeight="33.0" prefHeight="33.0" maxHeight="33.0"
+                          style="-fx-background-color: #38bdf8; -fx-background-radius: 0 4 4 0;" />
+               </children>
+            </StackPane>
+
+            <!-- Flexible Spacer: keeps the YTU building pinned flush to the bottom -->
+            <Region VBox.vgrow="ALWAYS" />
+
+            <!-- Bottom YTU Building Graphic -->
+            <ImageView fitWidth="240.0"
+                       mouseTransparent="true"
+                       pickOnBounds="true"
+                       preserveRatio="true"
+                       smooth="true">
+               <image>
+                  <Image url="@YTU_building.png" />
+               </image>
+            </ImageView>
+         </children>
+      </VBox>
    </left>
 
 </BorderPane>

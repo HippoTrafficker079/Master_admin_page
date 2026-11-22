@@ -1,12 +1,14 @@
 package application;
 
 import java.io.IOException;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Region;
 
 public class MainController {
 
@@ -15,6 +17,7 @@ public class MainController {
     @FXML private Button btnManageTeacher;
     @FXML private Button btnManageStudent;
     @FXML private Button btnAttendance;
+    @FXML private Region sidebarIndicator;
 
     private Parent dashboardView;
     private DashboardController dashboardController;
@@ -36,7 +39,7 @@ public class MainController {
             // Default startup view (Dashboard tab active)
             mainBorderPane.setCenter(dashboardView);
             UIAnimator.playViewEntrance(dashboardView);
-            setActiveButton(btnDashboard);
+            setActiveButton(btnDashboard, false);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -48,7 +51,7 @@ public class MainController {
         UIAnimator.playTapPulse(btnDashboard);
         mainBorderPane.setCenter(dashboardView);
         UIAnimator.playViewEntrance(dashboardView);
-        setActiveButton(btnDashboard);
+        setActiveButton(btnDashboard, true);
         if (dashboardController != null) {
             DashboardController.refreshDashboard();
         }
@@ -59,7 +62,7 @@ public class MainController {
         UIAnimator.playTapPulse(btnManageTeacher);
         mainBorderPane.setCenter(teacherView);
         UIAnimator.playViewEntrance(teacherView);
-        setActiveButton(btnManageTeacher);
+        setActiveButton(btnManageTeacher, true);
         TeacherController.refreshLive();
     }
 
@@ -68,7 +71,7 @@ public class MainController {
         UIAnimator.playTapPulse(btnManageStudent);
         mainBorderPane.setCenter(studentView);
         UIAnimator.playViewEntrance(studentView);
-        setActiveButton(btnManageStudent);
+        setActiveButton(btnManageStudent, true);
         StudentController.refreshLive();
     }
 
@@ -77,33 +80,18 @@ public class MainController {
         UIAnimator.playTapPulse(btnAttendance);
         mainBorderPane.setCenter(attendanceView);
         UIAnimator.playViewEntrance(attendanceView);
-        setActiveButton(btnAttendance);
+        setActiveButton(btnAttendance, true);
         AttendanceController.refreshLive();
     }
 
-    private void setActiveButton(Button activeBtn) {
-        if (btnDashboard != null) {
-            btnDashboard.getStyleClass().remove("sidebar-button-active");
-            if (!btnDashboard.getStyleClass().contains("sidebar-button")) {
-                btnDashboard.getStyleClass().add("sidebar-button");
-            }
-        }
-        if (btnManageTeacher != null) {
-            btnManageTeacher.getStyleClass().remove("sidebar-button-active");
-            if (!btnManageTeacher.getStyleClass().contains("sidebar-button")) {
-                btnManageTeacher.getStyleClass().add("sidebar-button");
-            }
-        }
-        if (btnManageStudent != null) {
-            btnManageStudent.getStyleClass().remove("sidebar-button-active");
-            if (!btnManageStudent.getStyleClass().contains("sidebar-button")) {
-                btnManageStudent.getStyleClass().add("sidebar-button");
-            }
-        }
-        if (btnAttendance != null) {
-            btnAttendance.getStyleClass().remove("sidebar-button-active");
-            if (!btnAttendance.getStyleClass().contains("sidebar-button")) {
-                btnAttendance.getStyleClass().add("sidebar-button");
+    private void setActiveButton(Button activeBtn, boolean animateIndicator) {
+        Button[] allButtons = { btnDashboard, btnManageStudent, btnManageTeacher, btnAttendance };
+        for (Button btn : allButtons) {
+            if (btn != null) {
+                btn.getStyleClass().remove("sidebar-button-active");
+                if (!btn.getStyleClass().contains("sidebar-button")) {
+                    btn.getStyleClass().add("sidebar-button");
+                }
             }
         }
         if (activeBtn != null) {
@@ -111,6 +99,7 @@ public class MainController {
             if (!activeBtn.getStyleClass().contains("sidebar-button-active")) {
                 activeBtn.getStyleClass().add("sidebar-button-active");
             }
+            UIAnimator.moveSidebarIndicator(sidebarIndicator, activeBtn, animateIndicator);
         }
     }
 }
