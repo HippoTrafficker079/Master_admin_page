@@ -1,6 +1,7 @@
 package application;
 
 import java.io.IOException;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -36,6 +37,8 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 public class TeacherController {
 
     @FXML private VBox rootPane;
@@ -61,7 +64,8 @@ public class TeacherController {
     private ComboBox<String> deptHeaderCombo;
     private ComboBox<String> posHeaderCombo;
 
-    private Timeline liveSyncTimeline;
+    private static Timeline liveSyncTimeline;
+    private final AtomicBoolean isSyncing = new AtomicBoolean(false);
     private String lastDataSignature = "";
 
     public static void refreshLive() {
@@ -155,8 +159,11 @@ public class TeacherController {
         if (liveSyncTimeline != null) {
             liveSyncTimeline.stop();
         }
-        liveSyncTimeline = new Timeline(new KeyFrame(Duration.seconds(3), event -> {
-            if (rootPane != null && rootPane.getScene() != null && rootPane.getParent() != null) {
+        liveSyncTimeline = new Timeline(new KeyFrame(Duration.seconds(10), event -> {
+            if (rootPane != null && rootPane.getScene() != null
+                    && rootPane.getScene().getWindow() != null
+                    && rootPane.getScene().getWindow().isShowing()
+                    && rootPane.getParent() != null) {
                 syncFromDatabaseSilently();
             }
         }));
@@ -165,6 +172,11 @@ public class TeacherController {
     }
 
     private void syncFromDatabaseSilently() {
+        // Skip if a previous database sync is still in progress
+        if (!isSyncing.compareAndSet(false, true)) {
+            return;
+        }
+
         String searchText = (searchField != null && searchField.getText() != null) ? searchField.getText().trim() : "";
         String selectedDept = deptHeaderCombo != null ? deptHeaderCombo.getValue() : "All Departments";
         String selectedPos = posHeaderCombo != null ? posHeaderCombo.getValue() : "All Positions";
@@ -178,6 +190,7 @@ public class TeacherController {
         };
 
         fetchTask.setOnSucceeded(e -> {
+            isSyncing.set(false);
             List<Teacher> latestList = fetchTask.getValue();
             if (latestList == null) return;
 
@@ -212,6 +225,9 @@ public class TeacherController {
                 DashboardController.refreshDashboard();
             }
         });
+
+        fetchTask.setOnFailed(e -> isSyncing.set(false));
+        fetchTask.setOnCancelled(e -> isSyncing.set(false));
 
         Thread bgThread = new Thread(fetchTask, "TeacherLiveSyncThread");
         bgThread.setDaemon(true);

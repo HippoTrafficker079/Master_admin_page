@@ -1,6 +1,7 @@
 package application;
 
 import java.io.IOException;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -35,6 +36,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import javafx.util.Duration;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class StudentController {
 
@@ -63,7 +65,8 @@ public class StudentController {
     private ComboBox<String> yearHeaderCombo;
     private ComboBox<String> semesterHeaderCombo;
 
-    private Timeline liveSyncTimeline;
+    private static Timeline liveSyncTimeline;
+    private final AtomicBoolean isSyncing = new AtomicBoolean(false);
     private String lastDataSignature = "";
 
     public static void refreshLive() {
@@ -71,7 +74,7 @@ public class StudentController {
             Platform.runLater(() -> instance.syncFromDatabaseSilently());
         }
     }
-
+    
     @FXML
     public void initialize() {
         instance = this;

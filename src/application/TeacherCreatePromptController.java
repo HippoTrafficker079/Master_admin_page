@@ -133,19 +133,19 @@ public class TeacherCreatePromptController {
 
     @FXML
     public void handleBackToManage() {
-        try {
-            Parent teacherView = FXMLLoader.load(getClass().getResource("TeacherContents.fxml"));
+        Parent teacherView = TeacherController.getView();
+        if (teacherView != null && rootPane != null && rootPane.getScene() != null) {
             BorderPane mainLayout = (BorderPane) rootPane.getScene().lookup("#mainBorderPane");
             if (mainLayout != null) {
                 mainLayout.setCenter(teacherView);
+                UIAnimator.playViewEntrance(teacherView);
             } else {
                 Parent root = rootPane.getScene().getRoot();
                 if (root instanceof BorderPane) {
                     ((BorderPane) root).setCenter(teacherView);
+                    UIAnimator.playViewEntrance(teacherView);
                 }
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

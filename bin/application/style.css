@@ -1184,3 +1184,104 @@
     -fx-border-radius: 3px 0 0 3px;
     -fx-effect: none;
 }
+
+/* =========================================================================
+   19. CUSTOM SCROLLPANES & MODERN SLATE-NAVY SCROLLBARS
+   Removes Modena's default gray frame/focus border and styles slim rounded
+   pill scrollbars matching the YTU slate-navy palette.
+   ========================================================================= */
+.scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+}
+
+.scroll-pane:focused {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .corner {
+    -fx-background-color: transparent;
+}
+
+/* Slim Vertical & Horizontal Scrollbar Containers */
+.scroll-bar:vertical,
+.scroll-bar:horizontal {
+    -fx-background-color: transparent;
+    -fx-padding: 2px;
+}
+
+.scroll-bar:vertical {
+    -fx-pref-width: 11px;
+    -fx-min-width: 11px;
+    -fx-max-width: 11px;
+}
+
+.scroll-bar:horizontal {
+    -fx-pref-height: 11px;
+    -fx-min-height: 11px;
+    -fx-max-height: 11px;
+}
+
+/* Subtle Track Background */
+.scroll-bar:vertical .track-background,
+.scroll-bar:horizontal .track-background {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical .track,
+.scroll-bar:horizontal .track {
+    -fx-background-color: rgba(148, 163, 184, 0.14);
+    -fx-background-radius: 999px;
+    -fx-border-color: transparent;
+}
+
+/* Rounded Pill Thumb (Slate -> YTU Steel Navy Hover -> Deep Navy Pressed) */
+.scroll-bar:vertical .thumb,
+.scroll-bar:horizontal .thumb {
+    -fx-background-color: #94a3b8;
+    -fx-background-insets: 1px;
+    -fx-background-radius: 999px;
+    -fx-cursor: hand;
+}
+
+.scroll-bar:vertical .thumb:hover,
+.scroll-bar:horizontal .thumb:hover {
+    -fx-background-color: #395d87;
+}
+
+.scroll-bar:vertical .thumb:pressed,
+.scroll-bar:horizontal .thumb:pressed {
+    -fx-background-color: #1e3a8a;
+}
+
+/* Hide Default Up/Down/Left/Right Arrow Buttons for a Clean Modern Look */
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-pref-width: 0;
+    -fx-pref-height: 0;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+    -fx-background-color: transparent;
+}
+
+/* Extra-Slim Scrollbars Inside Opened ComboBox Dropdown Menus */
+.combo-box-popup .list-view .scroll-bar:vertical {
+    -fx-pref-width: 8px;
+    -fx-min-width: 8px;
+    -fx-max-width: 8px;
+    -fx-padding: 2px 1px;
+}

@@ -123,18 +123,14 @@ public class StudentCreatePromptController {
 
     @FXML
     public void handleBackToManage() {
-        try {
+        
             Parent root = rootPane.getScene().getRoot();
             if (root instanceof BorderPane) {
                 BorderPane mainLayout = (BorderPane) root;
-                Parent studentView = FXMLLoader.load(getClass().getResource("StudentContent.fxml"));
+                Parent studentView = StudentController.getView();
                 mainLayout.setCenter(studentView);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+          }
     }
-
     private void showAlert(String title, String message, Alert.AlertType type) {
         Alert alert = new Alert(type);
         alert.setTitle(title);
