@@ -39,9 +39,10 @@ public class Main extends Application {
 
     private void loadAppIcon(Stage stage) {
         String[] candidatePaths = {
-                "YTU_logo.png", "ytu_logo.png", "logo.png",
-                "/YTU_logo.png", "/ytu_logo.png", "/logo.png",
-                "YTU_building.png", "/YTU_building.png"
+                "YTU_app_icon.png", "/YTU_app_icon.png",
+                "YTU_logos.png", "/YTU_logos.png",
+                "YTU_logos.jpg", "/YTU_logos.jpg",
+                "YTU_logo.png", "/YTU_logo.png"
         };
         for (String path : candidatePaths) {
             try (InputStream is = getClass().getResourceAsStream(path)) {
