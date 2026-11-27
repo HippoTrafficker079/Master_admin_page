@@ -11,13 +11,18 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
+
 <BorderPane fx:id="mainBorderPane" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="700.0" prefWidth="1000.0" style="-fx-background-color: #eef2f7;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.MainController">
 
    <!-- Left Sidebar Navigation -->
    <left>
       <VBox alignment="TOP_CENTER" prefHeight="700.0" prefWidth="240.0" style="-fx-background-color: #395d87;" BorderPane.alignment="CENTER">
          <children>
-            <ImageView fitHeight="96.0" fitWidth="207.0" pickOnBounds="true" preserveRatio="true">
+            <ImageView fx:id="ytuLogoImageView"
+           fitWidth="212.0"
+           fitHeight="100.0"
+           pickOnBounds="true"
+           preserveRatio="true">
                <image>
                   <Image url="@YTU_logo.png" />
                </image>

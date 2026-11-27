@@ -761,4 +761,162 @@ public final class UIAnimator {
         Node focusOwner = scene.getFocusOwner();
         return focusOwner instanceof javafx.scene.control.TextInputControl;
     }
+    
+    /**
+     * 2. Sky-Blue Shimmer Sweep: Glides a diagonal light sheen strictly across the opaque
+     * pixels of YTU_logo.png every ~4.2 seconds.
+     */
+    public static void attachLogoShimmer(javafx.scene.image.ImageView logo) {
+        if (logo == null || logo.getImage() == null
+                || Boolean.TRUE.equals(logo.getProperties().get("uiAnimatorShimmer"))) {
+            return;
+        }
+        if (!(logo.getParent() instanceof javafx.scene.layout.Pane parent)) {
+            return;
+        }
+        logo.getProperties().put("uiAnimatorShimmer", Boolean.TRUE);
+
+        double boundsW = logo.getBoundsInLocal().getWidth();
+        double boundsH = logo.getBoundsInLocal().getHeight();
+        double w = boundsW > 0 ? boundsW : (logo.getFitWidth() > 0 ? logo.getFitWidth() : 185.0);
+        double h = boundsH > 0 ? boundsH : (logo.getFitHeight() > 0 ? logo.getFitHeight() : 85.0);
+
+        // Clone the logo ImageView to act as an exact alpha mask
+        javafx.scene.image.ImageView mask = new javafx.scene.image.ImageView(logo.getImage());
+        mask.setFitWidth(logo.getFitWidth());
+        mask.setFitHeight(logo.getFitHeight());
+        mask.setPreserveRatio(logo.isPreserveRatio());
+        mask.setSmooth(true);
+
+        // Diagonal sky-blue & white sheen gradient
+        javafx.scene.paint.LinearGradient sheenGradient = new javafx.scene.paint.LinearGradient(
+                0, 0, 1, 0, true, javafx.scene.paint.CycleMethod.NO_CYCLE,
+                new javafx.scene.paint.Stop(0.00, Color.TRANSPARENT),
+                new javafx.scene.paint.Stop(0.42, Color.rgb(186, 230, 253, 0.45)),
+                new javafx.scene.paint.Stop(0.50, Color.rgb(255, 255, 255, 0.85)),
+                new javafx.scene.paint.Stop(0.58, Color.rgb(186, 230, 253, 0.45)),
+                new javafx.scene.paint.Stop(1.00, Color.TRANSPARENT)
+        );
+
+        javafx.scene.shape.Rectangle beam = new javafx.scene.shape.Rectangle(w * 0.42, h * 2.0, sheenGradient);
+        beam.setRotate(22);
+        beam.setTranslateX(-w);
+        beam.setTranslateY(-h * 0.45);
+
+        javafx.scene.layout.Pane shimmerLayer = new javafx.scene.layout.Pane(beam);
+        shimmerLayer.setPrefSize(w, h);
+        shimmerLayer.setMaxSize(w, h);
+        shimmerLayer.setMouseTransparent(true);
+        shimmerLayer.setClip(mask);
+
+        // Swap logo into a StackPane at the exact same index & layout position
+        int idx = parent.getChildren().indexOf(logo);
+        javafx.geometry.Insets oldVBoxMargin = javafx.scene.layout.VBox.getMargin(logo);
+        double oldLayoutX = logo.getLayoutX();
+        double oldLayoutY = logo.getLayoutY();
+
+        parent.getChildren().remove(idx);
+
+        javafx.scene.layout.StackPane wrapper = new javafx.scene.layout.StackPane(logo, shimmerLayer);
+        wrapper.setAlignment(javafx.geometry.Pos.CENTER);
+        wrapper.setMaxSize(javafx.scene.layout.Region.USE_PREF_SIZE, javafx.scene.layout.Region.USE_PREF_SIZE);
+        wrapper.setLayoutX(oldLayoutX);
+        wrapper.setLayoutY(oldLayoutY);
+        if (oldVBoxMargin != null) {
+            javafx.scene.layout.VBox.setMargin(wrapper, oldVBoxMargin);
+            javafx.scene.layout.VBox.setMargin(logo, null);
+        }
+
+        parent.getChildren().add(idx, wrapper);
+        logo.getProperties().put("uiAnimatorLogoWrapper", wrapper);
+
+        // Sweep animation: 950ms glide, then 4.2s pause, repeating smoothly
+        TranslateTransition sweep = new TranslateTransition(Duration.millis(950), beam);
+        sweep.setFromX(-w * 0.85);
+        sweep.setToX(w * 1.35);
+        sweep.setInterpolator(Interpolator.EASE_BOTH);
+
+        javafx.animation.SequentialTransition loop = new javafx.animation.SequentialTransition(
+                new javafx.animation.PauseTransition(Duration.seconds(1.2)),
+                sweep,
+                new javafx.animation.PauseTransition(Duration.seconds(4.2))
+        );
+        loop.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        loop.play();
+    }
+
+    /**
+     * 1. Startup Reveal: Smooth fade + scale + soft glow flash when the app launches.
+     */
+    public static void playLogoEntrance(javafx.scene.image.ImageView logo) {
+        if (logo == null) return;
+        Node target = (logo.getProperties().get("uiAnimatorLogoWrapper") instanceof Node w) ? w : logo;
+
+        target.setOpacity(0.0);
+        target.setScaleX(0.90);
+        target.setScaleY(0.90);
+
+        javafx.scene.effect.Glow glow = new javafx.scene.effect.Glow(0.65);
+        target.setEffect(glow);
+
+        FadeTransition fade = new FadeTransition(Duration.millis(480), target);
+        fade.setFromValue(0.0);
+        fade.setToValue(1.0);
+        fade.setInterpolator(Interpolator.EASE_OUT);
+
+        ScaleTransition scale = new ScaleTransition(Duration.millis(480), target);
+        scale.setFromX(0.90);
+        scale.setFromY(0.90);
+        scale.setToX(1.0);
+        scale.setToY(1.0);
+        scale.setInterpolator(Interpolator.EASE_OUT);
+
+        Timeline fadeGlow = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(glow.levelProperty(), 0.65)),
+                new KeyFrame(Duration.millis(700), new KeyValue(glow.levelProperty(), 0.0, Interpolator.EASE_OUT))
+        );
+
+        ParallelTransition entrance = new ParallelTransition(fade, scale, fadeGlow);
+        entrance.setOnFinished(e -> {
+            if (target.getEffect() == glow) {
+                target.setEffect(null);
+            }
+        });
+        entrance.play();
+    }
+
+    /**
+     * 4. Interactive Hover Aura (hover-only, no navigation on click).
+     */
+    public static void attachLogoHover(javafx.scene.image.ImageView logo) {
+        if (logo == null || Boolean.TRUE.equals(logo.getProperties().get("uiAnimatorLogoHover"))) {
+            return;
+        }
+        logo.getProperties().put("uiAnimatorLogoHover", Boolean.TRUE);
+        Node target = (logo.getProperties().get("uiAnimatorLogoWrapper") instanceof Node w) ? w : logo;
+
+        // Subtle cyan-blue edge glow matching your active sidebar accent bar (#38BDF8)
+        DropShadow hoverGlow = new DropShadow(12.0, 0.0, 2.0, Color.rgb(56, 189, 248, 0.42));
+        // Alternative: crisp dark-navy 3D lift shadow instead of a glow:
+        // DropShadow hoverGlow = new DropShadow(14.0, 0.0, 4.0, Color.rgb(15, 23, 42, 0.55));
+
+        target.addEventHandler(MouseEvent.MOUSE_ENTERED, e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(160), target);
+            st.setToX(1.04);
+            st.setToY(1.04);
+            st.setInterpolator(Interpolator.EASE_OUT);
+            st.play();
+            target.setEffect(hoverGlow);
+        });
+
+        target.addEventHandler(MouseEvent.MOUSE_EXITED, e -> {
+            ScaleTransition st = new ScaleTransition(Duration.millis(160), target);
+            st.setToX(1.0);
+            st.setToY(1.0);
+            st.setInterpolator(Interpolator.EASE_OUT);
+            st.play();
+            target.setEffect(null);
+        });
+    }
+    
 }

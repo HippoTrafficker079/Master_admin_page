@@ -18,6 +18,7 @@ public class MainController {
     @FXML private Button btnManageStudent;
     @FXML private Button btnAttendance;
     @FXML private Region sidebarIndicator;
+    @FXML private javafx.scene.image.ImageView ytuLogoImageView;
 
     private Parent dashboardView;
     private DashboardController dashboardController;
@@ -59,6 +60,11 @@ public class MainController {
                     }
                 }
             });
+            if (ytuLogoImageView != null) {
+                UIAnimator.attachLogoShimmer(ytuLogoImageView);
+                UIAnimator.playLogoEntrance(ytuLogoImageView);
+                UIAnimator.attachLogoHover(ytuLogoImageView);
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
