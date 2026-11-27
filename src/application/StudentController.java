@@ -162,6 +162,37 @@ public class StudentController {
         studentTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
 
         startLiveDatabaseSync();
+        
+        UIAnimator.setEmptyTablePlaceholder(
+                studentTable,
+                "\uD83C\uDF93",
+                "No Students Found",
+                "No student records match your current search or filters. Click Reset or press Ctrl+R to view all.");
+
+        UIAnimator.attachShortcutHandler(rootPane, event -> {
+            if (event.isControlDown()) {
+                switch (event.getCode()) {
+                    case F -> {
+                        if (searchField != null) { searchField.requestFocus(); searchField.selectAll(); }
+                        event.consume();
+                    }
+                    case N -> { handleAdd(); event.consume(); }
+                    case E -> { handleModify(); event.consume(); }
+                    case R -> { handleReset(); event.consume(); }
+                    default -> {}
+                }
+            } else if (event.getCode() == javafx.scene.input.KeyCode.DELETE
+                    && !UIAnimator.isTypingInTextInput(rootPane.getScene())) {
+                if (!studentTable.getSelectionModel().getSelectedItems().isEmpty()) {
+                    handleRemove();
+                    event.consume();
+                }
+            } else if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                studentTable.getSelectionModel().clearSelection();
+                rootPane.requestFocus();
+                event.consume();
+            }
+        });
     }
 
     private void startLiveDatabaseSync() {

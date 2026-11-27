@@ -36,6 +36,7 @@ public class StudentModifyController {
     @FXML private ComboBox<String> comboGender;
     @FXML private ComboBox<String> comboMajor;
     @FXML private ComboBox<String> comboYear;
+    @FXML private ComboBox<String> comboSemester;
 
     @FXML private TextField txtPhone, txtEmail, txtCurrentAddress, txtPermanentAddress;
     @FXML private TextField txtFatherName, txtFatherOcc, txtFatherPhone, txtFatherEmail;
@@ -56,6 +57,15 @@ public class StudentModifyController {
     public void initialize() {
         initializeNrcComponent();
         setupBidirectionalSync();
+        UIAnimator.attachShortcutHandler(contentContainer, event -> {
+            if (event.isControlDown() && event.getCode() == javafx.scene.input.KeyCode.S) {
+                handleSave();
+                event.consume();
+            } else if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                handleReturn();
+                event.consume();
+            }
+        });
     }
 
     private ObservableList<String> currentTownshipOptions;
@@ -429,6 +439,10 @@ public class StudentModifyController {
                 if (comboYear != null && y != null) {
                     comboYear.setValue(y);
                 }
+                String sem = normalizeSemester(safe(student.getSemester(), "Pending"));
+                if (comboSemester != null) {
+                    comboSemester.setValue(sem);
+                }
 
                 setParsedNrc(student.getNrc());
 
@@ -491,6 +505,18 @@ public class StudentModifyController {
         }
         return null;
     }
+    
+    private String normalizeSemester(String input) {
+        if (input == null || input.trim().isEmpty()) return "Pending";
+        String s = input.trim().toLowerCase();
+        if (s.contains("first") || s.equals("1") || s.equals("sem 1") || s.equals("semester 1")) {
+            return "First Semester";
+        }
+        if (s.contains("second") || s.equals("2") || s.equals("sem 2") || s.equals("semester 2")) {
+            return "Second Semester";
+        }
+        return "Pending";
+    }
 
     private String getYearFromRoman(String roman) {
         if (roman == null) return null;
@@ -542,14 +568,14 @@ public class StudentModifyController {
             return;
         }
         try {
-            Image img = (path.startsWith("file:") || path.startsWith("http:") || path.startsWith("https:"))
-                    ? new Image(path, 86, 111, false, true, true)
-                    : new Image(getClass().getResourceAsStream(path), 86, 111, false, true);
+            String clean = path.trim();
+            Image img = (clean.startsWith("file:") || clean.startsWith("http:") || clean.startsWith("https:"))
+                    ? new Image(clean, 170, 220, false, true)
+                    : new Image(getClass().getResourceAsStream(clean), 170, 220, false, true);
+
             if (img != null && !img.isError()) {
                 passportImageView.setImage(img);
-                passportImageView.setFitWidth(86.0);
-                passportImageView.setFitHeight(111.0);
-                passportImageView.setPreserveRatio(false);
+                UIAnimator.applyRoundedPhotoClip(passportImageView, 85.0, 110.0, 4.5);
             } else {
                 passportImageView.setImage(null);
             }
@@ -569,7 +595,10 @@ public class StudentModifyController {
             String emailInput = txtEmail != null ? txtEmail.getText().trim() : "";
             String genderInput = comboGender != null && comboGender.getValue() != null ? comboGender.getValue().trim() : "Male";
             String yearCompInput = txtYearCompleted != null ? txtYearCompleted.getText().trim() : "";
-
+            String selectedSemester = (comboSemester != null && comboSemester.getValue() != null)
+                    ? normalizeSemester(comboSemester.getValue())
+                    : "Pending";
+            
             if (!rawRollNo.matches("^[a-zA-Z]+-[a-zA-Z0-9]+-\\d+$")) {
                 UIAnimator.playShake(txtRollNo);
                 if (txtRollNo != null) txtRollNo.requestFocus();
@@ -622,9 +651,11 @@ public class StudentModifyController {
             currentStudent.setMajor(validatedMajor);
             if (txtNationality != null) currentStudent.setNationality(txtNationality.getText().trim());
             currentStudent.setYear(validatedYear);
+            currentStudent.setSemester(selectedSemester);
             currentStudent.setNrc(nrcInput);
             currentStudent.setPhoneNo(phoneInput);
             currentStudent.setEmail(emailInput);
+            
             if (txtCurrentAddress != null) currentStudent.setCurrentAddress(txtCurrentAddress.getText().trim());
             if (txtPermanentAddress != null) currentStudent.setPermanentAddress(txtPermanentAddress.getText().trim());
             if (txtFatherName != null) currentStudent.setFatherName(txtFatherName.getText().trim());

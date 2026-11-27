@@ -51,6 +51,15 @@ public class StudentDetailController {
                 UIAnimator.attachSectionCardHovers(contentContainer);
                 UIAnimator.playSectionCardStagger(contentContainer);
             }
+            if (!Boolean.TRUE.equals(contentContainer.getProperties().get("escBound"))) {
+                contentContainer.getProperties().put("escBound", Boolean.TRUE);
+                UIAnimator.attachShortcutHandler(contentContainer, event -> {
+                    if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                        handleReturn();
+                        event.consume();
+                    }
+                });
+            }
 
             if (lblRollNo != null) lblRollNo.setText(safe(student.getRollNo()));
             if (lblDob != null) lblDob.setText(safe(student.getDob()));
@@ -87,16 +96,14 @@ public class StudentDetailController {
 
     private void loadPhoto(String path) {
         if (passportImageView == null) return;
-        if (path != null && !path.trim().isEmpty()) {
+        if (path != null && !path.trim().isEmpty() && !path.trim().equalsIgnoreCase("null")) {
             try {
-                Image img = (path.startsWith("file:") || path.startsWith("http:"))
-                        ? new Image(path, 86, 110, false, true)
+                Image img = (path.startsWith("file:") || path.startsWith("http:") || path.startsWith("https:"))
+                        ? new Image(path, 170, 220, false, true)
                         : new Image(getClass().getResourceAsStream(path));
                 if (img != null && !img.isError()) {
                     passportImageView.setImage(img);
-                    passportImageView.setFitWidth(86.0);
-                    passportImageView.setFitHeight(111.0);
-                    passportImageView.setPreserveRatio(false);
+                    UIAnimator.applyRoundedPhotoClip(passportImageView, 85.0, 110.0, 4.5);
                 } else {
                     passportImageView.setImage(null);
                 }

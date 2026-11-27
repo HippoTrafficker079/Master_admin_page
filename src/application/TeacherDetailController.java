@@ -35,6 +35,16 @@ public class TeacherDetailController {
                 UIAnimator.attachSectionCardHovers(contentContainer);
                 UIAnimator.playSectionCardStagger(contentContainer);
             }
+            
+            if (!Boolean.TRUE.equals(contentContainer.getProperties().get("escBound"))) {
+                contentContainer.getProperties().put("escBound", Boolean.TRUE);
+                UIAnimator.attachShortcutHandler(contentContainer, event -> {
+                    if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                        handleReturn();
+                        event.consume();
+                    }
+                });
+            }
 
             lblTeacherId.setText(teacher.getTeacherCode());
             lblDob.setText(teacher.getDob());
@@ -56,17 +66,16 @@ public class TeacherDetailController {
             lblSpecialization.setText(teacher.getSpecialization());
             lblEmergency.setText(teacher.getEmergencyContact());
 
-            if (teacher.getPhotoPath() != null && !teacher.getPhotoPath().trim().isEmpty()) {
+            if (teacher.getPhotoPath() != null && !teacher.getPhotoPath().trim().isEmpty()
+                    && !teacher.getPhotoPath().trim().equalsIgnoreCase("null")) {
                 try {
                     String path = teacher.getPhotoPath().trim();
-                    Image img = (path.startsWith("file:") || path.startsWith("http:"))
-                            ? new Image(path, 86, 110, false, true)
-                            : new Image(getClass().getResourceAsStream(path));
+                    Image img = (path.startsWith("file:") || path.startsWith("http:") || path.startsWith("https:"))
+                            ? new Image(path, 170, 220, false, true)
+                            : new Image(getClass().getResourceAsStream(path), 170, 220, false, true);
                     if (img != null && !img.isError()) {
                         passportImageView.setImage(img);
-                        passportImageView.setFitWidth(86.0);
-                        passportImageView.setFitHeight(111.0);
-                        passportImageView.setPreserveRatio(false);
+                        UIAnimator.applyRoundedPhotoClip(passportImageView, 85.0, 110.0, 4.5);
                     } else {
                         passportImageView.setImage(null);
                     }

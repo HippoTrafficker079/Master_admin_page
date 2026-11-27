@@ -75,6 +75,15 @@ public class TeacherModifyController {
     public void initialize() {
         initializeNrcComponent();
         setupTeacherBidirectionalSync();
+        UIAnimator.attachShortcutHandler(contentContainer, event -> {
+            if (event.isControlDown() && event.getCode() == javafx.scene.input.KeyCode.S) {
+                handleSave();
+                event.consume();
+            } else if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                handleReturn();
+                event.consume();
+            }
+        });
     }
 
     private void initializeNrcComponent() {
@@ -500,15 +509,14 @@ public class TeacherModifyController {
             return;
         }
         try {
-            Image img = (path.startsWith("file:") || path.startsWith("http:") || path.startsWith("https:"))
-                    ? new Image(path, 86, 111, false, true, true)
-                    : new Image(getClass().getResourceAsStream(path), 86, 111, false, true);
+            String clean = path.trim();
+            Image img = (clean.startsWith("file:") || clean.startsWith("http:") || clean.startsWith("https:"))
+                    ? new Image(clean, 170, 220, false, true)
+                    : new Image(getClass().getResourceAsStream(clean), 170, 220, false, true);
 
             if (img != null && !img.isError()) {
                 passportImageView.setImage(img);
-                passportImageView.setFitWidth(86.0);
-                passportImageView.setFitHeight(111.0);
-                passportImageView.setPreserveRatio(false);
+                UIAnimator.applyRoundedPhotoClip(passportImageView, 85.0, 110.0, 4.5);
             } else {
                 passportImageView.setImage(null);
             }

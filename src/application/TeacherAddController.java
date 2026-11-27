@@ -44,6 +44,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -93,6 +94,15 @@ public class TeacherAddController {
         if (txtEmail != null && sessionEmail != null && !sessionEmail.isEmpty()) txtEmail.setText(sessionEmail);
 
         setupBidirectionalSync();
+        UIAnimator.attachShortcutHandler(passportImageView, event -> {
+            if (event.isControlDown() && event.getCode() == javafx.scene.input.KeyCode.S) {
+                handleSave();
+                event.consume();
+            } else if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                handleReturn();
+                event.consume();
+            }
+        });
     }
 
     private void initializeNrcComponent() {
@@ -494,41 +504,73 @@ public class TeacherAddController {
     }
 
     private void openSingleTeacherPickerDialog(List<Teacher> teachers) {
-        Dialog<Teacher> dialog = new Dialog<>();
-        dialog.setTitle("Choose Teacher to Populate Form");
-        dialog.setHeaderText(null);
+        Stage dialogStage = new Stage();
+        dialogStage.setTitle("Select Teacher to Populate Form");
+        dialogStage.initModality(javafx.stage.Modality.APPLICATION_MODAL);
+        if (txtTeacherId != null && txtTeacherId.getScene() != null && txtTeacherId.getScene().getWindow() != null) {
+            dialogStage.initOwner(txtTeacherId.getScene().getWindow());
+        }
 
-        DialogPane dialogPane = dialog.getDialogPane();
-        dialogPane.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
-        dialogPane.setStyle("-fx-background-color: #f8fafc; -fx-padding: 16;");
+        // Header
+        Label titleLbl = new Label("Select Teacher to Populate Form");
+        titleLbl.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1e3a8a;");
 
-        Label promptLbl = new Label("Select a teacher row to load into the form blanks below:");
-        promptLbl.setStyle("-fx-font-size: 13.5px; -fx-font-weight: bold; -fx-text-fill: #1e3a8a;");
+        Label subtitleLbl = new Label("Search and select an imported faculty row to load into the form below.");
+        subtitleLbl.setStyle("-fx-font-size: 13px; -fx-text-fill: #64748b;");
 
-        TableView<Teacher> previewTable = new TableView<>();
-        previewTable.setPrefHeight(320);
-        previewTable.setPrefWidth(640);
+        VBox headerBox = new VBox(3, titleLbl, subtitleLbl);
+
+        // Search Bar + Clear Button (NO Select All button)
+        TextField searchInput = new TextField();
+        searchInput.setPromptText("\uD83D\uDD0D  Search by teacher ID, name, department, or position...");
+        searchInput.setPrefHeight(36);
+        searchInput.getStyleClass().add("picker-search-field");
+        HBox.setHgrow(searchInput, javafx.scene.layout.Priority.ALWAYS);
+
+        Button clearBtn = new Button("Clear");
+        clearBtn.setPrefHeight(36);
+        clearBtn.setPrefWidth(82);
+        clearBtn.getStyleClass().add("reset-button");
+
+        HBox toolbar = new HBox(10, searchInput, clearBtn);
+        toolbar.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        // TableView
+        ObservableList<Teacher> masterList = FXCollections.observableArrayList(teachers);
+        FilteredList<Teacher> filteredList = new FilteredList<>(masterList, t -> true);
+
+        TableView<Teacher> previewTable = new TableView<>(filteredList);
+        previewTable.setPrefHeight(340);
         previewTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        VBox.setVgrow(previewTable, javafx.scene.layout.Priority.ALWAYS);
+        
+        UIAnimator.setEmptyTablePlaceholder(
+                previewTable,
+                "\uD83D\uDD0D",
+                "No Matching Records",
+                "Try a different search keyword or click Clear to view all imported rows.");
+
+        
 
         TableColumn<Teacher, String> colCode = new TableColumn<>("Teacher ID");
         colCode.setCellValueFactory(c -> c.getValue().teacherCodeProperty());
-        colCode.setPrefWidth(120);
+        colCode.setPrefWidth(125);
 
-        TableColumn<Teacher, String> colName = new TableColumn<>("Full Name");
+        TableColumn<Teacher, String> colName = new TableColumn<>("Faculty Name");
         colName.setCellValueFactory(c -> c.getValue().nameProperty());
-        colName.setPrefWidth(160);
+        colName.setPrefWidth(190);
 
         TableColumn<Teacher, String> colDept = new TableColumn<>("Department");
         colDept.setCellValueFactory(c -> c.getValue().departmentProperty());
-        colDept.setPrefWidth(90);
+        colDept.setPrefWidth(95);
 
         TableColumn<Teacher, String> colPos = new TableColumn<>("Position");
         colPos.setCellValueFactory(c -> c.getValue().positionProperty());
-        colPos.setPrefWidth(130);
+        colPos.setPrefWidth(145);
 
         TableColumn<Teacher, String> colPhone = new TableColumn<>("Phone");
         colPhone.setCellValueFactory(c -> c.getValue().phoneNoProperty());
-        colPhone.setPrefWidth(130);
+        colPhone.setPrefWidth(135);
 
         previewTable.getColumns().addAll(colCode, colName, colDept, colPos, colPhone);
         for (TableColumn<?, ?> col : previewTable.getColumns()) {
@@ -536,39 +578,109 @@ public class TeacherAddController {
             col.setReorderable(false);
         }
 
-        previewTable.setItems(FXCollections.observableArrayList(teachers));
-        if (!teachers.isEmpty()) previewTable.getSelectionModel().selectFirst();
+        // Card Footer Status Label
+        Label statusLbl = new Label();
+        statusLbl.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #1e293b;");
 
-        ButtonType btnSelect = new ButtonType("Populate Form", ButtonBar.ButtonData.OK_DONE);
-        dialogPane.getButtonTypes().addAll(btnSelect, ButtonType.CANCEL);
-        dialogPane.setContent(new VBox(10, promptLbl, previewTable));
+        Runnable updateStatus = () -> {
+            Teacher sel = previewTable.getSelectionModel().getSelectedItem();
+            int available = filteredList.size();
+            if (sel != null) {
+                statusLbl.setText("1 selected (" + sel.getTeacherCode() + ")  •  " + available + " available");
+            } else {
+                statusLbl.setText("0 selected  •  " + available + " available");
+            }
+        };
 
-        Button populateBtn = (Button) dialogPane.lookupButton(btnSelect);
-        if (populateBtn != null) {
-            populateBtn.getStyleClass().add("search-button");
-            populateBtn.setPrefHeight(34);
-            populateBtn.setPrefWidth(130);
-        }
+        // White Rounded Card Container
+        VBox cardBox = new VBox(12, toolbar, previewTable, statusLbl);
+        cardBox.getStyleClass().add("picker-card");
+        VBox.setVgrow(cardBox, javafx.scene.layout.Priority.ALWAYS);
 
-        Button cancelBtn = (Button) dialogPane.lookupButton(ButtonType.CANCEL);
-        if (cancelBtn != null) {
-            cancelBtn.getStyleClass().add("reset-button");
-            cancelBtn.setPrefHeight(34);
-            cancelBtn.setPrefWidth(95);
-        }
+        // Bottom Right Action Buttons
+        Button populateBtn = new Button("Populate Form");
+        populateBtn.setPrefHeight(38);
+        populateBtn.setPrefWidth(145);
+        populateBtn.getStyleClass().add("search-button");
+        populateBtn.setDisable(true);
 
-        dialog.setResultConverter(btn -> btn == btnSelect ? previewTable.getSelectionModel().getSelectedItem() : null);
+        Button cancelBtn = new Button("Cancel");
+        cancelBtn.setPrefHeight(38);
+        cancelBtn.setPrefWidth(98);
+        cancelBtn.getStyleClass().add("reset-button");
+
+        HBox bottomBar = new HBox(10, populateBtn, cancelBtn);
+        bottomBar.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+
+        // Filtering & Selection Listeners
+        searchInput.textProperty().addListener((obs, oldVal, newVal) -> {
+            String q = (newVal == null) ? "" : newVal.trim().toLowerCase();
+            filteredList.setPredicate(t -> {
+                if (q.isEmpty()) return true;
+                return (t.getTeacherCode() != null && t.getTeacherCode().toLowerCase().contains(q))
+                        || (t.getName() != null && t.getName().toLowerCase().contains(q))
+                        || (t.getDepartment() != null && t.getDepartment().toLowerCase().contains(q))
+                        || (t.getPosition() != null && t.getPosition().toLowerCase().contains(q))
+                        || (t.getPhoneNo() != null && t.getPhoneNo().toLowerCase().contains(q));
+            });
+            updateStatus.run();
+        });
+
+        clearBtn.setOnAction(e -> {
+            searchInput.clear();
+            previewTable.getSelectionModel().clearSelection();
+            updateStatus.run();
+        });
+
+        previewTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> {
+            populateBtn.setDisable(newSel == null);
+            updateStatus.run();
+        });
+
+        final Teacher[] chosen = { null };
+
+        populateBtn.setOnAction(e -> {
+            chosen[0] = previewTable.getSelectionModel().getSelectedItem();
+            dialogStage.close();
+        });
+
+        cancelBtn.setOnAction(e -> dialogStage.close());
 
         previewTable.setOnMouseClicked(event -> {
             if (event.getClickCount() == 2 && previewTable.getSelectionModel().getSelectedItem() != null) {
-                dialog.setResult(previewTable.getSelectionModel().getSelectedItem());
-                dialog.close();
+                chosen[0] = previewTable.getSelectionModel().getSelectedItem();
+                dialogStage.close();
             }
         });
 
-        Optional<Teacher> res = dialog.showAndWait();
-        if (res.isPresent() && res.get() != null) {
-            populateFormWithTeacher(res.get());
+        if (!filteredList.isEmpty()) {
+            previewTable.getSelectionModel().selectFirst();
+        }
+        updateStatus.run();
+
+        VBox root = new VBox(14, headerBox, cardBox, bottomBar);
+        root.setStyle("-fx-background-color: #f1f5f9; -fx-padding: 20 22 18 22;");
+        root.setPrefSize(780, 540);
+
+        javafx.scene.Scene scene = new javafx.scene.Scene(root);
+        scene.getStylesheets().add(getClass().getResource("style.css").toExternalForm());
+        scene.addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+            if (event.isControlDown() && event.getCode() == javafx.scene.input.KeyCode.F) {
+                searchInput.requestFocus();
+                searchInput.selectAll();
+                event.consume();
+            } else if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                dialogStage.close();
+                event.consume();
+            }
+        });
+        dialogStage.setScene(scene);
+        dialogStage.setResizable(false);
+        UIAnimator.playViewEntrance(root);
+        dialogStage.showAndWait();
+
+        if (chosen[0] != null) {
+            populateFormWithTeacher(chosen[0]);
         }
     }
 
@@ -594,6 +706,15 @@ public class TeacherAddController {
             if (txtEmergency != null) txtEmergency.setText(t.getEmergencyContact());
         } finally {
             isUpdating = false;
+        }
+        if (t.getPhotoPath() != null && !t.getPhotoPath().trim().isEmpty()) {
+            selectedPhotoPath = t.getPhotoPath();
+            loadImage(selectedPhotoPath);
+        } else {
+            selectedPhotoPath = null;
+            if (passportImageView != null) {
+                passportImageView.setImage(null);
+            }
         }
         showAlert("Teacher Loaded", "Details for " + t.getName() + " have been loaded into the form.", Alert.AlertType.INFORMATION);
     }
@@ -697,7 +818,8 @@ public class TeacherAddController {
         String pos = getMapOrIndex(map, rawOrder, 3, "position", "title");
         String phone = getMapOrIndex(map, rawOrder, 4, "phone", "phone number");
         String dob = normalizeDateToYMD(getMapOrIndex(map, rawOrder, 5, "dob", "date of birth"));
-        
+        String rawPhoto = getMapOrIndex(map, rawOrder, 17, "photo", "photo path", "image", "profile image", "profile_image_url");
+        String resolvedPhotoPath = resolveImportedPhotoPath(rawPhoto, code);
         if (code.isEmpty() || name.isEmpty()) return null;
 
         return new Teacher(
@@ -710,7 +832,7 @@ public class TeacherAddController {
                 getMapOrIndex(map, rawOrder, 13, "university"), getMapOrIndex(map, rawOrder, 14, "year completed"),
                 getMapOrIndex(map, rawOrder, 15, "specialization"),
                 getMapOrIndex(map, rawOrder, 16, "emergency contact"),
-                DEFAULT_IMAGE_PATH);
+                resolvedPhotoPath);
     }
 
     private String getMapOrIndex(Map<String, String> map, String[] rawOrder, int index, String... keys) {
@@ -724,17 +846,41 @@ public class TeacherAddController {
     @FXML
     public void handleUploadPhoto() {
         FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Select Photo");
-        Stage stage = (Stage) txtTeacherId.getScene().getWindow();
-        File file = fileChooser.showOpenDialog(stage);
-        if (file != null) {
-            selectedPhotoPath = file.toURI().toString();
-            try {
-                passportImageView.setImage(new Image(selectedPhotoPath, 86, 111, false, true));
-                passportImageView.setFitWidth(86.0);
-                passportImageView.setFitHeight(111.0);
-                passportImageView.setPreserveRatio(false);
-            } catch (Exception e) {}
+        fileChooser.setTitle("Select Passport Size Photo");
+        fileChooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Image Files (*.png, *.jpg, *.jpeg, *.bmp)", "*.png", "*.jpg", "*.jpeg", "*.bmp"));
+
+        if (txtTeacherId != null && txtTeacherId.getScene() != null) {
+            Stage stage = (Stage) txtTeacherId.getScene().getWindow();
+            File file = fileChooser.showOpenDialog(stage);
+            if (file != null) {
+                selectedPhotoPath = file.toURI().toString();
+                loadImage(selectedPhotoPath);
+            }
+        }
+    }
+
+    private void loadImage(String path) {
+        if (passportImageView == null) return;
+        if (path == null || path.trim().isEmpty() || path.trim().equalsIgnoreCase("null")
+                || path.toLowerCase().contains("freddy.jpg")) {
+            passportImageView.setImage(null);
+            return;
+        }
+        try {
+            String clean = path.trim();
+            Image img = (clean.startsWith("file:") || clean.startsWith("http:") || clean.startsWith("https:"))
+                    ? new Image(clean, 170, 220, false, true)
+                    : new Image(getClass().getResourceAsStream(clean), 170, 220, false, true);
+
+            if (img != null && !img.isError()) {
+                passportImageView.setImage(img);
+                UIAnimator.applyRoundedPhotoClip(passportImageView, 85.0, 110.0, 4.5);
+            } else {
+                passportImageView.setImage(null);
+            }
+        } catch (Exception e) {
+            passportImageView.setImage(null);
         }
     }
 
@@ -962,4 +1108,50 @@ public class TeacherAddController {
 
         return cleaned;
     }
+    
+    private String resolveImportedPhotoPath(String rawPhotoCell, String teacherCode) {
+        File baseDir = (selectedExcelFile != null && selectedExcelFile.getParentFile() != null)
+                ? selectedExcelFile.getParentFile()
+                : null;
+
+        if (rawPhotoCell != null && !rawPhotoCell.trim().isEmpty()) {
+            String cleaned = rawPhotoCell.trim().replace("\"", "");
+            if (cleaned.startsWith("file:") || cleaned.startsWith("http:") || cleaned.startsWith("https:")) {
+                return cleaned;
+            }
+            File directFile = new File(cleaned);
+            if (directFile.exists() && directFile.isFile()) {
+                return directFile.toURI().toString();
+            }
+            if (baseDir != null) {
+                File relFile = new File(baseDir, cleaned);
+                if (relFile.exists() && relFile.isFile()) {
+                    return relFile.toURI().toString();
+                }
+                File inPhotosFolder = new File(new File(baseDir, "photos"), cleaned);
+                if (inPhotosFolder.exists() && inPhotosFolder.isFile()) {
+                    return inPhotosFolder.toURI().toString();
+                }
+            }
+        }
+
+        if (baseDir != null && teacherCode != null && !teacherCode.trim().isEmpty()) {
+            String safeCode = teacherCode.trim();
+            String[] exts = { ".jpg", ".jpeg", ".png", ".bmp" };
+            File[] searchDirs = { new File(baseDir, "photos"), baseDir };
+
+            for (File dir : searchDirs) {
+                if (!dir.exists() || !dir.isDirectory()) continue;
+                for (String ext : exts) {
+                    File candidate = new File(dir, safeCode + ext);
+                    if (candidate.exists() && candidate.isFile()) {
+                        return candidate.toURI().toString();
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+    
 }

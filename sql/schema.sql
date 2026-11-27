@@ -1,8 +1,12 @@
+USE sims_db;
+
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS class_session;
 
 DROP TABLE IF EXISTS assessment;
+
+DROP TABLE IF EXISTS assessment_weight;
 
 DROP TABLE IF EXISTS student_grade;
 
@@ -60,8 +64,7 @@ CREATE TABLE department (
     dept_code VARCHAR(30) NOT NULL,
     dept_name VARCHAR(100) NOT NULL,
     established_date DATE NOT NULL,
-    dept_location VARCHAR(50) NOT NULL,
-    FOREIGN KEY (dept_head_id) REFERENCES teacher (teacher_id) ON DELETE SET NULL
+    dept_location VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE course (
@@ -111,6 +114,10 @@ CREATE TABLE teacher (
     FOREIGN KEY (user_id) REFERENCES user_account (user_id) ON DELETE CASCADE,
     FOREIGN KEY (dept_id) REFERENCES department (dept_id) ON DELETE RESTRICT
 );
+
+ALTER TABLE department
+    ADD CONSTRAINT fk_department_head
+    FOREIGN KEY (dept_head_id) REFERENCES teacher (teacher_id) ON DELETE SET NULL;
 
 CREATE TABLE teacher_contact_information (
     teacher_id INT PRIMARY KEY,
@@ -190,14 +197,25 @@ CREATE TABLE course_offering (
     offering_id INT PRIMARY KEY AUTO_INCREMENT,
     teacher_id INT NOT NULL,
     course_id INT NOT NULL,
-    `year` INT NOT NULL,
+    create_dept_id INT NOT NULL,
+    `year` VARCHAR(50) NOT NULL,
+    academic_year YEAR NOT NULL,
     total_sessions INT NOT NULL DEFAULT 0,
     term ENUM(
         'First Semester',
         'Second Semester'
     ) NOT NULL,
-    UNIQUE (course_id, `year`, term),
+    max_student INT NOT NULL DEFAULT 0,
+    card_symbol VARCHAR(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '</>',
+    badge_color VARCHAR(32) NOT NULL DEFAULT '#2563eb',
+    UNIQUE (
+        course_id,
+        create_dept_id,
+        `year`,
+        term
+    ),
     FOREIGN KEY (teacher_id) REFERENCES teacher (teacher_id) ON DELETE RESTRICT,
+    FOREIGN KEY (create_dept_id) REFERENCES department (dept_id) ON DELETE RESTRICT,
     FOREIGN KEY (course_id) REFERENCES course (course_id) ON DELETE RESTRICT
 );
 
@@ -253,7 +271,16 @@ CREATE TABLE assessment (
         'FINAL'
     ) NOT NULL,
     max_marks DECIMAL(5, 2) NOT NULL,
-    weightage_percent DECIMAL(5, 2) NULL,
+    FOREIGN KEY (offering_id) REFERENCES course_offering (offering_id) ON DELETE CASCADE
+);
+
+CREATE TABLE assessment_weight (
+    offering_id INT PRIMARY KEY,
+    tutorial_weight DECIMAL(5, 2) NOT NULL,
+    assignment_weight DECIMAL(5, 2) NOT NULL,
+    lab_test_weight DECIMAL(5, 2) NOT NULL,
+    practical_weight DECIMAL(5, 2) NOT NULL,
+    final_exam_weight DECIMAL(5, 2) NOT NULL,
     FOREIGN KEY (offering_id) REFERENCES course_offering (offering_id) ON DELETE CASCADE
 );
 

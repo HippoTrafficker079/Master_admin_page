@@ -656,4 +656,109 @@ public final class UIAnimator {
             seq.play();
         });
     }
+    
+    /**
+     * Clips an ImageView with rounded corners so it sits cleanly inside a rounded border frame
+     * without sharp image corners poking outside the border.
+     */
+    public static void applyRoundedPhotoClip(javafx.scene.image.ImageView imageView, double width, double height, double cornerRadius) {
+        if (imageView == null) return;
+        imageView.setFitWidth(width);
+        imageView.setFitHeight(height);
+        imageView.setPreserveRatio(false);
+
+        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(width, height);
+        clip.setArcWidth(cornerRadius * 2.0);
+        clip.setArcHeight(cornerRadius * 2.0);
+        imageView.setClip(clip);
+    }
+    
+    /**
+     * Sets a clean, YTU-styled empty-state placeholder on any TableView.
+     */
+    public static void setEmptyTablePlaceholder(TableView<?> table, String icon, String title, String subtitle) {
+        if (table == null) return;
+
+        Label iconLbl = new Label(icon);
+        iconLbl.getStyleClass().add("empty-state-icon");
+
+        javafx.scene.layout.StackPane iconCircle = new javafx.scene.layout.StackPane(iconLbl);
+        iconCircle.getStyleClass().add("empty-state-icon-circle");
+
+        Label titleLbl = new Label(title);
+        titleLbl.getStyleClass().add("empty-state-title");
+
+        Label subtitleLbl = new Label(subtitle);
+        subtitleLbl.getStyleClass().add("empty-state-subtitle");
+        subtitleLbl.setWrapText(true);
+        subtitleLbl.setMaxWidth(340);
+
+        javafx.scene.layout.VBox box = new javafx.scene.layout.VBox(iconCircle, titleLbl, subtitleLbl);
+        box.getStyleClass().add("empty-state-box");
+
+        table.setPlaceholder(box);
+    }
+
+    /**
+     * Recursively applies a default styled placeholder to any TableView inside a view
+     * that does not already have a custom placeholder set (e.g., Dashboard tables).
+     */
+    public static void applyDefaultEmptyPlaceholders(Node root, String icon, String title, String subtitle) {
+        if (root == null) return;
+
+        if (root instanceof TableView<?> tv) {
+            if (tv.getPlaceholder() == null || tv.getPlaceholder() instanceof Label) {
+                setEmptyTablePlaceholder(tv, icon, title, subtitle);
+            }
+            return;
+        }
+
+        if (root instanceof ScrollPane sp && sp.getContent() != null) {
+            applyDefaultEmptyPlaceholders(sp.getContent(), icon, title, subtitle);
+        }
+
+        if (root instanceof Parent parent) {
+            for (Node child : parent.getChildrenUnmodifiable()) {
+                applyDefaultEmptyPlaceholders(child, icon, title, subtitle);
+            }
+        }
+    }
+
+    /**
+     * Attaches view-scoped keyboard shortcuts safely (only fires while viewRoot is attached & visible).
+     * Prevents Delete from firing while the user is typing in a TextField/TextArea.
+     */
+    public static void attachShortcutHandler(Node viewRoot, javafx.event.EventHandler<javafx.scene.input.KeyEvent> handler) {
+        if (viewRoot == null || handler == null) return;
+
+        javafx.event.EventHandler<javafx.scene.input.KeyEvent> scopedHandler = event -> {
+            if (event.isConsumed()) return;
+            if (viewRoot.getScene() == null || !viewRoot.isVisible()) return;
+            // For views swapped inside BorderPane.center, skip when detached from parent
+            if (viewRoot.getScene().getRoot() != viewRoot && viewRoot.getParent() == null) return;
+            handler.handle(event);
+        };
+
+        viewRoot.sceneProperty().addListener((obs, oldScene, newScene) -> {
+            if (oldScene != null) {
+                oldScene.removeEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, scopedHandler);
+            }
+            if (newScene != null) {
+                newScene.addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, scopedHandler);
+            }
+        });
+
+        if (viewRoot.getScene() != null) {
+            viewRoot.getScene().addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, scopedHandler);
+        }
+    }
+
+    /**
+     * Returns true if the current keyboard focus is inside a text input control.
+     */
+    public static boolean isTypingInTextInput(javafx.scene.Scene scene) {
+        if (scene == null) return false;
+        Node focusOwner = scene.getFocusOwner();
+        return focusOwner instanceof javafx.scene.control.TextInputControl;
+    }
 }

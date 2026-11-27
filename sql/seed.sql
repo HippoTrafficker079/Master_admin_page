@@ -1,3 +1,5 @@
+USE sims_db;
+
 -- Disable foreign key checks temporarily for clean insertion
 SET FOREIGN_KEY_CHECKS = 0;
 
@@ -5,6 +7,8 @@ SET FOREIGN_KEY_CHECKS = 0;
 DELETE FROM student_grade;
 
 DELETE FROM assessment;
+
+DELETE FROM assessment_weight;
 
 DELETE FROM attendance;
 
@@ -102,47 +106,47 @@ VALUES
         TRUE
     ),
 
--- Students User Accounts (Username = Full Name, Email = formatted roll_no placeholder)
-(
-    5,
-    'Ren Amamiya',
-    'iiiceit1@ytu.edu.mm',
-    '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
-    'STUDENT',
-    TRUE
-),
-(
-    6,
-    'Ryuji Sakamoto',
-    'iiiceit2@ytu.edu.mm',
-    '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
-    'STUDENT',
-    TRUE
-),
-(
-    7,
-    'Ann Takamaki',
-    'iiiceit3@ytu.edu.mm',
-    '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
-    'STUDENT',
-    TRUE
-),
-(
-    8,
-    'Yusuke Kitagawa',
-    'iiimech1@ytu.edu.mm',
-    '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
-    'STUDENT',
-    TRUE
-),
-(
-    9,
-    'Makoto Niijima',
-    'iiimech2@ytu.edu.mm',
-    '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
-    'STUDENT',
-    TRUE
-);
+    -- Students User Accounts (Username = Full Name, Email = formatted roll_no placeholder)
+    (
+        5,
+        'Ren Amamiya',
+        'iiiceit1@ytu.edu.mm',
+        '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
+        'STUDENT',
+        TRUE
+    ),
+    (
+        6,
+        'Ryuji Sakamoto',
+        'iiiceit2@ytu.edu.mm',
+        '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
+        'STUDENT',
+        TRUE
+    ),
+    (
+        7,
+        'Ann Takamaki',
+        'iiiceit3@ytu.edu.mm',
+        '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
+        'STUDENT',
+        TRUE
+    ),
+    (
+        8,
+        'Yusuke Kitagawa',
+        'iiimech1@ytu.edu.mm',
+        '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
+        'STUDENT',
+        TRUE
+    ),
+    (
+        9,
+        'Makoto Niijima',
+        'iiimech2@ytu.edu.mm',
+        '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J08H9xY4e',
+        'STUDENT',
+        TRUE
+    );
 
 -- ==========================================
 -- 3. DEPARTMENTS
@@ -366,28 +370,28 @@ INSERT INTO
     )
 VALUES (
         1,
-        '+959971234567',
+        '09-971234567',
         't001@ytu.edu.mm',
         'Yongen, Tokyo',
         'Tokyo'
     ),
     (
         2,
-        '+959421987654',
+        '09-421987654',
         't002@ytu.edu.mm',
         'Leblanc, Tokyo',
         'Tokyo'
     ),
     (
         3,
-        '+959798887766',
+        '09-798887766',
         't003@ytu.edu.mm',
         'Takemi Clinic, Tokyo',
         'Tokyo'
     ),
     (
         4,
-        '+959250112233',
+        '09-250112233',
         't004@ytu.edu.mm',
         'Shinjuku, Tokyo',
         'Tokyo'
@@ -409,7 +413,7 @@ VALUES (
         'University of Tokyo',
         2010,
         'Distributed Systems',
-        'Sojiro Sakura - +959971111111'
+        'Sojiro Sakura - 09-971111111'
     ),
     (
         2,
@@ -417,7 +421,7 @@ VALUES (
         'Kyoto University',
         1995,
         'Software Engineering',
-        'Futaba Sakura - +959422222222'
+        'Futaba Sakura - 09-422222222'
     ),
     (
         3,
@@ -425,7 +429,7 @@ VALUES (
         'Tokyo Institute of Technology',
         2008,
         'Thermal Dynamics',
-        'Tae Takemi Clinic - +959793333333'
+        'Tae Takemi Clinic - 09-793333333'
     ),
     (
         4,
@@ -433,7 +437,7 @@ VALUES (
         'Waseda University',
         2015,
         'Applied Mathematics',
-        'Mishima - +95925444444'
+        'Mishima - 09-25444444'
     );
 
 -- ==========================================
@@ -592,7 +596,7 @@ INSERT INTO
     )
 VALUES (
         1,
-        '+959765432101',
+        '09-765432101',
         NULL,
         'iiiceit1@ytu.edu.mm',
         'Yongen-Jaya, Tokyo',
@@ -600,7 +604,7 @@ VALUES (
     ),
     (
         2,
-        '+959765432102',
+        '09-765432102',
         NULL,
         'iiiceit2@ytu.edu.mm',
         'Shibuya, Tokyo',
@@ -608,7 +612,7 @@ VALUES (
     ),
     (
         3,
-        '+959765432103',
+        '09-765432103',
         NULL,
         'iiiceit3@ytu.edu.mm',
         'Aoyama-Itchome, Tokyo',
@@ -616,7 +620,7 @@ VALUES (
     ),
     (
         4,
-        '+959765432104',
+        '09-765432104',
         NULL,
         'iiimech1@ytu.edu.mm',
         'Ueno, Tokyo',
@@ -624,7 +628,7 @@ VALUES (
     ),
     (
         5,
-        '+959765432105',
+        '09-765432105',
         NULL,
         'iiimech2@ytu.edu.mm',
         'Kanda, Tokyo',
@@ -648,55 +652,55 @@ VALUES (
         1,
         'Guardian Uncle',
         'Business',
-        '+959400000001',
+        '09-400000001',
         'uncle@gmail.com',
         'Guardian Aunt',
         'Housewife',
-        '+959400000002',
+        '09-400000002',
         'aunt@gmail.com'
     ),
     (
         2,
         'Tatsumi Sakamoto',
         'Worker',
-        '+959400000003',
+        '09-400000003',
         'tatsumi@gmail.com',
         'Mrs. Sakamoto',
         'Employee',
-        '+959400000004',
+        '09-400000004',
         'mrs.sakamoto@gmail.com'
     ),
     (
         3,
         'Mr. Takamaki',
         'Designer',
-        '+959400000005',
+        '09-400000005',
         'takamaki.sr@gmail.com',
         'Mrs. Takamaki',
         'Model',
-        '+959400000006',
+        '09-400000006',
         'takamaki.m@gmail.com'
     ),
     (
         4,
         'Madarame (Foster)',
         'Artist',
-        '+959400000007',
+        '09-400000007',
         'madarame@gmail.com',
         'N/A',
         'N/A',
-        '+959400000008',
+        '09-400000008',
         'na@gmail.com'
     ),
     (
         5,
         'Director Niijima',
         'Prosecutor',
-        '+959400000009',
+        '09-400000009',
         'niijima@gmail.com',
         'Mrs. Niijima',
         'Teacher',
-        '+959400000010',
+        '09-400000010',
         'mrs.niijima@gmail.com'
     );
 
@@ -740,44 +744,98 @@ VALUES (
     );
 
 -- ==========================================
--- 7. COURSE OFFERINGS
+-- 7. COURSE OFFERINGS & ASSESSMENT WEIGHTS
 -- ==========================================
 INSERT INTO
     course_offering (
         offering_id,
         teacher_id,
         course_id,
-        year,
+        create_dept_id,
+        `year`,
+        academic_year,
         total_sessions,
-        term
+        term,
+        max_student,
+        card_symbol,
+        badge_color
     )
 VALUES (
         1,
         1,
         1,
+        1,
+        'Second Year',
         2026,
-        10,
-        'First Semester'
+        6,
+        'First Semester',
+        60,
+        '💾',
+        '#2563eb'
     ), -- Advanced DB (Taught by Sadayo Kawakami)
     (
         2,
         2,
         2,
+        1,
+        'Third Year',
         2026,
-        10,
-        'First Semester'
+        6,
+        'First Semester',
+        60,
+        '☕',
+        '#7c3aed'
     ), -- Java OOP (Taught by Sojiro Sakura)
     (
         3,
         3,
         3,
+        1,
+        'Fourth Year',
         2026,
-        10,
-        'First Semester'
-    );
--- Thermodynamics (Taught by Tae Takemi)
+        3,
+        'First Semester',
+        50,
+        '🔥',
+        '#ea580c'
+    ); -- Thermodynamics (Taught by Tae Takemi)
 
--- 8. CLASS SESSIONS (Updated with Today's Date: 2026-11-15)
+INSERT INTO
+    assessment_weight (
+        offering_id,
+        tutorial_weight,
+        assignment_weight,
+        lab_test_weight,
+        practical_weight,
+        final_exam_weight
+    )
+VALUES (
+        1,
+        15.00,
+        15.00,
+        10.00,
+        0.00,
+        60.00
+    ),
+    (
+        2,
+        10.00,
+        10.00,
+        15.00,
+        15.00,
+        50.00
+    ),
+    (
+        3,
+        15.00,
+        15.00,
+        0.00,
+        0.00,
+        70.00
+    );
+
+-- ==========================================
+-- 8. CLASS SESSIONS (Updated with CURDATE() for Today's Attendance)
 -- ==========================================
 INSERT INTO
     class_session (
@@ -804,11 +862,10 @@ VALUES
     (11, 3, '2026-06-01', 3, FALSE),
     (12, 3, '2026-06-05', 3, FALSE),
 
--- TODAY'S SESSIONS (2026-11-15) for Testing Daily Logs
-(13, 1, '2026-11-15', 1, FALSE), -- Advanced DB (Period 1)
-(14, 2, '2026-11-15', 2, FALSE), -- Java OOP (Period 2)
-(15, 3, '2026-11-15', 3, FALSE);
--- Thermodynamics (Period 3)
+    -- TODAY'S SESSIONS (CURDATE()) for Testing Daily Logs & Today's Attendance
+    (13, 1, CURDATE(), 1, FALSE), -- Advanced DB (Period 1)
+    (14, 2, CURDATE(), 2, FALSE), -- Java OOP (Period 2)
+    (15, 3, CURDATE(), 3, FALSE); -- Thermodynamics (Period 3)
 
 -- ==========================================
 -- 9. COURSE ENROLLMENTS
@@ -869,8 +926,7 @@ VALUES (
         5,
         '2026-05-20',
         'ENROLLED'
-    );
--- Makoto in Thermodynamics
+    ); -- Makoto in Thermodynamics
 
 -- ==========================================
 -- 10. ATTENDANCE (Expanded Sparse Exception Model)
@@ -893,44 +949,74 @@ VALUES
         'Metaverse Operation'
     ),
 
--- Ryuji's absence (Enrollment 3 - Advanced DB)
-( 2, 1, 3, 'UNEXCUSED', 'Overslept / Track Practice' ),
+    -- Ryuji's absence (Enrollment 3 - Advanced DB)
+    (
+        2,
+        1,
+        3,
+        'UNEXCUSED',
+        'Overslept / Track Practice'
+    ),
 
--- Ann's multiple absences to test < 75% filter (Enrollment 5 - Advanced DB)
-(
-    3,
-    1,
-    5,
-    'UNEXCUSED',
-    'Modeling Photo Shoot'
-),
-(
-    4,
-    3,
-    5,
-    'UNEXCUSED',
-    'Skipped class'
-),
-(
-    5,
-    4,
-    5,
-    'EXCUSED',
-    'Agency Work'
-),
+    -- Ann's multiple absences to test < 75% filter (Enrollment 5 - Advanced DB)
+    (
+        3,
+        1,
+        5,
+        'UNEXCUSED',
+        'Modeling Photo Shoot'
+    ),
+    (
+        4,
+        3,
+        5,
+        'UNEXCUSED',
+        'Skipped class'
+    ),
+    (
+        5,
+        4,
+        5,
+        'EXCUSED',
+        'Agency Work'
+    ),
 
--- Ren's absence in Java OOP (Enrollment 2)
-( 6, 7, 2, 'EXCUSED', 'Mementos Mission' ),
+    -- Ren's absence in Java OOP (Enrollment 2)
+    (
+        6,
+        7,
+        2,
+        'EXCUSED',
+        'Mementos Mission'
+    ),
 
--- TODAY'S TEST ATTENDANCE RECORDS (2026-11-15)
--- Session 13 (Advanced DB): Ryuji (Enrollment 3) is absent (Unexcused)
-( 7, 13, 3, 'UNEXCUSED', 'Overslept' ),
+    -- TODAY'S TEST ATTENDANCE RECORDS (Matches CURDATE() sessions 13, 14, 15)
+    -- Session 13 (Advanced DB): Ryuji (Enrollment 3) is absent (Unexcused)
+    (
+        7,
+        13,
+        3,
+        'UNEXCUSED',
+        'Overslept'
+    ),
 
--- Session 14 (Java OOP): Ren (Enrollment 2) is excused with a medical reason
-( 8, 14, 2, 'EXCUSED', 'Medical Checkup - Fever' ),
+    -- Session 14 (Java OOP): Ren (Enrollment 2) is excused with a medical reason
+    (
+        8,
+        14,
+        2,
+        'EXCUSED',
+        'Medical Checkup - Fever'
+    ),
 
--- Session 15 (Thermodynamics): Makoto (Enrollment 7) is absent (Unexcused)
-( 9, 15, 7, 'UNEXCUSED', 'Student Council Meeting' );
+    -- Session 15 (Thermodynamics): Makoto (Enrollment 7) is absent (Unexcused)
+    (
+        9,
+        15,
+        7,
+        'UNEXCUSED',
+        'Student Council Meeting'
+    );
 
 -- ==========================================
 -- 11. ASSESSMENTS & STUDENT GRADES
@@ -941,15 +1027,13 @@ INSERT INTO
         offering_id,
         title,
         assessment_type,
-        max_marks,
-        weightage_percent
+        max_marks
     )
 VALUES (
         1,
         1,
         'Database Lab Test 1',
         'LAB_TEST',
-        20.00,
         20.00
     ),
     (
@@ -957,15 +1041,13 @@ VALUES (
         1,
         'Final Examination',
         'FINAL',
-        100.00,
-        80.00
+        100.00
     ),
     (
         3,
         2,
         'Java Midterm Project',
         'ASSIGNMENT',
-        50.00,
         50.00
     );
 
@@ -976,11 +1058,15 @@ INSERT INTO
         assessment_id,
         marks_obtained
     )
-VALUES (1, 1, 1, 19.00), -- Ren lab score in Advanced DB
+VALUES
+    (1, 1, 1, 19.00), -- Ren lab score in Advanced DB
     (2, 3, 1, 12.00), -- Ryuji lab score in Advanced DB
     (3, 5, 1, 14.50), -- Ann lab score in Advanced DB
-    (4, 2, 3, 48.00);
--- Ren project score in Java OOP
+    (4, 2, 3, 48.00); -- Ren project score in Java OOP
 
 -- Restore foreign key checks
 SET FOREIGN_KEY_CHECKS = 1;
+
+UPDATE course_offering
+SET `year` = 'Third Year'
+WHERE offering_id IN (1, 3);

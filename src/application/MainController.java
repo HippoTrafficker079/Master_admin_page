@@ -40,6 +40,25 @@ public class MainController {
             mainBorderPane.setCenter(dashboardView);
             UIAnimator.playViewEntrance(dashboardView);
             setActiveButton(btnDashboard, false);
+         // Apply default styled placeholders to any tables on the Dashboard
+            UIAnimator.applyDefaultEmptyPlaceholders(
+                    dashboardView,
+                    "\uD83D\uDCCA",
+                    "No Records Available",
+                    "Dashboard table data will appear here once records are added.");
+
+            // Global sidebar navigation shortcuts (Ctrl + 1 / 2 / 3 / 4)
+            UIAnimator.attachShortcutHandler(mainBorderPane, event -> {
+                if (event.isControlDown() && !event.isShiftDown() && !event.isAltDown()) {
+                    switch (event.getCode()) {
+                        case DIGIT1 -> { showDashboardView(null); event.consume(); }
+                        case DIGIT2 -> { showStudentView(null); event.consume(); }
+                        case DIGIT3 -> { showTeacherView(null); event.consume(); }
+                        case DIGIT4 -> { showAttendanceView(null); event.consume(); }
+                        default -> {}
+                    }
+                }
+            });
 
         } catch (IOException e) {
             e.printStackTrace();

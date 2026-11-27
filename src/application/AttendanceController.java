@@ -127,6 +127,10 @@ public class AttendanceController {
     
     private final List<Timeline> activeIndivMetricAnims = new ArrayList<>();
 
+	 private javafx.scene.layout.Pane profileCardsHost = null;
+	 private javafx.scene.layout.Pane metricsInnerHost = null;
+	 private boolean isProfileStacked = false;
+	 private boolean isMetricsInnerStacked = false;
 
     // =========================================================================
     // 3. INITIALIZATION & TABLE SETUP
@@ -144,7 +148,58 @@ public class AttendanceController {
         setupSubjectSearchComboBox();
         setupTableRowAndCellFactories();
         setupAnimations();
+        setupResponsiveIndividualView();
+        
+        UIAnimator.setEmptyTablePlaceholder(
+                matrixTable,
+                "\uD83D\uDCCB",
+                "No Attendance Matrix Data",
+                "No students match the selected department, year, subject, or date range.");
 
+        UIAnimator.setEmptyTablePlaceholder(
+                dailyLogTable,
+                "\uD83D\uDCC5",
+                "No Class Sessions Found",
+                "No attendance logs exist for the selected date, period, or status filters.");
+
+        UIAnimator.setEmptyTablePlaceholder(
+                individualTable,
+                "\uD83D\uDCDA",
+                "No Subject Breakdown Available",
+                "Double-click a student in Class View to inspect their enrolled courses and attendance rates.");
+
+        UIAnimator.setEmptyTablePlaceholder(
+                chronologicalLogTable,
+                "\uD83D\uDD52",
+                "No Session History Found",
+                "No chronological attendance records match the current course, status, or date filters.");
+
+        UIAnimator.attachShortcutHandler(rootPane, event -> {
+            if (event.isControlDown()) {
+                if (event.getCode() == javafx.scene.input.KeyCode.F) {
+                    if (isClassViewActive) {
+                        TextField targetSearch = isMatrixMode ? searchField : dailySearchField;
+                        if (targetSearch != null) {
+                            targetSearch.requestFocus();
+                            targetSearch.selectAll();
+                        }
+                        event.consume();
+                    }
+                } else if (event.getCode() == javafx.scene.input.KeyCode.S) {
+                    if (isClassViewActive && !isMatrixMode && btnSaveChanges != null
+                            && btnSaveChanges.isVisible() && !btnSaveChanges.isDisable()) {
+                        btnSaveChanges.fire();
+                        event.consume();
+                    }
+                }
+            } else if (event.getCode() == javafx.scene.input.KeyCode.ESCAPE) {
+                if (!isClassViewActive && btnBackToList != null && btnBackToList.isVisible()) {
+                    btnBackToList.fire();
+                    event.consume();
+                }
+            }
+        });
+        
         applyFilters();
     }
 
@@ -958,7 +1013,7 @@ public class AttendanceController {
             saveChangesBox.setVisible(false);
             saveChangesBox.setManaged(false);
         }
-
+        
         if (isStudentLocked && selectedStudentRollNo != null) {
             studentHeaderLabel.setText("👤  Student Details: " + selectedStudentRollNo + " – " + selectedStudentName);
             studentHeaderLabel.setVisible(true);
@@ -1118,6 +1173,9 @@ public class AttendanceController {
         if (comboIndivLogStatus != null) comboIndivLogStatus.setValue("All Status");
         if (indivLogStartDate != null) indivLogStartDate.setValue(null);
         if (indivLogEndDate != null) indivLogEndDate.setValue(LocalDate.now());
+        if (individualDashboardScroll != null) {
+            Platform.runLater(() -> individualDashboardScroll.setVvalue(0.0));
+        }
         applyIndivLogFilters();
 
         switchToIndividualView();
@@ -1174,43 +1232,41 @@ public class AttendanceController {
                     : "Hlaing Township, Yangon");
 
         String photoPath = (dbStudent != null && dbStudent.getPhotoPath() != null && !dbStudent.getPhotoPath().trim().isEmpty())
-                ? dbStudent.getPhotoPath()
-                : (profile != null ? profile.getProfileImageUrl() : null);
+                ? dbStudent.getPhotoPath().trim()
+                : (profile != null && profile.getProfileImageUrl() != null ? profile.getProfileImageUrl().trim() : null);
 
         if (indivProfileImage != null) {
             indivProfileImage.setImage(null);
-        }
+            Image resolvedImg = null;
 
-        if (photoPath != null && !photoPath.trim().isEmpty()
-                && !photoPath.trim().equalsIgnoreCase("null")
-                && !photoPath.toLowerCase().contains("freddy.jpg")
-                && indivProfileImage != null) {
-            try {
-                Image img = null;
-                String cleanPath = photoPath.trim();
-
-                if (cleanPath.startsWith("file:") || cleanPath.startsWith("http:") || cleanPath.startsWith("https:")) {
-                    img = new Image(cleanPath, 86, 111, false, true, true);
-                } else {
-                    java.io.File localFile = new java.io.File(cleanPath);
-                    if (localFile.exists()) {
-                        img = new Image(localFile.toURI().toString(), 86, 111, false, true, true);
+            if (photoPath != null && !photoPath.isEmpty() && !photoPath.equalsIgnoreCase("null")
+                    && !photoPath.toLowerCase().contains("freddy.jpg")) {
+                try {
+                    if (photoPath.startsWith("file:") || photoPath.startsWith("http:") || photoPath.startsWith("https:")) {
+                        resolvedImg = new Image(photoPath, 170, 220, false, true);
                     } else {
-                        var resStream = getClass().getResourceAsStream(cleanPath.startsWith("/") ? cleanPath : "/" + cleanPath);
-                        if (resStream != null) {
-                            img = new Image(resStream, 86, 111, false, true);
+                        java.io.File localFile = new java.io.File(photoPath);
+                        if (localFile.exists()) {
+                            resolvedImg = new Image(localFile.toURI().toString(), 170, 220, false, true);
+                        } else {
+                            String resPath = photoPath.startsWith("/") ? photoPath : "/" + photoPath;
+                            var stream = getClass().getResourceAsStream(resPath);
+                            if (stream == null) {
+                                stream = getClass().getResourceAsStream("/application" + resPath);
+                            }
+                            if (stream != null) {
+                                resolvedImg = new Image(stream, 170, 220, false, true);
+                            }
                         }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
+            }
 
-                if (img != null && !img.isError()) {
-                    indivProfileImage.setImage(img);
-                    indivProfileImage.setFitWidth(86.0);
-                    indivProfileImage.setFitHeight(111.0);
-                    indivProfileImage.setPreserveRatio(false);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (resolvedImg != null && !resolvedImg.isError()) {
+                indivProfileImage.setImage(resolvedImg);
+                UIAnimator.applyRoundedPhotoClip(indivProfileImage, 85.0, 110.0, 4.5);
             }
         }
 
@@ -1658,7 +1714,223 @@ public class AttendanceController {
             });
         }
     }
+	
+	 // =========================================================================
+	 // RESPONSIVE LAYOUT FOR INDIVIDUAL STUDENT VIEW
+	 // =========================================================================
 
-    
+	
+	 private void setupResponsiveIndividualView() {
+	     if (individualDashboardScroll == null) return;
+	
+	     // 1. Force ScrollPane & its content VBox to NEVER exceed the visible viewport width
+	     individualDashboardScroll.setFitToWidth(true);
+	     individualDashboardScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+	     individualDashboardScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+	
+	     if (individualDashboardContainer != null) {
+	         individualDashboardContainer.setMinWidth(0);
+	         // Leave 14px right padding so the vertical scrollbar never overlaps card borders
+	         individualDashboardContainer.setPadding(new javafx.geometry.Insets(6, 14, 18, 2));
+	         individualDashboardContainer.setFillWidth(true);
+	     }
+	
+	     // Prevent the top "Student Details" header from ever getting vertically squished
+	     if (studentHeaderLabel != null) {
+	         studentHeaderLabel.setMinHeight(javafx.scene.layout.Region.USE_PREF_SIZE);
+	         studentHeaderLabel.setWrapText(true);
+	     }
+	
+	     // Allow long text labels to wrap cleanly instead of pushing cards wider
+	     for (Label lbl : new Label[] { lblIndivEmail, lblIndivPhone, lblIndivAddress, lblIndivName }) {
+	    	    if (lbl != null) {
+	    	        lbl.setWrapText(true);
+	    	        if (!lbl.minWidthProperty().isBound()) {
+	    	            lbl.setMinWidth(0);
+	    	        }
+	    	    }
+	    	}
+	
+	     // 2. Unlock minWidth on all inner containers & tables so nothing forces horizontal overflow
+	     if (individualDashboardContainer != null) {
+	         unlockContainerMinWidths(individualDashboardContainer);
+	     }
+	
+	     // 3. Make Subject Breakdown & Chronological Log tables compress cleanly to fit all columns (including Remarks)
+	     configureResponsiveTable(individualTable, 40.0);
+	     configureResponsiveTable(chronologicalLogTable, 40.0);
+	
+	     // 4. Convert the Chronological Log filter HBox into a wrapping FlowPane so filters never overflow horizontally
+	     if (comboIndivLogCourse != null && comboIndivLogCourse.getParent() instanceof HBox filterRow
+	             && filterRow.getParent() instanceof VBox parentBox) {
+	         int filterIdx = parentBox.getChildren().indexOf(filterRow);
+	         List<Node> filterControls = new ArrayList<>(filterRow.getChildren());
+	         filterRow.getChildren().clear();
+	
+	         javafx.scene.layout.FlowPane wrapFilters = new javafx.scene.layout.FlowPane(10.0, 8.0);
+	         wrapFilters.setAlignment(Pos.CENTER_LEFT);
+	         wrapFilters.setMinWidth(0);
+	         wrapFilters.setPrefWrapLength(680);
+	         wrapFilters.getChildren().addAll(filterControls);
+	
+	         if (filterIdx >= 0) {
+	             parentBox.getChildren().set(filterIdx, wrapFilters);
+	         }
+	     }
+	
+	     // 5. Bind content width & switch Profile/Metrics cards between side-by-side and stacked
+	     if (indivProfileCard != null && indivMetricsCard != null) {
+	         indivProfileCard.setMinWidth(0);
+	         indivMetricsCard.setMinWidth(0);
+	         indivProfileCard.setMaxWidth(Double.MAX_VALUE);
+	         indivMetricsCard.setMaxWidth(Double.MAX_VALUE);
+	
+	         if (indivProfileCard.getParent() instanceof HBox origRow
+	                 && origRow.getParent() instanceof VBox sectionBox) {
+	             int idx = sectionBox.getChildren().indexOf(origRow);
+	             profileCardsHost = origRow;
+	             metricsInnerHost = findInnerContactHBox(indivMetricsCard, lblIndivEmail);
+	
+	             individualDashboardScroll.viewportBoundsProperty().addListener((obs, oldB, newB) -> {
+	                 if (newB != null && newB.getWidth() > 0) {
+	                     applyResponsiveIndividualLayout(sectionBox, idx, newB.getWidth());
+	                 }
+	             });
+	
+	             Platform.runLater(() -> {
+	                 double w = individualDashboardScroll.getViewportBounds().getWidth();
+	                 if (w > 0) {
+	                     applyResponsiveIndividualLayout(sectionBox, idx, w);
+	                 }
+	                 individualDashboardScroll.setVvalue(0.0);
+	             });
+	         }
+	     }
+	 }
+	
+	 private void unlockContainerMinWidths(javafx.scene.Parent root) {
+		    for (Node child : root.getChildrenUnmodifiable()) {
+		        if (child instanceof javafx.scene.layout.Pane pane) {
+		            // Keep the passport photo frame's fixed 90x115 size untouched
+		            if (pane.getPrefWidth() != 90.0 && !pane.minWidthProperty().isBound()) {
+		                pane.setMinWidth(0);
+		            }
+		        }
+		        if (child instanceof javafx.scene.Parent p && !(child instanceof TableView)) {
+		            unlockContainerMinWidths(p);
+		        }
+		    }
+		}
+	
+	 private void configureResponsiveTable(TableView<?> table, double firstColMaxWidth) {
+	     if (table == null) return;
+	     table.setMinWidth(0);
+	     table.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
+	     table.setMaxWidth(Double.MAX_VALUE);
+	     table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+	
+	     for (int i = 0; i < table.getColumns().size(); i++) {
+	         TableColumn<?, ?> col = table.getColumns().get(i);
+	         if (i == 0) {
+	             col.setMinWidth(34);
+	             col.setPrefWidth(firstColMaxWidth);
+	             col.setMaxWidth(52);
+	         } else {
+	             col.setMinWidth(55);
+	             col.setMaxWidth(Double.MAX_VALUE);
+	         }
+	     }
+	 }
+	
+	 private void applyResponsiveIndividualLayout(VBox sectionBox, int hostIndex, double viewportWidth) {
+	     // Hard-cap the ScrollPane content width to the exact viewport width so nothing clips on the right
+	     if (individualDashboardContainer != null) {
+	         double safeWidth = Math.max(300.0, viewportWidth - 2.0);
+	         individualDashboardContainer.setPrefWidth(safeWidth);
+	         individualDashboardContainer.setMaxWidth(safeWidth);
+	     }
+	
+	     // 1. Switch Profile Card + Metrics Card between Side-by-Side (>= 980px) and Stacked (< 980px)
+	     boolean shouldStackOuter = viewportWidth < 980.0;
+	     if (shouldStackOuter != isProfileStacked && profileCardsHost != null) {
+	         isProfileStacked = shouldStackOuter;
+	
+	         List<Node> children = new ArrayList<>(profileCardsHost.getChildren());
+	         profileCardsHost.getChildren().clear();
+	
+	         javafx.scene.layout.Pane newHost;
+	         if (shouldStackOuter) {
+	             VBox vbox = new VBox(12.0);
+	             vbox.setMinWidth(0);
+	             vbox.setFillWidth(true);
+	             for (Node n : children) {
+	                 VBox.setVgrow(n, Priority.NEVER);
+	             }
+	             vbox.getChildren().addAll(children);
+	             newHost = vbox;
+	         } else {
+	             HBox hbox = new HBox(14.0);
+	             hbox.setMinWidth(0);
+	             hbox.setAlignment(Pos.TOP_LEFT);
+	             for (Node n : children) {
+	                 HBox.setHgrow(n, Priority.ALWAYS);
+	             }
+	             hbox.getChildren().addAll(children);
+	             newHost = hbox;
+	         }
+	
+	         if (hostIndex >= 0 && hostIndex < sectionBox.getChildren().size()) {
+	             sectionBox.getChildren().set(hostIndex, newHost);
+	             profileCardsHost = newHost;
+	         }
+	     }
+	
+	     // 2. Inside Metrics Card: stack Contact Summary below Attendance Metrics on very narrow windows (< 620px)
+	     boolean shouldStackInner = viewportWidth < 620.0;
+	     if (shouldStackInner != isMetricsInnerStacked && metricsInnerHost != null
+	             && metricsInnerHost.getParent() instanceof VBox metricsParent) {
+	         isMetricsInnerStacked = shouldStackInner;
+	
+	         int innerIdx = metricsParent.getChildren().indexOf(metricsInnerHost);
+	         List<Node> innerChildren = new ArrayList<>(metricsInnerHost.getChildren());
+	         metricsInnerHost.getChildren().clear();
+	
+	         javafx.scene.layout.Pane newInnerHost;
+	         if (shouldStackInner) {
+	             VBox vbox = new VBox(10.0);
+	             vbox.setMinWidth(0);
+	             vbox.setFillWidth(true);
+	             vbox.getChildren().addAll(innerChildren);
+	             newInnerHost = vbox;
+	         } else {
+	             HBox hbox = new HBox(16.0);
+	             hbox.setMinWidth(0);
+	             hbox.setAlignment(Pos.TOP_LEFT);
+	             for (Node n : innerChildren) {
+	                 HBox.setHgrow(n, Priority.ALWAYS);
+	             }
+	             hbox.getChildren().addAll(innerChildren);
+	             newInnerHost = hbox;
+	         }
+	
+	         if (innerIdx >= 0 && innerIdx < metricsParent.getChildren().size()) {
+	             metricsParent.getChildren().set(innerIdx, newInnerHost);
+	             metricsInnerHost = newInnerHost;
+	         }
+	     }
+	 }
+	
+	 private HBox findInnerContactHBox(Node cardRoot, Node targetLabel) {
+	     if (cardRoot == null || targetLabel == null) return null;
+	     Node cursor = targetLabel.getParent();
+	     HBox candidate = null;
+	     while (cursor != null && cursor != cardRoot) {
+	         if (cursor instanceof HBox hbox && hbox.getChildren().size() >= 2) {
+	             candidate = hbox;
+	         }
+	         cursor = cursor.getParent();
+	     }
+	     return candidate;
+	 }
     
 }

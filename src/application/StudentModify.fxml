@@ -121,19 +121,33 @@
 
                         <Label styleClass="detail-field-label" text="Nationality" GridPane.columnIndex="3" GridPane.rowIndex="2" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="4" GridPane.rowIndex="2" /><TextField fx:id="txtNationality" promptText="Myanmar" GridPane.columnIndex="5" GridPane.rowIndex="2" />
                         
-                        <Label styleClass="detail-field-label" text="Year / Level" GridPane.rowIndex="3" /><Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" GridPane.rowIndex="3" />
-                        <ComboBox fx:id="comboYear" maxWidth="1.7976931348623157E308" promptText="Select Year" GridPane.columnIndex="2" GridPane.rowIndex="3">
-                           <items>
-                              <FXCollections fx:factory="observableArrayList">
-                                 <String fx:value="First Year" />
-                                 <String fx:value="Second Year" />
-                                 <String fx:value="Third Year" />
-                                 <String fx:value="Fourth Year" />
-                                 <String fx:value="Fifth Year" />
-                              </FXCollections>
-                           </items>
-                        </ComboBox>
-
+                        <!-- Year / Level (existing) -->
+						<Label styleClass="detail-field-label" text="Year / Level" GridPane.rowIndex="3" />
+						<Label styleClass="detail-colon" text=":" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+						<ComboBox fx:id="comboYear" maxWidth="1.7976931348623157E308" promptText="Select Year" GridPane.columnIndex="2" GridPane.rowIndex="3">
+						   <items>
+						      <FXCollections fx:factory="observableArrayList">
+						         <String fx:value="First Year" />
+						         <String fx:value="Second Year" />
+						         <String fx:value="Third Year" />
+						         <String fx:value="Fourth Year" />
+						         <String fx:value="Fifth Year" />
+						      </FXCollections>
+						   </items>
+						</ComboBox>
+						
+						<!-- NEW: Semester Dropdown -->
+						<Label styleClass="detail-field-label" text="Semester" GridPane.columnIndex="3" GridPane.rowIndex="3" />
+						<Label styleClass="detail-colon" text=":" GridPane.columnIndex="4" GridPane.rowIndex="3" />
+						<ComboBox fx:id="comboSemester" maxWidth="1.7976931348623157E308" promptText="Select Semester" GridPane.columnIndex="5" GridPane.rowIndex="3">
+						   <items>
+						      <FXCollections fx:factory="observableArrayList">
+						         <String fx:value="Pending" />
+						         <String fx:value="First Semester" />
+						         <String fx:value="Second Semester" />
+						      </FXCollections>
+						   </items>
+						</ComboBox>
                         <!-- Dedicated Structured NRC Component Row -->
                         <HBox alignment="CENTER_LEFT" spacing="4.0" GridPane.rowIndex="4">
                            <children>

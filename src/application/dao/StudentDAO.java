@@ -634,10 +634,11 @@ public class StudentDAO {
         try {
             conn = DatabaseConnector.getConnection();
             conn.setAutoCommit(false);
-            try (PreparedStatement pstmtStudent = conn.prepareStatement(studentSql)) {
-                DepartmentDAO departmentDAO = new DepartmentDAO();
-                int deptId = departmentDAO.getDeptIdByCodeOrName(conn, student.getMajor());
 
+            DepartmentDAO departmentDAO = new DepartmentDAO();
+            int deptId = departmentDAO.getDeptIdByCodeOrName(conn, student.getMajor());
+
+            try (PreparedStatement pstmtStudent = conn.prepareStatement(studentSql)) {
                 String rawDob = student.getDob();
                 String formattedDob = rawDob;
                 if (rawDob != null && rawDob.matches("\\d{2}-\\d{2}-\\d{4}")) {
@@ -683,6 +684,10 @@ public class StudentDAO {
                 pstmtEducation.setInt(4, student.getNo());
                 pstmtEducation.executeUpdate();
             }
+
+            // Sync Semester (First Semester / Second Semester / Pending) into course_enrollment
+            syncStudentSemester(conn, student.getNo(), deptId, student.getMajor(), student.getSemester());
+
             conn.commit();
             return true;
         } catch (SQLException e) {
@@ -703,6 +708,159 @@ public class StudentDAO {
                     closeEx.printStackTrace();
                 }
             }
+        }
+    }
+
+    private void syncStudentSemester(Connection conn, int studentId, int deptId, String majorCode, String targetSemester)
+            throws SQLException {
+        if (targetSemester == null || targetSemester.trim().isEmpty()) {
+            return;
+        }
+        String cleanTerm = targetSemester.trim();
+
+        // Check the student's current latest term in DB
+        String currentTerm = "Pending";
+        String currentTermSql = """
+                SELECT COALESCE(co.term, 'Pending') AS term
+                FROM course_enrollment ce
+                JOIN course_offering co ON ce.offering_id = co.offering_id
+                WHERE ce.student_id = ?
+                ORDER BY ce.enrollment_id DESC
+                LIMIT 1
+                """;
+        try (PreparedStatement ps = conn.prepareStatement(currentTermSql)) {
+            ps.setInt(1, studentId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    currentTerm = rs.getString("term");
+                }
+            }
+        }
+
+        // No change needed if DB already matches selected semester
+        if (cleanTerm.equalsIgnoreCase(currentTerm)) {
+            return;
+        }
+
+        // If explicitly set back to Pending, clear enrollments that have no attendance/grade history
+        if (cleanTerm.equalsIgnoreCase("Pending")) {
+            String deleteSql = """
+                    DELETE FROM course_enrollment
+                    WHERE student_id = ?
+                      AND enrollment_id NOT IN (SELECT enrollment_id FROM attendance)
+                      AND enrollment_id NOT IN (SELECT enrollment_id FROM student_grade)
+                    """;
+            try (PreparedStatement ps = conn.prepareStatement(deleteSql)) {
+                ps.setInt(1, studentId);
+                ps.executeUpdate();
+            }
+            return;
+        }
+
+        if (!cleanTerm.equals("First Semester") && !cleanTerm.equals("Second Semester")) {
+            return;
+        }
+
+        // 1. Find an existing course_offering for this department & term
+        int offeringId = -1;
+        String findOfferingSql = """
+                SELECT co.offering_id
+                FROM course_offering co
+                JOIN course c ON co.course_id = c.course_id
+                WHERE c.dept_id = ? AND co.term = ?
+                ORDER BY co.year DESC, co.offering_id DESC
+                LIMIT 1
+                """;
+        try (PreparedStatement ps = conn.prepareStatement(findOfferingSql)) {
+            ps.setInt(1, deptId);
+            ps.setString(2, cleanTerm);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    offeringId = rs.getInt("offering_id");
+                }
+            }
+        }
+
+        // 2. If this department has no offering for that term yet, auto-create a default core course & offering
+        if (offeringId == -1) {
+            int courseId = -1;
+            String findCourseSql = "SELECT course_id FROM course WHERE dept_id = ? AND is_active = TRUE ORDER BY course_id ASC LIMIT 1";
+            try (PreparedStatement ps = conn.prepareStatement(findCourseSql)) {
+                ps.setInt(1, deptId);
+                try (ResultSet rs = ps.executeQuery()) {
+                    if (rs.next()) {
+                        courseId = rs.getInt("course_id");
+                    }
+                }
+            }
+
+            if (courseId == -1) {
+                String safeCode = (majorCode != null && !majorCode.trim().isEmpty()) ? majorCode.trim() : ("DEPT" + deptId);
+                String insertCourseSql = """
+                        INSERT INTO course (course_code, course_name, dept_id, course_type, credit, is_active)
+                        VALUES (?, ?, ?, 'Bachelor', 3.0, TRUE)
+                        """;
+                try (PreparedStatement ps = conn.prepareStatement(insertCourseSql, Statement.RETURN_GENERATED_KEYS)) {
+                    ps.setString(1, safeCode + "-101");
+                    ps.setString(2, safeCode + " Core Engineering");
+                    ps.setInt(3, deptId);
+                    ps.executeUpdate();
+                    try (ResultSet keys = ps.getGeneratedKeys()) {
+                        if (keys.next()) courseId = keys.getInt(1);
+                    }
+                }
+            }
+
+            int fallbackTeacherId = -1;
+            try (PreparedStatement ps = conn.prepareStatement("SELECT MIN(teacher_id) FROM teacher");
+                 ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) fallbackTeacherId = rs.getInt(1);
+            }
+
+            if (courseId != -1 && fallbackTeacherId > 0) {
+                String insertOfferingSql = """
+                        INSERT INTO course_offering (teacher_id, course_id, year, total_sessions, term)
+                        VALUES (?, ?, YEAR(CURDATE()), 10, ?)
+                        """;
+                try (PreparedStatement ps = conn.prepareStatement(insertOfferingSql, Statement.RETURN_GENERATED_KEYS)) {
+                    ps.setInt(1, fallbackTeacherId);
+                    ps.setInt(2, courseId);
+                    ps.setString(3, cleanTerm);
+                    ps.executeUpdate();
+                    try (ResultSet keys = ps.getGeneratedKeys()) {
+                        if (keys.next()) offeringId = keys.getInt(1);
+                    }
+                }
+            }
+        }
+
+        if (offeringId == -1) {
+            return;
+        }
+
+        // 3. If student already had an older enrollment for this same offering with no attendance/grades,
+        //    remove it so the fresh insert gets the latest enrollment_id (rn = 1)
+        String cleanOldSameOfferingSql = """
+                DELETE FROM course_enrollment
+                WHERE student_id = ? AND offering_id = ?
+                  AND enrollment_id NOT IN (SELECT enrollment_id FROM attendance)
+                  AND enrollment_id NOT IN (SELECT enrollment_id FROM student_grade)
+                """;
+        try (PreparedStatement ps = conn.prepareStatement(cleanOldSameOfferingSql)) {
+            ps.setInt(1, studentId);
+            ps.setInt(2, offeringId);
+            ps.executeUpdate();
+        }
+
+        // 4. Enroll student into the target semester offering
+        String enrollSql = """
+                INSERT IGNORE INTO course_enrollment (offering_id, student_id, enrollment_date, status)
+                VALUES (?, ?, CURDATE(), 'ENROLLED')
+                """;
+        try (PreparedStatement ps = conn.prepareStatement(enrollSql)) {
+            ps.setInt(1, offeringId);
+            ps.setInt(2, studentId);
+            ps.executeUpdate();
         }
     }
 

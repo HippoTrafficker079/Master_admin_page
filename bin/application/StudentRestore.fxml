@@ -5,41 +5,74 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
-<VBox prefHeight="440.0" prefWidth="680.0" spacing="12.0" style="-fx-background-color: #f8fafc; -fx-padding: 18;" stylesheets="@style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.StudentRestoreController">
+<VBox prefHeight="540.0" prefWidth="780.0" spacing="14.0"
+      style="-fx-background-color: #f1f5f9; -fx-padding: 20 22 18 22;"
+      stylesheets="@style.css"
+      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="application.StudentRestoreController">
    <children>
-      <!-- Prompt Instruction Header -->
-      <Label text="Select student row(s) below to restore to the active student list:" textFill="#334155">
-         <font>
-            <Font size="13.5" />
-         </font>
-      </Label>
+      <!-- Header -->
+      <VBox spacing="3.0">
+         <children>
+            <Label style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #1e3a8a;"
+                   text="Restore Deleted Students" />
+            <Label style="-fx-font-size: 13px; -fx-text-fill: #64748b;"
+                   text="Select archived students from the database to restore back to active records." />
+         </children>
+      </VBox>
 
-      <!-- Deleted Students Table View -->
-      <TableView fx:id="deletedTable" maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS">
-        <columns>
-          <TableColumn fx:id="colRollNo" prefWidth="110.0" text="Roll No" />
-          <TableColumn fx:id="colName" prefWidth="160.0" text="Full Name" />
-          <TableColumn fx:id="colMajor" prefWidth="85.0" text="Major" />
-          <TableColumn fx:id="colYear" prefWidth="115.0" text="Year" />
-          <TableColumn fx:id="colPhone" prefWidth="140.0" text="Phone" />
-        </columns>
-         <columnResizePolicy>
-            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
-         </columnResizePolicy>
-      </TableView>
+      <!-- White Rounded Card -->
+      <VBox spacing="12.0" styleClass="picker-card" VBox.vgrow="ALWAYS">
+         <children>
+            <!-- Search + Select All + Clear Toolbar -->
+            <HBox alignment="CENTER_LEFT" spacing="10.0">
+               <children>
+                  <TextField fx:id="searchField" prefHeight="36.0"
+                             promptText="🔍  Search by roll no, name, major, or year..."
+                             styleClass="picker-search-field" HBox.hgrow="ALWAYS" />
+                  <Button fx:id="btnSelectAll" mnemonicParsing="false" onAction="#handleSelectAll"
+                          prefHeight="36.0" prefWidth="100.0" styleClass="search-button" text="Select All" />
+                  <Button fx:id="btnClear" mnemonicParsing="false" onAction="#handleClear"
+                          prefHeight="36.0" prefWidth="82.0" styleClass="reset-button" text="Clear" />
+               </children>
+            </HBox>
+
+            <!-- Deleted Students Table with Pick Checkbox Column -->
+            <TableView fx:id="deletedTable" maxHeight="1.7976931348623157E308" VBox.vgrow="ALWAYS">
+               <columns>
+                  <TableColumn fx:id="colPick" maxWidth="65.0" minWidth="58.0" prefWidth="60.0" text="Pick" />
+                  <TableColumn fx:id="colRollNo" prefWidth="120.0" text="Roll No" />
+                  <TableColumn fx:id="colName" prefWidth="185.0" text="Student Name" />
+                  <TableColumn fx:id="colMajor" prefWidth="85.0" text="Major" />
+                  <TableColumn fx:id="colYear" prefWidth="120.0" text="Year" />
+                  <TableColumn fx:id="colPhone" prefWidth="140.0" text="Phone" />
+               </columns>
+               <columnResizePolicy>
+                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+               </columnResizePolicy>
+            </TableView>
+
+            <!-- Footer Selection Counter -->
+            <Label fx:id="lblSelectionStatus"
+                   style="-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #1e293b;"
+                   text="0 selected  •  0 available" />
+         </children>
+      </VBox>
 
       <!-- Bottom Right Action Buttons -->
       <HBox alignment="CENTER_RIGHT" spacing="10.0">
          <children>
-            <Button fx:id="btnRestore" mnemonicParsing="false" onAction="#handleRestoreSelected" prefHeight="34.0" prefWidth="120.0" styleClass="dialog-restore-button" text="Restore" />
-            <Button fx:id="btnCancel" mnemonicParsing="false" onAction="#handleCancel" prefHeight="34.0" prefWidth="85.0" styleClass="reset-button" text="Cancel" />
+            <Button fx:id="btnRestore" mnemonicParsing="false" onAction="#handleRestoreSelected"
+                    prefHeight="38.0" prefWidth="155.0" styleClass="dialog-restore-button" text="Restore Selected" />
+            <Button fx:id="btnCancel" mnemonicParsing="false" onAction="#handleCancel"
+                    prefHeight="38.0" prefWidth="98.0" styleClass="reset-button" text="Cancel" />
          </children>
          <VBox.margin>
-            <Insets top="4.0" />
+            <Insets top="2.0" />
          </VBox.margin>
       </HBox>
    </children>
